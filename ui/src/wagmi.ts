@@ -116,5 +116,7 @@ export const config = useLocalHardhatWallets
         appName: 'Commonality',
         appDescription: 'Fund projects and content around shared values',
         appUrl: 'https://commonality.app',
+        // Base Account (passkey smart wallet) first; extension Coinbase Wallet stays out of this connector.
+        coinbaseWalletPreference: { options: 'smartWalletOnly' },
       }),
     )

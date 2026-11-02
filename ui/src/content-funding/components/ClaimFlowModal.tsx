@@ -57,8 +57,8 @@ export function ClaimFlowModal({
   withdrawLocked = false,
 }: ClaimFlowModalProps) {
   const steps = includeTakeControl
-    ? ['Connect Wallet', 'Verify Identity', 'Withdraw Funds', 'Take Control']
-    : ['Connect Wallet', 'Verify Identity', 'Withdraw Funds']
+    ? ['Create an account', 'Verify Identity', 'Withdraw Funds', 'Take Control']
+    : ['Create an account', 'Verify Identity', 'Withdraw Funds']
   const { isConnected } = useAccount()
   const writeClients = useWriteClients(claimantAddress)
   const { getChallenge, confirmVerification, loading: apiLoading, error: apiError, clearError } = useClaimFlow()
@@ -184,13 +184,13 @@ export function ClaimFlowModal({
         return (
           <Box sx={{ textAlign: 'center', py: 3 }}>
             <Typography variant="h6" gutterBottom>
-              Connect your wallet
+              Create an account
             </Typography>
             <Typography color="text.secondary" sx={{ mb: 2 }}>
-              To verify your identity and claim these funds, you'll need to connect your Ethereum wallet.
+              To verify your identity and claim these funds, you&apos;ll need an Ethereum account.
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              If you don&apos;t have a wallet, you can create one using ConnectKit.
+              First-time users can create a Base Account with a passkey. If you already have a wallet, use that instead.
             </Typography>
           </Box>
         )

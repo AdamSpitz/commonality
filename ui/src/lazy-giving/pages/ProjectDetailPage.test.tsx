@@ -396,7 +396,7 @@ describe('ProjectDetailPage', () => {
       await waitFor(() => {
         expect(screen.getByLabelText('Give amount (USDC)')).toBeInTheDocument()
       })
-      expect(screen.getByText(/Sign in or connect a wallet before giving/)).toBeInTheDocument()
+      expect(screen.getByText(/Create an account or use a wallet you already have before giving/)).toBeInTheDocument()
       expect(screen.getByRole('button', { name: 'Pay by card' })).toBeDisabled()
       expect(screen.queryByText('Connect your wallet to give to this project.')).not.toBeInTheDocument()
     })

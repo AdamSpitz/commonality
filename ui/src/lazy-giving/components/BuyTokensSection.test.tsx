@@ -254,7 +254,7 @@ describe('BuyTokensSection', () => {
       const user = userEvent.setup()
       renderSection({ project: makeProject({ fundingCurrency: USDC_CURRENCY }), tokens: [makeToken({ price: '100000' })], address: undefined })
 
-      expect(screen.getByText(/Sign in or connect a wallet before giving/)).toBeInTheDocument()
+      expect(screen.getByText(/Create an account or use a wallet you already have before giving/)).toBeInTheDocument()
       expect(screen.getByRole('button', { name: 'Sign In / Wallet' })).toBeInTheDocument()
       await user.type(screen.getByLabelText('Give amount (USDC)'), '0.1')
       expect(screen.getByRole('button', { name: 'Give' })).toBeDisabled()

@@ -93,12 +93,12 @@ Redeploy to Base Sepolia with the incremental deploy script, and update the veri
 
 ### Phase 4 — Connect Wallet UX
 
+In progress on this branch: ConnectKit `coinbaseWalletPreference: { options: 'smartWalletOnly' }` (the SDK
+type is an object, not a string). Disconnected wallet CTA and first-time giver copy use "Create an account".
+
 - Make **Base Account** the main "create an account" path (passkey, no extension), and keep ConnectKit's
-  usual list (MetaMask, Rabby, WalletConnect) for people who already have a wallet. Check whether ConnectKit's
-  Coinbase connector can be set to smart-wallet-only or prefer it. If not, add wagmi's `baseAccount` /
-  `coinbaseWallet({ preference: 'smartWalletOnly' })` connector.
-- Wording for normies: "Create an account" / "I already have a wallet". Don't say "Connect Wallet" to
-  first-time card payers.
+  usual list (MetaMask, Rabby, WalletConnect) for people who already have a wallet.
+- Remaining: confirm Coinbase Onramp still works with a fresh Base Account; confirm the same account on verticals.
 - Coinbase Onramp (card → USDC) stays and works with any address. Re-check that the walletless contribution
   flow still works end to end with a fresh Base Account.
 - Separate-site verticals: the same Base Account appears on every site. Confirm with the vertical repo

@@ -236,7 +236,7 @@ describe('ChannelPage', () => {
     render(<ChannelPage />)
 
     expect(screen.getByRole('dialog')).toBeInTheDocument()
-    expect(screen.getByText(/connect your wallet/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/create an account/i).length).toBeGreaterThan(0)
   })
 
   it('does not invite claim takeover after the channel is creator-controlled', () => {

@@ -211,7 +211,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
 
   const handleStartOnramp = async () => {
     if (!address) {
-      setOnrampError('Sign in or connect a wallet before starting a card contribution.')
+      setOnrampError('Create an account or use a wallet you already have before starting a card contribution.')
       return
     }
 
@@ -239,7 +239,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
 
   const checkOnrampBalance = useCallback(async ({ quiet = false }: { quiet?: boolean } = {}) => {
     if (!address) {
-      setOnrampError('Sign in or connect a wallet before checking for on-ramp funds.')
+      setOnrampError('Create an account or use a wallet you already have before checking for on-ramp funds.')
       return null
     }
 
@@ -398,7 +398,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
 
       {!address && (
         <Alert severity="info" sx={{ mb: 2 }} action={<WalletButton />}>
-          Sign in or connect a wallet before giving. For card payments, this also creates the non-custodial wallet address that receives your USDC before you confirm the contribution.
+          Create an account or use a wallet you already have before giving. For card payments, this also creates the non-custodial wallet address that receives your USDC before you confirm the contribution.
         </Alert>
       )}
 

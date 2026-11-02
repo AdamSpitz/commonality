@@ -247,7 +247,7 @@ function BrowserWalletButton({ dense = false, testId = 'wallet-connect-button' }
     <ConnectKitButton.Custom>
       {({ isConnected, isConnecting, show, truncatedAddress, ensName }) => {
         const fallback = ensName ?? truncatedAddress ?? 'Connected'
-        const buttonLabel = isConnecting ? 'Connecting…' : isConnected ? fallback : 'Connect'
+        const buttonLabel = isConnecting ? 'Connecting…' : isConnected ? fallback : 'Create an account'
         return (
           <ConnectedAccountFrame address={isConnected ? address : undefined} label={buttonLabel} detail={ensName}>
             {(name) => (

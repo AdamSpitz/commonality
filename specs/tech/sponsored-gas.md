@@ -245,7 +245,7 @@ Implemented and tested:
 - validation against enrolled project + tank balance + wallet cap;
 - configurable minimum contribution floor for sponsored `buyERC1155` calls;
 - `postOp` debiting by actual gas cost;
-- SimpleAccount and Kernel calldata decoding for `execute` and `executeBatch`;
+- SimpleAccount, Coinbase Smart Wallet / Base Account (`executeBatch((address,uint256,bytes)[])`), and Kernel calldata decoding for `execute` and `executeBatch`;
 - sponsorship allowlist for `buyERC1155`, `refundERC1155`, settlement-token `approve(project, amount)`,
   and ERC-1155 `setApprovalForAll(project, true)`;
 - incremental deployment-script wiring for `CreatorGasTank` and local mock EntryPoint deployment;
