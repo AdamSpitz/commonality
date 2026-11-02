@@ -6,6 +6,7 @@ import {PackedUserOperation} from "@account-abstraction/contracts/interfaces/Pac
 import {IEntryPoint} from "@account-abstraction/contracts/interfaces/IEntryPoint.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
+import {AccountCallDecoder} from "./AccountCallDecoder.sol";
 
 interface IERC1155PrimaryMarketPricing {
   function erc1155TotalCost(
@@ -26,22 +27,6 @@ contract CreatorGasTank is BasePaymaster {
   uint256 private constant PAYMASTER_HEADER_LENGTH = 52;
   uint256 private constant ADDRESS_BYTES = 20;
 
-  bytes4 private constant SIMPLE_ACCOUNT_EXECUTE_SELECTOR =
-    bytes4(keccak256("execute(address,uint256,bytes)"));
-  bytes4 private constant SIMPLE_ACCOUNT_EXECUTE_BATCH_SELECTOR =
-    bytes4(keccak256("executeBatch(address[],uint256[],bytes[])"));
-  // Base Account / Coinbase Smart Wallet: executeBatch((address dest, uint256 value, bytes data)[])
-  bytes4 private constant COINBASE_SMART_WALLET_EXECUTE_BATCH_SELECTOR =
-    bytes4(keccak256("executeBatch((address,uint256,bytes)[])"));
-  // Kernel v3 routes every execution through the ERC-7579 execute(bytes32 mode, bytes executionCalldata)
-  // entrypoint (selector 0xe9ae5c53). `mode`'s first byte is the ERC-7579 CallType; single vs batch is
-  // determined by that byte, not by a distinct selector.
-  bytes4 private constant KERNEL_V3_EXECUTE_SELECTOR =
-    bytes4(keccak256("execute(bytes32,bytes)"));
-  bytes1 private constant ERC7579_CALLTYPE_SINGLE = 0x00;
-  bytes1 private constant ERC7579_CALLTYPE_BATCH = 0x01;
-  // Packed single execution: address target (20) || uint256 value (32) || bytes callData (remainder).
-  uint256 private constant ERC7579_SINGLE_HEADER_LENGTH = 52;
   bytes4 private constant ERC20_APPROVE_SELECTOR = IERC20.approve.selector;
   bytes4 private constant ERC1155_SET_APPROVAL_FOR_ALL_SELECTOR = IERC1155.setApprovalForAll.selector;
   bytes4 private constant BUY_ERC1155_SELECTOR =
@@ -57,12 +42,6 @@ contract CreatorGasTank is BasePaymaster {
   struct WalletUsage {
     uint64 windowStartedAt;
     uint192 sponsoredWei;
-  }
-
-  struct KernelExecution {
-    address target;
-    uint256 value;
-    bytes callData;
   }
 
   mapping(address creator => uint256 balance) public tankBalance;
@@ -220,95 +199,14 @@ contract CreatorGasTank is BasePaymaster {
   }
 
   function _validateAccountCall(address project, bytes calldata accountCallData) private view {
-    if (accountCallData.length < 4) revert InvalidAccountCallDataLength(accountCallData.length);
-    bytes4 accountSelector = bytes4(accountCallData[:4]);
-    if (accountSelector == SIMPLE_ACCOUNT_EXECUTE_SELECTOR) {
-      (address target, uint256 value, bytes memory innerCallData) = abi.decode(
-        accountCallData[4:],
-        (address, uint256, bytes)
-      );
-      if (!_validateSponsoredCall(project, target, value, innerCallData)) revert MissingSponsoredPrimaryAction();
-      return;
+    AccountCallDecoder.Execution[] memory executions = AccountCallDecoder.decodeExecutions(accountCallData);
+    bool hasPrimaryAction = false;
+    for (uint256 i = 0; i < executions.length; i++) {
+      hasPrimaryAction =
+        _validateSponsoredCall(project, executions[i].target, executions[i].value, executions[i].callData) ||
+        hasPrimaryAction;
     }
-
-    if (accountSelector == SIMPLE_ACCOUNT_EXECUTE_BATCH_SELECTOR) {
-      (address[] memory targets, uint256[] memory values, bytes[] memory calls) = abi.decode(
-        accountCallData[4:],
-        (address[], uint256[], bytes[])
-      );
-      if (targets.length != calls.length || (values.length != 0 && values.length != calls.length)) {
-        revert InvalidBatchLengths();
-      }
-      bool hasPrimaryAction = false;
-      for (uint256 i = 0; i < targets.length; i++) {
-        uint256 value = values.length == 0 ? 0 : values[i];
-        hasPrimaryAction = _validateSponsoredCall(project, targets[i], value, calls[i]) || hasPrimaryAction;
-      }
-      if (!hasPrimaryAction) revert MissingSponsoredPrimaryAction();
-      return;
-    }
-
-    if (accountSelector == COINBASE_SMART_WALLET_EXECUTE_BATCH_SELECTOR) {
-      KernelExecution[] memory executions = abi.decode(accountCallData[4:], (KernelExecution[]));
-      bool hasPrimaryAction = false;
-      for (uint256 i = 0; i < executions.length; i++) {
-        hasPrimaryAction =
-          _validateSponsoredCall(project, executions[i].target, executions[i].value, executions[i].callData) ||
-          hasPrimaryAction;
-      }
-      if (!hasPrimaryAction) revert MissingSponsoredPrimaryAction();
-      return;
-    }
-
-    if (accountSelector == KERNEL_V3_EXECUTE_SELECTOR) {
-      (bytes32 mode, bytes memory executionCalldata) = abi.decode(accountCallData[4:], (bytes32, bytes));
-      bytes1 callType = bytes1(mode);
-
-      if (callType == ERC7579_CALLTYPE_SINGLE) {
-        (address target, uint256 value, bytes memory innerCallData) = _decodeErc7579SingleExecution(executionCalldata);
-        if (!_validateSponsoredCall(project, target, value, innerCallData)) revert MissingSponsoredPrimaryAction();
-        return;
-      }
-
-      if (callType == ERC7579_CALLTYPE_BATCH) {
-        // ERC-7579 batch executionCalldata is abi.encode(Execution[]), Execution = (address,uint256,bytes),
-        // which is exactly the KernelExecution tuple.
-        KernelExecution[] memory executions = abi.decode(executionCalldata, (KernelExecution[]));
-        bool hasPrimaryAction = false;
-        for (uint256 i = 0; i < executions.length; i++) {
-          hasPrimaryAction = _validateSponsoredCall(project, executions[i].target, executions[i].value, executions[i].callData) || hasPrimaryAction;
-        }
-        if (!hasPrimaryAction) revert MissingSponsoredPrimaryAction();
-        return;
-      }
-
-      revert UnsupportedCallType(callType);
-    }
-
-    revert UnsupportedAccountCall(accountSelector);
-  }
-
-  /// @dev Parse an ERC-7579 single-call executionCalldata: packed target(20) || value(32) || callData(rest).
-  function _decodeErc7579SingleExecution(bytes memory executionCalldata)
-    private
-    pure
-    returns (address target, uint256 value, bytes memory innerCallData)
-  {
-    if (executionCalldata.length < ERC7579_SINGLE_HEADER_LENGTH) {
-      revert InvalidExecutionCalldataLength(executionCalldata.length);
-    }
-    uint256 innerLength = executionCalldata.length - ERC7579_SINGLE_HEADER_LENGTH;
-    innerCallData = new bytes(innerLength);
-    assembly {
-      let dataPtr := add(executionCalldata, 32)
-      target := shr(96, mload(dataPtr))
-      value := mload(add(dataPtr, ADDRESS_BYTES))
-      let src := add(dataPtr, ERC7579_SINGLE_HEADER_LENGTH)
-      let dst := add(innerCallData, 32)
-      for { let i := 0 } lt(i, innerLength) { i := add(i, 32) } {
-        mstore(add(dst, i), mload(add(src, i)))
-      }
-    }
+    if (!hasPrimaryAction) revert MissingSponsoredPrimaryAction();
   }
 
   function _validateSponsoredCall(

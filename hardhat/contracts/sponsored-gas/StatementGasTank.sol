@@ -4,6 +4,7 @@ pragma solidity 0.8.33;
 import {BasePaymaster} from "@account-abstraction/contracts/core/BasePaymaster.sol";
 import {PackedUserOperation} from "@account-abstraction/contracts/interfaces/PackedUserOperation.sol";
 import {IEntryPoint} from "@account-abstraction/contracts/interfaces/IEntryPoint.sol";
+import {AccountCallDecoder} from "./AccountCallDecoder.sol";
 
 /**
  * @title StatementGasTank
@@ -19,20 +20,8 @@ import {IEntryPoint} from "@account-abstraction/contracts/interfaces/IEntryPoint
  */
 contract StatementGasTank is BasePaymaster {
   uint256 private constant PAYMASTER_HEADER_LENGTH = 52;
-  uint256 private constant ADDRESS_BYTES = 20;
   uint8 private constant BELIEVES = 1;
 
-  bytes4 private constant SIMPLE_ACCOUNT_EXECUTE_SELECTOR =
-    bytes4(keccak256("execute(address,uint256,bytes)"));
-  bytes4 private constant SIMPLE_ACCOUNT_EXECUTE_BATCH_SELECTOR =
-    bytes4(keccak256("executeBatch(address[],uint256[],bytes[])"));
-  bytes4 private constant COINBASE_SMART_WALLET_EXECUTE_BATCH_SELECTOR =
-    bytes4(keccak256("executeBatch((address,uint256,bytes)[])"));
-  bytes4 private constant KERNEL_V3_EXECUTE_SELECTOR =
-    bytes4(keccak256("execute(bytes32,bytes)"));
-  bytes1 private constant ERC7579_CALLTYPE_SINGLE = 0x00;
-  bytes1 private constant ERC7579_CALLTYPE_BATCH = 0x01;
-  uint256 private constant ERC7579_SINGLE_HEADER_LENGTH = 52;
   bytes4 private constant SET_BELIEF_SELECTOR =
     bytes4(keccak256("setBelief(bytes32,uint8)"));
   bytes4 private constant SET_BELIEFS_IN_BATCH_SELECTOR =
@@ -46,12 +35,6 @@ contract StatementGasTank is BasePaymaster {
   struct WalletUsage {
     uint64 windowStartedAt;
     uint192 sponsoredWei;
-  }
-
-  struct KernelExecution {
-    address target;
-    uint256 value;
-    bytes callData;
   }
 
   mapping(address sponsor => uint256 balance) public tankBalance;
@@ -187,90 +170,20 @@ contract StatementGasTank is BasePaymaster {
   }
 
   function _validateAccountCall(address sponsor, bytes32 anchor, bytes calldata accountCallData) private view {
-    if (accountCallData.length < 4) revert InvalidAccountCallDataLength(accountCallData.length);
-    bytes4 accountSelector = bytes4(accountCallData[:4]);
+    AccountCallDecoder.Execution[] memory executions = AccountCallDecoder.decodeExecutions(accountCallData);
+    if (executions.length == 0) revert EmptySponsoredBatch();
     bool sawAnchor = false;
-
-    if (accountSelector == SIMPLE_ACCOUNT_EXECUTE_SELECTOR) {
-      (address target, uint256 value, bytes memory innerCallData) = abi.decode(
-        accountCallData[4:],
-        (address, uint256, bytes)
-      );
-      sawAnchor = _validateSponsoredCall(sponsor, anchor, target, value, innerCallData);
-    } else if (accountSelector == SIMPLE_ACCOUNT_EXECUTE_BATCH_SELECTOR) {
-      (address[] memory targets, uint256[] memory values, bytes[] memory calls) = abi.decode(
-        accountCallData[4:],
-        (address[], uint256[], bytes[])
-      );
-      if (targets.length != calls.length || (values.length != 0 && values.length != calls.length)) {
-        revert InvalidBatchLengths();
-      }
-      if (targets.length == 0) revert EmptySponsoredBatch();
-      for (uint256 i = 0; i < targets.length; i++) {
-        uint256 value = values.length == 0 ? 0 : values[i];
-        sawAnchor = _validateSponsoredCall(sponsor, anchor, targets[i], value, calls[i]) || sawAnchor;
-      }
-    } else if (accountSelector == COINBASE_SMART_WALLET_EXECUTE_BATCH_SELECTOR) {
-      KernelExecution[] memory executions = abi.decode(accountCallData[4:], (KernelExecution[]));
-      if (executions.length == 0) revert EmptySponsoredBatch();
-      for (uint256 i = 0; i < executions.length; i++) {
-        sawAnchor = _validateSponsoredCall(
+    for (uint256 i = 0; i < executions.length; i++) {
+      sawAnchor =
+        _validateSponsoredCall(
           sponsor,
           anchor,
           executions[i].target,
           executions[i].value,
           executions[i].callData
         ) || sawAnchor;
-      }
-    } else if (accountSelector == KERNEL_V3_EXECUTE_SELECTOR) {
-      (bytes32 mode, bytes memory executionCalldata) = abi.decode(accountCallData[4:], (bytes32, bytes));
-      bytes1 callType = bytes1(mode);
-
-      if (callType == ERC7579_CALLTYPE_SINGLE) {
-        (address target, uint256 value, bytes memory innerCallData) = _decodeErc7579SingleExecution(executionCalldata);
-        sawAnchor = _validateSponsoredCall(sponsor, anchor, target, value, innerCallData);
-      } else if (callType == ERC7579_CALLTYPE_BATCH) {
-        KernelExecution[] memory executions = abi.decode(executionCalldata, (KernelExecution[]));
-        if (executions.length == 0) revert EmptySponsoredBatch();
-        for (uint256 i = 0; i < executions.length; i++) {
-          sawAnchor = _validateSponsoredCall(
-            sponsor,
-            anchor,
-            executions[i].target,
-            executions[i].value,
-            executions[i].callData
-          ) || sawAnchor;
-        }
-      } else {
-        revert UnsupportedCallType(callType);
-      }
-    } else {
-      revert UnsupportedAccountCall(accountSelector);
     }
-
     if (!sawAnchor) revert AnchorStatementMissing(anchor);
-  }
-
-  function _decodeErc7579SingleExecution(bytes memory executionCalldata)
-    private
-    pure
-    returns (address target, uint256 value, bytes memory innerCallData)
-  {
-    if (executionCalldata.length < ERC7579_SINGLE_HEADER_LENGTH) {
-      revert InvalidExecutionCalldataLength(executionCalldata.length);
-    }
-    uint256 innerLength = executionCalldata.length - ERC7579_SINGLE_HEADER_LENGTH;
-    innerCallData = new bytes(innerLength);
-    assembly {
-      let dataPtr := add(executionCalldata, 32)
-      target := shr(96, mload(dataPtr))
-      value := mload(add(dataPtr, ADDRESS_BYTES))
-      let src := add(dataPtr, ERC7579_SINGLE_HEADER_LENGTH)
-      let dst := add(innerCallData, 32)
-      for { let i := 0 } lt(i, innerLength) { i := add(i, 32) } {
-        mstore(add(dst, i), mload(add(src, i)))
-      }
-    }
   }
 
   /// @return sawAnchor True when this call includes the paymasterData anchor statement.

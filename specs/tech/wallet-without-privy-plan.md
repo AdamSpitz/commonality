@@ -81,8 +81,7 @@ In progress: `wallet_getCapabilities` + `VITE_SPONSORED_GAS_PAYMASTER_URL` on `w
 `executeBatch((address,uint256,bytes)[])` plus SimpleAccount `execute` / `executeBatch(address[],uint256[],bytes[])`
 alongside ERC-7579. Unknown formats still revert or 400.
 
-3b. **v0.6 EntryPoint faces, one pot (Adam, 2026-11-02).** Base Account is v0.6, so each tank type needs a
-v0.6 `validatePaymasterUserOp` the Coinbase bundler can call. **Funders must not see two pots.** One funding
+3b. **v0.6 EntryPoint faces, one pot (Adam, 2026-11-02).** Shared `AccountCallDecoder` library extracts wallet execute/executeBatch/ERC-7579 calldata so both EntryPoint faces can reuse it. Still needed: a v0.6 `validatePaymasterUserOp` the Coinbase bundler can call. **Funders must not see two pots.** One funding
 address, one ETH balance, one enrollment/cap story per tank type (`CreatorGasTank` / `StatementGasTank`).
 Whether that is one contract with both ABIs or two thin paymasters that debit a shared vault is an
 implementation detail. Do not add a second "fund the Base Account tank" action, and do not let passkey
