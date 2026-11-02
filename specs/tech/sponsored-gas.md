@@ -35,22 +35,16 @@ deployer can always transact, the runner may not be able to.
 
 ## Decisions
 
-### 1. Account model — EIP-4337 with Privy (ratified)
+### 1. Account model — EIP-4337, wallet-chosen (ADR 0021)
 
-**Embedded-wallet provider: Privy — ratified 2026-06-18.** Best-in-class normie onboarding,
-provider-agnostic, and advertises key export (so we're not hard-locked — see lock-in note below).
-The provider choice is settled; the remaining Privy work is the hands-on feasibility spike (the
-`[confirm in spike]` items in [bridges.md](/specs/tech/bridges.md)) and the per-wallet economics
-sanity-check before mainnet — neither reopens *which* provider.
+**Wallet: the user brings one** (Base Account first for passkey signup; ConnectKit for everyone
+else). We do not pin an embedded-wallet vendor. Privy was the 2026-06-18 choice in ADR 0001; that
+provider decision is superseded by [ADR 0021](/specs/decisions/0021-portable-wallets-not-privy.md).
 
-**Account model: EIP-4337 smart accounts.** Universally supported and what the custom paymaster
-below already assumes. (EIP-7702 remains a possible future lighter-weight path; revisit only if
-there's a concrete reason and confirm Privy support first.)
-
-The **Privy** wallet provider is ratified (2026-06-18). The account model (EIP-4337) and bundler
-(Pimlico) remain working choices to unblock implementation, not irreversible commitments — the
-embedded-wallet UX is still worth a hands-on spike, and the per-wallet economics should be
-sanity-checked before mainnet.
+**Account model: EIP-4337 smart accounts**, of whatever family the wallet deploys. Sponsorship is
+ERC-7677 `paymasterService` on EIP-5792 `wallet_sendCalls`. Wallets without that capability pay
+their own gas. Base Account uses EntryPoint v0.6; our tanks expose a v0.6 paymaster face on the
+same pot as v0.7.
 
 ### 2. Bundler — Pimlico (working choice); paymaster — our own contract
 
@@ -63,18 +57,16 @@ balances on a dashboard; they don't do open onchain funding by arbitrary contrib
 
 #### Provider options — reference comparison
 
-These are the two *separate* vendor choices (embedded wallet + bundler) plus the cross-cutting
-account-model axis. **Choices: Privy (wallet) — ratified; Pimlico (bundler) + EIP-4337 — working.**
-This table records the alternatives we weighed and why, and is the input to revisit if we ever migrate.
+Historical comparison. **Current: portable wallet (Base Account + ConnectKit); our paymaster;**
+the wallet's bundler submits UserOps. Pimlico is no longer the product bundler.
 
-**Embedded-wallet provider** (the normie's invisible wallet):
+**Wallet (the user's account):**
 
 | Provider | Strengths | Trade-offs |
 | --- | --- | --- |
-| **Privy** | Best-in-class normie onboarding (email/social), provider-agnostic, huge consumer-crypto adoption, clean card-onramp story | Third-party dependency; pricing scales with MAUs |
-| **Coinbase CDP / Smart Wallet** | Tightest **Base** fit (we're on Base), Coinbase brand trust for normies, passkey-based smart wallet | More Coinbase-opinionated; smart-wallet model can be harder to swap out |
-| **Dynamic** | Similar to Privy, strong dashboards / multi-chain, good dev UX | Smaller ecosystem than Privy; another vendor lock-in |
-| **Turnkey** | Low-level key management, maximum control | We build most of the UX ourselves — more work, fewer batteries included |
+| **Base Account (Coinbase Smart Wallet)** | Passkey, portable across sites, ERC-7677, Base-native | Coinbase popup / key infra; EntryPoint v0.6 |
+| **Injected EOA (MetaMask, Rabby, …)** | Users already have it | Usually no paymasterService; user pays tiny gas |
+| **Privy (retired)** | Email login | Account not portable to separate-site verticals |
 
 **Bundler / AA infra** (mempool + UserOp bundling):
 

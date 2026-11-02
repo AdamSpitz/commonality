@@ -40,8 +40,6 @@ vi.mock('connectkit', () => ({
   useModal: () => ({ setOpen: vi.fn(), open: false }),
 }))
 
-vi.mock('../../wagmi', () => ({ isPrivyEnabled: false }))
-
 // Mock SDK
 vi.mock('@commonality/sdk/lazy-giving', async () => {
   const actual = await vi.importActual('@commonality/sdk/lazy-giving')

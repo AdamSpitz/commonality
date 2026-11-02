@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState, type HTMLAttributes, type MouseEvent } from 'react'
+import { useState, type HTMLAttributes, type MouseEvent } from 'react'
 import {
   Button,
   CircularProgress,
@@ -17,11 +17,8 @@ import {
   isLocalDevHost,
   shortAddress,
 } from '../wallet/hardhatAccounts'
-import { isPrivyEnabled } from '../../wagmi'
 import { useTestDataSession } from '../wallet/testDataSession'
 import { ConnectedAccountFrame } from './AccountName'
-
-const PrivyWalletButton = lazy(() => import('./PrivyWalletButtonImpl'))
 
 interface WalletButtonProps {
   dense?: boolean
@@ -281,13 +278,6 @@ function WalletButtonInner(props: WalletButtonProps) {
   const testDataSession = useTestDataSession()
   if (testDataSession) {
     return <TestDataWalletButton {...props} />
-  }
-  if (isPrivyEnabled) {
-    return (
-      <Suspense fallback={<WalletButtonLoadingFallback />}>
-        <PrivyWalletButton />
-      </Suspense>
-    )
   }
   if (props.localHardhatAccounts && isLocalDevHost()) {
     return <LocalHardhatWalletButton {...props} />

@@ -1,6 +1,6 @@
-import { StrictMode, Suspense, lazy, useState, useCallback, useEffect, useMemo } from 'react'
+import { StrictMode, useState, useCallback, useEffect, useMemo } from 'react'
 import { createRoot } from 'react-dom/client'
-import { Box, CircularProgress, CssBaseline, ThemeProvider, createTheme } from '@mui/material'
+import { CssBaseline, ThemeProvider, createTheme } from '@mui/material'
 import type { PaletteMode, Theme } from '@mui/material'
 import { WagmiProvider, useAccount, useConnect } from 'wagmi'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -9,7 +9,6 @@ import {
   config,
   createMockConfig,
   createTestDataConfig,
-  isPrivyEnabled,
 } from './wagmi'
 import './index.css'
 import App from './App.tsx'
@@ -138,8 +137,6 @@ function createAppTheme(mode: PaletteMode): Theme {
   })
 }
 
-const PrivyAppProvider = lazy(() => import('./privy/PrivyAppProvider'))
-
 installStaleBuildRecovery()
 
 // Global type declaration for E2E test helper
@@ -219,26 +216,6 @@ export function Root() {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <QueryClientProvider client={queryClient}>
-        {isPrivyEnabled && !testWagmiConfig ? (
-          <Suspense
-            fallback={(
-              <Box
-                sx={{
-                  minHeight: '100vh',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <CircularProgress />
-              </Box>
-            )}
-          >
-            <PrivyAppProvider>
-              <App />
-            </PrivyAppProvider>
-          </Suspense>
-        ) : (
           <WagmiProvider
             key={testWagmiConfig ? `test-data-${adminConnectionId}` : 'app'}
             config={wagmiConfig}
@@ -249,7 +226,6 @@ export function Root() {
               <App />
             </ConnectKitProvider>
           </WagmiProvider>
-        )}
         </QueryClientProvider>
       </ThemeProvider>
       </TestDataSessionContext.Provider>

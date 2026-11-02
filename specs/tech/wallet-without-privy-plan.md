@@ -63,7 +63,7 @@ single `execute(address,uint256,bytes)` (`0xb61d27f6`); batch `executeBatch((add
 
 ### Phase 2 — Capability-driven sponsorship in the SDK/UI (works for any wallet)
 
-In progress: `wallet_getCapabilities` + `VITE_SPONSORED_GAS_PAYMASTER_URL` on `wallet_sendCalls`; UI batching no longer keys off Privy.
+Done on this branch: `wallet_getCapabilities` + `VITE_SPONSORED_GAS_PAYMASTER_URL` on `wallet_sendCalls`; UI batching no longer keys off Privy.
 
 - In `sdk/src/subsystems/lazy-giving/actions.ts` (`sendAtomicContractCalls`) and
   `ui/src/commonality/lib/causeRoster.ts` (`sendCallsPreferAtomic`), call `wallet_getCapabilities` once per
@@ -104,6 +104,11 @@ type is an object, not a string). Disconnected wallet CTA and first-time giver c
   mentioned in [inbox.md](/inbox.md).
 
 ### Phase 5 — Remove Privy and update the docs
+
+Code and docs on this branch: Privy packages, provider tree, `VITE_PRIVY_*`, and the Privy console
+allowlist are gone. [ADR 0021](/specs/decisions/0021-portable-wallets-not-privy.md) supersedes
+ADR 0001's wallet-provider decision. Remaining: testnet tank redeploy (Phase 3b), Onramp + verticals
+confirm (Phase 4), then drop this item from [focus.md](/focus.md).
 
 - Delete `ui/src/privy/`, `ui/src/shared/components/PrivyWalletButtonImpl.tsx`, the Privy branches in
   `ui/src/wagmi.ts`, `ui/src/main.tsx`, `ui/src/shared/components/WalletButton.tsx` and the LazyGiving

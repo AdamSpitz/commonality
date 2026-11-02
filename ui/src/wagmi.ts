@@ -5,17 +5,12 @@ import { mock } from 'wagmi/connectors'
 import { isAddress } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import type { MockParameters } from 'wagmi/connectors'
-import { isPrivySmartWalletEnabled } from './privy/config'
 import { HARDHAT_DEV_ACCOUNTS, isLocalDevHost } from './shared/wallet/hardhatAccounts'
 import { hardhatLocalConnector } from './shared/wallet/hardhatLocalConnector'
 import { testDataWalletConnector } from './shared/wallet/testDataWalletConnector'
 
 export const walletConnectProjectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || ''
 export const isE2E = import.meta.env.VITE_E2E === 'true'
-export const privyAppId = import.meta.env.VITE_PRIVY_APP_ID?.trim() || ''
-export const privyClientId = import.meta.env.VITE_PRIVY_CLIENT_ID?.trim() || undefined
-export const privySmartWalletBundlerUrl = import.meta.env.VITE_PRIVY_SMART_WALLET_BUNDLER_URL?.trim() || ''
-export const privySmartWalletPaymasterUrl = import.meta.env.VITE_PRIVY_SMART_WALLET_PAYMASTER_URL?.trim() || undefined
 /**
  * Local Docker / vite: unlocked Hardhat accounts instead of browser wallets.
  *
@@ -25,9 +20,6 @@ export const privySmartWalletPaymasterUrl = import.meta.env.VITE_PRIVY_SMART_WAL
  * need a specific account still call `window._setupTestWallet`.
  */
 export const useLocalHardhatWallets = isLocalDevHost()
-
-export const isPrivyEnabled = !isE2E && !useLocalHardhatWallets && privyAppId.length > 0
-export { isPrivySmartWalletEnabled }
 
 const mainnetRpcUrl = import.meta.env.VITE_MAINNET_RPC_URL || 'https://ethereum-rpc.publicnode.com'
 const baseRpcUrl = import.meta.env.VITE_BASE_RPC_URL || 'https://mainnet.base.org'

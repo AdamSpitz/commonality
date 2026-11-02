@@ -8,10 +8,8 @@ export function formatConsoleErrorSummary(error: ConsoleErrorSummary): string {
 }
 
 export function isBenignArtifactConsoleError(error: ConsoleErrorSummary): boolean {
-  const searchable = `${error.text} ${error.url ?? ''}`
-  const hasPrivyContext = /PrivyAppProvider|privy|auth\.privy\.io|privy\.io|privy\.app/i.test(searchable)
-  const isKnownHostedWidgetNoise = /Failed to fetch|frame-ancestors|Refused to frame|Content Security Policy|status of 403|ERR_NETWORK_CHANGED|Cross-Origin-Opener-Policy/i.test(searchable)
-  return hasPrivyContext && isKnownHostedWidgetNoise
+  void error
+  return false
 }
 
 export function filterActionableArtifactConsoleErrors(errors: ConsoleErrorSummary[]): string[] {
