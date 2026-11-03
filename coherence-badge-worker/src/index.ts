@@ -80,7 +80,6 @@ export async function runWorker(config: WorkerConfig, signal?: AbortSignal): Pro
   await runPollLoop({
     serviceName: 'commonality-coherence-badge-worker',
     signal,
-    sleep,
     poll: async () => {
       if (!chainReady) {
         validateRpcChainId(await client.getChainId(), config.chainId);

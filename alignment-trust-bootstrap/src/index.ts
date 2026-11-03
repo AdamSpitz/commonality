@@ -34,7 +34,6 @@ export async function runBootstrap(config: BootstrapConfig, signal?: AbortSignal
   await runPollLoop({
     serviceName: 'commonality-alignment-trust-bootstrap',
     signal,
-    sleep,
     poll: async () => {
       if (!chainReady) {
         const rpcChainId = await publicClient.getChainId();

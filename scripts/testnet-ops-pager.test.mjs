@@ -7,6 +7,7 @@ import {
   isPrunedPublicRpc,
   lagSeconds,
   probeAlchemy,
+  probeIndexerLag,
   probePrivateIpfs,
   probePublicEdges,
   probeRenderSuspend,
@@ -67,6 +68,16 @@ test('alchemy pages on monthly capacity without a retry, and retries a burst 429
   }, 'https://example.test/v2/secret', async (ms) => { slept = ms })
   assert.equal(burst.ok, true)
   assert.equal(slept, 60_000)
+})
+
+test('indexer lag is not a second failure when the Alchemy head probe already failed', async () => {
+  const result = await probeIndexerLag(async () => ({
+    ok: true,
+    status: 200,
+    text: async () => JSON.stringify({ block: { number: 10, timestamp: 1_000 } }),
+  }), { ok: false, reason: 'Alchemy monthly capacity limit exceeded.' })
+  assert.equal(result.ok, true)
+  assert.match(result.reason, /not measured/i)
 })
 
 test('public edges require chain 84532 and HTTP 200', async () => {

@@ -208,6 +208,9 @@ export async function probeIndexerLag(fetchImpl, head) {
   try { payload = JSON.parse(text) } catch { return { ok: false, reason: 'Indexer /status was not JSON.' } }
   const indexed = indexerBlock(payload)
   if (!indexed) return { ok: false, reason: 'Indexer /status had no block number.' }
+  if (head && head.ok === false) {
+    return { ok: true, reason: `Indexer /status is at block ${indexed.number}. Lag was not measured because the Alchemy head probe failed.` }
+  }
   const lag = lagSeconds(indexed, head)
   if (lag == null) return { ok: false, reason: `Indexer is at block ${indexed.number}, but the head timestamp was missing.` }
   if (lag > LAG_LIMIT_SECONDS) {

@@ -36,7 +36,6 @@ export async function runMirror(config: MirrorConfig, signal?: AbortSignal): Pro
   await runPollLoop({
     serviceName: 'commonality-published-data-ipfs-mirror',
     signal,
-    sleep,
     poll: async () => {
       if (!chainReady) {
         validateRpcChainId(await client.getChainId(), config.chainId);
