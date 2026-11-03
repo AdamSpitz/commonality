@@ -37,7 +37,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p tmp
-          id=$(gh run list --workflow testnet-ops-pager.yml --status completed --limit 1 --json databaseId --jq '.[0].databaseId // empty')
+          id=$(gh run list --workflow testnet-ops-pager.yml --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty')
           if [ -n "$id" ]; then
             gh run download "$id" --name pager-state --dir tmp || true
           fi

@@ -266,13 +266,16 @@ export async function probePrivateIpfs(fetchImpl, apiKey, services) {
 }
 
 export async function runProbes({ fetchImpl, sleep, config }) {
+  const edges = probePublicEdges(fetchImpl)
+  const alchemyPromise = probeAlchemy(fetchImpl, config.rpcUrl, sleep)
   if (!config.renderApiKey) {
     const reason = 'RENDER_API_KEY is unset.'
+    const alchemy = await alchemyPromise
     return {
       'render-suspend': { ok: false, reason },
-      alchemy: { ok: false, reason: 'Skipped because the pager could not authenticate.' },
-      'indexer-lag': { ok: false, reason: 'Skipped because the pager could not authenticate.' },
-      'public-edges': await probePublicEdges(fetchImpl),
+      alchemy: { ok: alchemy.ok, reason: alchemy.reason },
+      'indexer-lag': await probeIndexerLag(fetchImpl, alchemy),
+      'public-edges': await edges,
       'private-ipfs': { ok: false, reason },
     }
   }
@@ -283,10 +286,10 @@ export async function runProbes({ fetchImpl, sleep, config }) {
   } catch (error) {
     renderError = error.message
   }
-  const alchemy = await probeAlchemy(fetchImpl, config.rpcUrl, sleep)
-  const [indexer, edges] = await Promise.all([
+  const alchemy = await alchemyPromise
+  const [indexer, publicEdges] = await Promise.all([
     probeIndexerLag(fetchImpl, alchemy),
-    probePublicEdges(fetchImpl),
+    edges,
   ])
   return {
     'render-suspend': renderError
@@ -294,7 +297,7 @@ export async function runProbes({ fetchImpl, sleep, config }) {
       : await probeRenderSuspend(services),
     alchemy: { ok: alchemy.ok, reason: alchemy.reason },
     'indexer-lag': indexer,
-    'public-edges': edges,
+    'public-edges': publicEdges,
     'private-ipfs': renderError
       ? { ok: false, reason: renderError }
       : await probePrivateIpfs(fetchImpl, config.renderApiKey, services),
