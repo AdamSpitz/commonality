@@ -6,6 +6,7 @@ export * from './resumableFold.js';
 export * from './eventDecoder.js';
 export * from './ipfs.js';
 export * from './chain-reads.js';
+export * from './rpc-budget.js';
 export * from './chainIds.js';
 export * from './currency.js';
 export * from './funding-summary.js';

@@ -69,7 +69,7 @@ jobs:
         run: npm run build --workspace=@commonality/sdk
 
       - name: Run remaining fast tests
-        run: npm run check:docs-inventory && node --test scripts/lib/deep-cadence-local-stack.test.mjs && npm run sdk:test:raw && npm run integration-tests:test:harness:raw
+        run: npm run check:docs-inventory && node --test scripts/lib/deep-cadence-local-stack.test.mjs scripts/testnet-ops-pager.test.mjs && npm run sdk:test:raw && npm run integration-tests:test:harness:raw
 
   hardhat-test:
     name: Contract Tests

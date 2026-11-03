@@ -604,7 +604,7 @@ See [TODO.md](../TODO.md) for the prioritized list. Deployment-relevant items:
 
 - **Indexer operations hardening** — the indexer is already in the Render blueprint; keep monitoring normal redeploys for Ponder schema-lock issues and use the [Indexer on Render](#indexer-on-render) recovery notes if they recur.
 - **Second smart-contract audit pass.**
-- **Monitoring / alerting** — only Render's built-in logs today.
+- **Monitoring / alerting** — [testnet ops pager](./testnet-ops-pager.md) (`scripts/testnet-ops-pager.mjs`, every 15 minutes). It messages only when a probe flips. Render logs are still the place to debug a page.
 - **Staging environment** — Render supports preview environments per PR; worth enabling before the project has real users.
 
 ---

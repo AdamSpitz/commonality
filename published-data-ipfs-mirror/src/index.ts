@@ -1,6 +1,7 @@
 import { pathToFileURL } from 'node:url';
 import { createPublicClient, http } from 'viem';
 import { PublishedDataAbi } from '@commonality/sdk/abis';
+import { runPollLoop } from '@commonality/sdk/utils';
 import { createCalldataContentResolver, type PublishedDataId } from '@commonality/sdk/published-data';
 import { loadConfig, type MirrorConfig } from './config.js';
 import { addPublishedDataToIpfs } from './ipfs.js';
@@ -17,7 +18,6 @@ export function validateRpcChainId(rpcChainId: number, configuredChainId: number
 
 export async function runMirror(config: MirrorConfig, signal?: AbortSignal): Promise<void> {
   const client = createPublicClient({ transport: http(config.rpcUrl) });
-  validateRpcChainId(await client.getChainId(), config.chainId);
 
   const stateIdentity = {
     chainId: config.chainId,
@@ -31,12 +31,25 @@ export async function runMirror(config: MirrorConfig, signal?: AbortSignal): Pro
     },
   });
   let nextBlock = await readNextBlock(config.stateFile, config.startBlock, stateIdentity);
+  let chainReady = false;
 
-  while (!signal?.aborted) {
+  await runPollLoop({
+    serviceName: 'commonality-published-data-ipfs-mirror',
+    signal,
+    poll: async () => {
+      if (!chainReady) {
+        validateRpcChainId(await client.getChainId(), config.chainId);
+        chainReady = true;
+      }
+      await pollOnce();
+    },
+  });
+
+  async function pollOnce(): Promise<void> {
     const head = await client.getBlockNumber();
     if (head < config.confirmations || nextBlock > head - config.confirmations) {
       await sleep(config.pollIntervalMs);
-      continue;
+      return;
     }
 
     const safeHead = head - config.confirmations;
