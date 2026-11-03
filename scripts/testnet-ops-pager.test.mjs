@@ -64,10 +64,22 @@ test('alchemy pages on monthly capacity without a retry, and retries a burst 429
     if (calls === 1) return { status: 429, text: async () => 'compute units per second' }
     const method = JSON.parse(init.body).method
     if (method === 'eth_blockNumber') return { status: 200, text: async () => JSON.stringify({ result: '0x10' }) }
+    if (method === 'eth_chainId') return { status: 200, text: async () => JSON.stringify({ result: '0x14a34' }) }
     return { status: 200, text: async () => JSON.stringify({ result: { timestamp: '0x10' } }) }
   }, 'https://example.test/v2/secret', async (ms) => { slept = ms })
   assert.equal(burst.ok, true)
   assert.equal(slept, 60_000)
+})
+
+test('alchemy fails when the RPC chain is not Base Sepolia', async () => {
+  const result = await probeAlchemy(async (_url, init) => {
+    const method = JSON.parse(init.body).method
+    if (method === 'eth_blockNumber') return { status: 200, text: async () => JSON.stringify({ result: '0x10' }) }
+    return { status: 200, text: async () => JSON.stringify({ result: '0x1' }) }
+  }, 'https://example.test/v2/secret', async () => {})
+  assert.equal(result.ok, false)
+  assert.match(result.reason, /not 84532/)
+  assert.doesNotMatch(result.reason, /example.test/)
 })
 
 test('indexer lag is not a second failure when the Alchemy head probe already failed', async () => {
