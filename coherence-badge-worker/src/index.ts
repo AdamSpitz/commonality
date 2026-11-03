@@ -4,6 +4,7 @@ import {
   isCoherenceAttesterConfigured,
 } from '@commonality/cause-assist';
 import { MutableRefUpdaterAbi } from '@commonality/sdk/abis';
+import { runPollLoop } from '@commonality/sdk/utils';
 import { loadWorkerConfig, type WorkerConfig } from './config.js';
 import { readState, writeState, type WorkerState } from './state.js';
 import { createWorkerDependencies, processRefUpdated, type RefUpdatedLog } from './worker.js';
@@ -68,20 +69,33 @@ export function assertWorkerCanMint(config: WorkerConfig): void {
 export async function runWorker(config: WorkerConfig, signal?: AbortSignal): Promise<void> {
   assertWorkerCanMint(config);
   const client = createPublicClient({ transport: http(config.rpcUrl) });
-  validateRpcChainId(await client.getChainId(), config.chainId);
   const identity = {
     chainId: config.chainId,
     mutableRefUpdaterAddress: config.mutableRefUpdaterAddress,
   };
   const state = await readState(config.stateFile, config.startBlock, identity);
   const dependencies = createWorkerDependencies(config.causeAssist);
+  let chainReady = false;
 
-  while (!signal?.aborted) {
+  await runPollLoop({
+    serviceName: 'commonality-coherence-badge-worker',
+    signal,
+    sleep,
+    poll: async () => {
+      if (!chainReady) {
+        validateRpcChainId(await client.getChainId(), config.chainId);
+        chainReady = true;
+      }
+      await pollOnce();
+    },
+  });
+
+  async function pollOnce(): Promise<void> {
     await retryPending(state, dependencies, config, identity);
     const head = await client.getBlockNumber();
     if (head < config.confirmations || state.cursor.blockNumber > head - config.confirmations) {
       await sleep(config.pollIntervalMs);
-      continue;
+      return;
     }
     const safeHead = head - config.confirmations;
     const toBlock = state.cursor.blockNumber + config.blockRange - 1n > safeHead

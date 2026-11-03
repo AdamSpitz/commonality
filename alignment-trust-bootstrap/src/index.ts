@@ -3,6 +3,7 @@ import { pathToFileURL } from 'node:url';
 import { createPublicClient, createWalletClient, http, type Address } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { AlignmentAttestationsAbi, TrustRegistryAbi } from '@commonality/sdk/abis';
+import { runPollLoop } from '@commonality/sdk/utils';
 import { loadBootstrapConfig, type BootstrapConfig } from './config.js';
 import { loadDenylist } from './policy.js';
 import { readCursor, writeCursor } from './state.js';
@@ -14,8 +15,6 @@ export async function runBootstrap(config: BootstrapConfig, signal?: AbortSignal
   const account = privateKeyToAccount(config.privateKey);
   const publicClient = createPublicClient({ transport: http(config.rpcUrl) });
   const walletClient = createWalletClient({ account, transport: http(config.rpcUrl) });
-  const rpcChainId = await publicClient.getChainId();
-  if (rpcChainId !== config.chainId) throw new Error(`RPC chain ID ${rpcChainId} does not match CHAIN_ID ${config.chainId}`);
   const identity = { chainId: config.chainId, alignmentAttestationsAddress: config.alignmentAttestationsAddress };
   let cursor = await readCursor(config.stateFile, config.startBlock, identity);
   const writer: TrustWriter = {
@@ -30,17 +29,32 @@ export async function runBootstrap(config: BootstrapConfig, signal?: AbortSignal
       await publicClient.waitForTransactionReceipt({ hash });
     },
   };
+  let chainReady = false;
 
-  while (!signal?.aborted) {
+  await runPollLoop({
+    serviceName: 'commonality-alignment-trust-bootstrap',
+    signal,
+    sleep,
+    poll: async () => {
+      if (!chainReady) {
+        const rpcChainId = await publicClient.getChainId();
+        if (rpcChainId !== config.chainId) throw new Error(`RPC chain ID ${rpcChainId} does not match CHAIN_ID ${config.chainId}`);
+        chainReady = true;
+      }
+      await pollOnce();
+    },
+  });
+
+  async function pollOnce(): Promise<void> {
     if (config.pauseFile) {
-      try { await access(config.pauseFile); await sleep(config.pollIntervalMs); continue; } catch { /* absent means running */ }
+      try { await access(config.pauseFile); await sleep(config.pollIntervalMs); return; } catch { /* absent means running */ }
     }
     const denied = await loadDenylist(config.denylistFile);
     const revoked = await reconcileDenylist(writer, denied);
     if (revoked.length > 0) console.log(`Revoked ${revoked.length} denied attester(s)`);
     const head = await publicClient.getBlockNumber();
     if (head < config.confirmations || cursor.blockNumber > head - config.confirmations) {
-      await sleep(config.pollIntervalMs); continue;
+      await sleep(config.pollIntervalMs); return;
     }
     const safeHead = head - config.confirmations;
     const rangeEnd = cursor.blockNumber + config.blockRange - 1n;
