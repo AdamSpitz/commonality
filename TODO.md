@@ -16,8 +16,6 @@ Getting **testnet to a two-person shared lab** is also a standing plan, not a pi
 
 ----
 
-- **(Tell)** Ops pager follow-ups: the Alchemy probe does not check chain id (workers still exit on a mismatch). A successful Actions run whose `pager-state` artifact expired or was missing makes the next run treat red probes as first-seen and page again. `workflow/testnet-ops-pager.md` still reads like a build spec after the script landed.
-
 - **(Ask)** Manually confirm enrolled statement support is sponsored on a Base Account against the HTTPS paymaster after the statement tank is redeployed. Disbelief, mixed batches, and unenrolled statements must stay on the user's own gas.
 
 - **(Ask)** Harden sponsored-gas accounting before production: `CreatorGasTank` checks balances/caps during validation but debits only in `postOp`, so multiple operations validated in a bundle can oversubscribe one creator's balance and spend other creators' shared EntryPoint funds. Its debit also excludes post-operation gas and the EntryPoint unused-gas penalty. `StatementGasTank` prevents this by charging the full maximum cost in validation; refunds remain stranded as unallocated EntryPoint surplus. Design accurate reconciliation without cross-sponsor subsidy and test against a real EntryPoint bundle.

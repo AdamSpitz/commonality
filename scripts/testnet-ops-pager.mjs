@@ -170,6 +170,12 @@ export async function probeAlchemy(fetchImpl, rpcUrl, sleep) {
   }
   const block = Number.parseInt(hex, 16)
   if (!Number.isFinite(block)) return { ok: false, reason: 'Alchemy eth_blockNumber was not a block number.' }
+  const chain = await ethCall(fetchImpl, rpcUrl, 'eth_chainId', [])
+  const chainId = Number.parseInt(chain.body?.result ?? '', 16)
+  if (chain.status !== 200 || chainId !== Number(CHAIN_ID)) {
+    const seen = Number.isFinite(chainId) ? String(chainId) : 'missing'
+    return { ok: false, reason: `Indexer RPC chain is ${seen}, not ${CHAIN_ID}. Workers exit on that mismatch.` }
+  }
   const head = await ethCall(fetchImpl, rpcUrl, 'eth_getBlockByNumber', [hex, false])
   const timestamp = Number.parseInt(head.body?.result?.timestamp ?? '', 16)
   return {

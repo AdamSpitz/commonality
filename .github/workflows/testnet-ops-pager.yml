@@ -37,10 +37,17 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p tmp
-          id=$(gh run list --workflow testnet-ops-pager.yml --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty')
-          if [ -n "$id" ]; then
-            gh run download "$id" --name pager-state --dir tmp || true
-          fi
+          ids=$(gh run list --workflow testnet-ops-pager.yml --status success --limit 40 --json databaseId --jq '.[].databaseId')
+          for id in $ids; do
+            rm -rf tmp/pager-restore
+            gh run download "$id" --name pager-state --dir tmp/pager-restore || continue
+            found=$(find tmp/pager-restore -name testnet-ops-pager-state.json -print -quit)
+            if [ -n "$found" ]; then
+              cp "$found" tmp/testnet-ops-pager-state.json
+              break
+            fi
+          done
+          rm -rf tmp/pager-restore
 
       - name: Run pager
         env:
@@ -58,4 +65,4 @@ jobs:
           name: pager-state
           path: tmp/testnet-ops-pager-state.json
           if-no-files-found: ignore
-          retention-days: 7
+          retention-days: 90
