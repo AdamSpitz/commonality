@@ -92,7 +92,7 @@ reconciliation or rebuilding under a new configuration identity.
 
 ### 1. Make the raw feed dependable for followers
 
-Started: `GET /api/events?follow=1` pages forward by block and log index, binds `after` to filter scope plus a frozen `checkpoint`, and reports `truncated` / `completeThroughCheckpoint`. A full legacy page now also sets `truncated`. `GET /api/sync` reads Ponder's committed checkpoint (`indexedThrough`, `finalizedThrough`, raw checkpoint strings, `ready`). Follow mode uses `indexedThrough` as the default freeze point only when `chainId` is set and `ready` is true, so quiet blocks advance after backfill. `fetchEventsComplete` walks that cursor, including inside one block; responses that omit follow fields still use block-range splitting, which cannot finish a single block at the 10,000 cap. Still open: composite topic indexes. Archive segments still derive finality from the newest stored event, because empty finalized windows are omitted and clients would skip them.
+Started: `GET /api/events?follow=1` pages forward by block and log index, binds `after` to filter scope plus a frozen `checkpoint`, and reports `truncated` / `completeThroughCheckpoint`. A full legacy page now also sets `truncated`. `GET /api/sync` reads Ponder's committed checkpoint (`indexedThrough`, `finalizedThrough`, raw checkpoint strings, `ready`). Follow mode uses `indexedThrough` as the default freeze point only when `chainId` is set and `ready` is true, so quiet blocks advance after backfill. `fetchEventsComplete` walks that cursor, including inside one block; responses that omit follow fields still use block-range splitting, which cannot finish a single block at the 10,000 cap. Composite topic indexes are on `events` (`chainId` + `topic1`/`topic2`/`topic3` + `blockNumber` + `logIndex`). They match statement-scoped and publisher-scoped filters ordered for followers. Adding them does not require a `DATABASE_SCHEMA` bump under `PONDER_EXPERIMENTAL_DB=platform`; the first hosted start builds them while holding the schema lock. Archive segments still derive finality from the newest stored event, because empty finalized windows are omitted and clients would skip them.
 
 - Add bounded cursor pagination in deterministic chain order, including the
   ability to page within a block. Bind cursors to query scope and a fixed upper
@@ -103,9 +103,10 @@ Started: `GET /api/events?follow=1` pages forward by block and log index, binds 
   enough chain/checkpoint identity to detect resets or invalidated checkpoints.
 - Retain statement-topic lists, chain/contract scoping, and existing API behavior
   for compatibility. Add a follower-oriented SDK iterator with durable cursors.
-- Measure representative topic-filtered queries and add suitable composite
-  indexes. Assess Ponder schema/deployment implications before changing production
-  schema; do not casually trigger a full historical resync.
+- Composite indexes for topic-filtered follower order are in the schema.
+  Assessed against Ponder 0.15: index-only schema edits change `build_id` but
+  platform mode keeps the existing tables and runs `CREATE INDEX` (not
+  `CONCURRENTLY`) on startup. Do not bump `DATABASE_SCHEMA` for indexes.
 - Make truncated/partial results explicit. No follower may silently treat a full
   bounded page as the complete history.
 
