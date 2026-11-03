@@ -194,6 +194,28 @@ describe('complete global fetches', () => {
     globalThis.fetch = originalFetch;
   });
 
+  it('pages a single block larger than the API cap when follow cursors are present', async () => {
+    const block = Array.from({ length: 12 }, (_, logIndex) => rawEvent('Dense', 9, logIndex));
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      const url = new URL(String(input));
+      assert.equal(url.searchParams.get('follow'), '1');
+      const after = url.searchParams.get('after');
+      const start = after == null ? 0 : block.findIndex(event => event.id === after) + 1;
+      const items = block.slice(start, start + 5);
+      const truncated = start + items.length < block.length;
+      return new Response(JSON.stringify({
+        items,
+        truncated,
+        nextCursor: truncated ? items[items.length - 1]?.id ?? null : null,
+        checkpoint: '9',
+        completeThroughCheckpoint: !truncated,
+      }), { status: 200 });
+    }) as typeof fetch;
+
+    const events = await fetchEventsComplete(machinery, { eventName: 'Dense' });
+    assert.deepStrictEqual(events.map(event => event.logIndex), block.map(event => event.logIndex));
+  });
+
   it('splits a capped block range until every matching event is returned', async () => {
     installTruncatingCache();
 

@@ -33,7 +33,7 @@ for what support means.
   retraction status. Repeated per-target queries can duplicate substantial work.
 - Complete retrieval currently splits block ranges around the 10,000-row cap.
   A single block with at least that many matching events cannot be completely
-  fetched through that mechanism. There is no event cursor pagination.
+  fetched through that mechanism. Follower reads use log-index cursors instead.
 - The events table indexes chain/contract/event and chain/block, but not statement
   topics. Filtering response bytes does not establish efficient database access.
 - Resumable SDK folds and finalized event archives provide useful building blocks,
@@ -92,7 +92,7 @@ reconciliation or rebuilding under a new configuration identity.
 
 ### 1. Make the raw feed dependable for followers
 
-Started: `GET /api/events?follow=1` pages forward by block and log index, binds `after` to filter scope plus a frozen `checkpoint`, and reports `truncated` / `completeThroughCheckpoint`. A full legacy page now also sets `truncated`. `GET /api/sync` reads Ponder's committed checkpoint (`indexedThrough`, `finalizedThrough`, raw checkpoint strings, `ready`). Follow mode uses `indexedThrough` as the default freeze point only when `chainId` is set and `ready` is true, so quiet blocks advance after backfill. Still open: composite topic indexes, and switching `fetchEventsComplete` off block-range splitting (a single block at the 10,000 cap still cannot be completed on the legacy path). Archive segments still derive finality from the newest stored event, because empty finalized windows are omitted and clients would skip them.
+Started: `GET /api/events?follow=1` pages forward by block and log index, binds `after` to filter scope plus a frozen `checkpoint`, and reports `truncated` / `completeThroughCheckpoint`. A full legacy page now also sets `truncated`. `GET /api/sync` reads Ponder's committed checkpoint (`indexedThrough`, `finalizedThrough`, raw checkpoint strings, `ready`). Follow mode uses `indexedThrough` as the default freeze point only when `chainId` is set and `ready` is true, so quiet blocks advance after backfill. `fetchEventsComplete` walks that cursor, including inside one block; responses that omit follow fields still use block-range splitting, which cannot finish a single block at the 10,000 cap. Still open: composite topic indexes. Archive segments still derive finality from the newest stored event, because empty finalized windows are omitted and clients would skip them.
 
 - Add bounded cursor pagination in deterministic chain order, including the
   ability to page within a block. Bind cursors to query scope and a fixed upper

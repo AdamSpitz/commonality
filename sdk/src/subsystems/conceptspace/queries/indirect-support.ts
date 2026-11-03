@@ -190,8 +190,9 @@ async function computeIndirectSupport(
  * (see shaping-your-cause-statements.md § Scale) folded 10⁵ signers per plank
  * in the browser: a few seconds and ~100 MB downloaded per plank, and a
  * five-plank view over the same 10⁵ addresses used ~440–470 MB of JS heap.
- * The 10_000 cap no longer truncates silently across blocks. One block with
- * at least 10_000 matching logs still cannot be fetched completely.
+ * The 10_000 cap no longer truncates silently. A follower-capable indexer pages
+ * through a single block; an older indexer still cannot finish a block that
+ * fills the cap.
  */
 export interface StatementBelieverSets {
   statementCid: IpfsCidV1;
