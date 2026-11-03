@@ -388,6 +388,64 @@ async function fetchEventsBySplitting(
   return fetchRange(fromBlock, endBlock);
 }
 
+export type EventFeedPage = {
+  items: RawEventFromCache[];
+  truncated: boolean;
+  nextCursor: string | null;
+  checkpoint: string | null;
+  completeThroughCheckpoint: boolean;
+};
+
+/**
+ * One forward page of a follower read. Persist `checkpoint` and `nextCursor`
+ * together. A full page is incomplete unless `completeThroughCheckpoint` is true.
+ * `checkpoint` null means the indexer had no head; do not treat that as caught up.
+ */
+export async function fetchEventFeedPage(
+  machinery: SDKMachinery,
+  params: Omit<EventQueryParams, 'limit' | 'allowTruncation' | 'blockNumber_lte'>,
+  options: { checkpoint?: string; after?: string; limit?: number } = {},
+): Promise<EventFeedPage> {
+  if (machinery.eventCacheUrl == null) {
+    throw new Error('eventCacheUrl not configured');
+  }
+  const limit = Math.min(options.limit ?? 1000, EVENT_API_CAP);
+  const url = buildEventCacheUrl(machinery.eventCacheUrl, 'events', {
+    chainId: params.chainId ?? machinery.defaultChainId,
+    contractAddress: params.contractAddress,
+    eventName: params.eventName,
+    topic1: params.topic1,
+    topic2: params.topic2,
+    topic3: params.topic3,
+    topic1_in: params.topic1_in,
+    topic2_in: params.topic2_in,
+    topic3_in: params.topic3_in,
+    blockNumber_gte: params.blockNumber_gte,
+    limit,
+    follow: 1,
+    checkpoint: options.checkpoint,
+    after: options.after,
+  });
+  const response = await fetchEventCacheResponse(url);
+  let data: unknown;
+  try {
+    data = await response.json();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to parse event-cache response: ${message}`);
+  }
+  if (!isRecord(data) || !Array.isArray(data.items) || typeof data.truncated !== 'boolean') {
+    throw new Error('Malformed event-feed page: expected items and truncated');
+  }
+  return {
+    items: data.items as RawEventFromCache[],
+    truncated: data.truncated,
+    nextCursor: typeof data.nextCursor === 'string' ? data.nextCursor : null,
+    checkpoint: typeof data.checkpoint === 'string' ? data.checkpoint : null,
+    completeThroughCheckpoint: data.completeThroughCheckpoint === true,
+  };
+}
+
 // ============================================================================
 // Topic helpers
 // ============================================================================
