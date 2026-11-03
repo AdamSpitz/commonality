@@ -1,0 +1,57 @@
+name: Testnet ops pager
+
+# Pages only when a probe flips. A green run with no message is success.
+# Secrets: RENDER_API_KEY, BASE_SEPOLIA_RPC_URL. Optional OPS_PAGER_NTFY_TOPIC.
+# Do not print those values.
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  issues: write
+
+jobs:
+  page:
+    name: Probe and page on flip
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+
+      - name: Restore previous pager state
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p tmp
+          id=$(gh run list --workflow testnet-ops-pager.yml --status completed --limit 1 --json databaseId --jq '.[0].databaseId // empty')
+          if [ -n "$id" ]; then
+            gh run download "$id" --name pager-state --dir tmp || true
+          fi
+
+      - name: Run pager
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          BASE_SEPOLIA_RPC_URL: ${{ secrets.BASE_SEPOLIA_RPC_URL }}
+          OPS_PAGER_NTFY_TOPIC: ${{ secrets.OPS_PAGER_NTFY_TOPIC }}
+          OPS_PAGER_GITHUB_ISSUE: '1'
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/testnet-ops-pager.mjs
+
+      - name: Save pager state
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pager-state
+          path: tmp/testnet-ops-pager-state.json
+          if-no-files-found: ignore
+          retention-days: 7

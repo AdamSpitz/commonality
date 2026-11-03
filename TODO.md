@@ -47,8 +47,6 @@ Getting **testnet to a two-person shared lab** is also a standing plan, not a pi
 
 - **(Tell)** Next testnet-lab step lives in [`workflow/testnet-working-plan.md`](workflow/testnet-working-plan.md). Items 1–10 are checked. The nightly wrapper exports the mutation flag itself. The job still exits red until the local deep-stack item below passes. Indexer ingest is in [`inbox.md`](inbox.md) only if GraphQL goes red again. Do not mix with mass fake activity or mainnet.
 
-- **(Tell)** Build the testnet ops pager in [`workflow/testnet-ops-pager.md`](workflow/testnet-ops-pager.md). One 15-minute check that messages only when a probe flips, covering Render suspension, Alchemy monthly capacity, indexer lag, the public UI and health URLs, and the private IPFS service via Render. No dashboard.
-
 ----
 
 - **(Tell)** Resume the paused v2 step-14 stage-100 remote run (392/1508 mined, 4 submitted hashes; state in `fake-data-generation/output/campaigns/medium-realistic-v2-step14/stage-100/execution/actions.jsonl`). Resume instructions, verify-first gate, and reconcile/report steps are in `continuity/2026-10-02-v2-funding-step14-handoff.md`. Regenerate preflight artifacts (wording fix landed after they were generated) and check off item 14 in `fake-data-generation/TESTNET-SIMULATION-PLAN.md` when done.

@@ -1,6 +1,6 @@
 # Testnet ops pager
 
-A fresh LLM can build this. Do not build a dashboard.
+Built. Do not build a dashboard. The script is `scripts/testnet-ops-pager.mjs`. GitHub Actions runs it every 15 minutes (`.github/workflows/testnet-ops-pager.yml`) and opens or comments on an `ops-pager` issue only when a probe flips. Optional `OPS_PAGER_NTFY_TOPIC` posts to ntfy as well. State is the previous run's `pager-state` artifact, not a committed file.
 
 A page of green dots will not get opened. The failure this is for is the opposite of a crash: the process stays up while the work stops. After the monthly-capacity backoff in `sdk/src/utils/rpc-budget.ts`, Render looks healthy while Alchemy is refusing calls. `commonality-alignment-trust-bootstrap`, `commonality-coherence-badge-worker`, and `commonality-published-data-ipfs-mirror` log once, leave their cursors unmoved, and sleep from 1 minute up to 6 hours. "HTTP up" is not a signal for them.
 

@@ -17,6 +17,8 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ## Main list
 
+- **Tell Report:** Testnet ops pager is in (`scripts/testnet-ops-pager.mjs`, every 15 minutes once this is on the default branch). It comments on an `ops-pager` issue only when a probe flips. Subscribe to repo issue notifications if you want the mail. `RENDER_API_KEY` is now a GitHub secret. A dry run already sees three suspended services: alignment-trust bootstrap, coherence-badge worker, and published-data IPFS mirror. Resume them in the Render dashboard. Optional later: set secret `OPS_PAGER_NTFY_TOPIC` if you also want ntfy.
+
 - **Tell Report:** Cold-start step 5 is done. The project registry and statement browse run in a Web Worker. Smaller global folds stay on the calling thread. The step 2 bench still describes request counts.
 
 - **Tell Report:** Cold-start step 4 is done. Global folds resume from a stored accumulator (`runResumableFold`). A reorg in the unfinalized tail is not saved. The local chain is shorter than the finality lag, so the step 2 bench still describes repeat-visit bytes. Workers are step 5.
