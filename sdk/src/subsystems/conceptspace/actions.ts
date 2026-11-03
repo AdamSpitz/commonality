@@ -10,6 +10,7 @@ import { SDKMachinery } from '../../machinery.js';
 import { addToCreatedStatements } from '../mutable-refs/actions.js';
 import { publishData, type PublishedDataContract } from '../published-data/actions.js';
 import { sendAtomicContractCalls } from '../../utils/sendAtomicContractCalls.js';
+import { getWriteClientCapabilities } from '../../utils/walletCapabilities.js';
 import { BeliefStates } from './types.js';
 
 // ============================================================================
@@ -97,12 +98,17 @@ async function sendBelief(
 ): Promise<Hash> {
   const paymasterUrl = options?.paymasterUrl?.trim();
   if (eligible && paymasterUrl && clients.walletClient.chain?.id) {
-    return sendAtomicContractCalls(clients, [{
-      to: beliefsContract.address,
-      abi: beliefsContract.abi,
-      functionName,
-      args,
-    }], paymasterUrl);
+    const caps = await getWriteClientCapabilities(clients);
+    // A plain wallet must keep working. Attach the paymaster only when this
+    // wallet can actually send a sponsored atomic batch.
+    if (caps.atomicBatches && caps.paymasterService) {
+      return sendAtomicContractCalls(clients, [{
+        to: beliefsContract.address,
+        abi: beliefsContract.abi,
+        functionName,
+        args,
+      }], paymasterUrl);
+    }
   }
   return writeBelief(clients, beliefsContract, functionName, args);
 }

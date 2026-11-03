@@ -77,6 +77,29 @@ describe('sponsored statement signatures', () => {
     assert.strictEqual(sendCallsPayload(requests).capabilities?.paymasterService?.url, PAYMASTER);
   });
 
+  it('does not use wallet_sendCalls when the wallet cannot sponsor', async () => {
+    const { clients, writes, requests } = makeClients({});
+    Object.assign(clients.publicClient, {
+      readContract: async () => SPONSOR,
+    });
+    Object.assign(clients.walletClient, {
+      request: async (request: { method: string; params: readonly unknown[] }) => {
+        requests.push(request);
+        if (request.method === 'wallet_getCapabilities') return {};
+        throw new Error('wallet_sendCalls should not be used');
+      },
+    });
+    const hash = await believeStatement(
+      clients,
+      { address: BELIEFS, abi: BeliefsAbi },
+      cidA,
+      { paymasterUrl: PAYMASTER, statementGasTankAddress: TANK },
+    );
+    assert.strictEqual(hash, '0xwrite');
+    assert.deepStrictEqual(writes.map((w) => w.functionName), ['setBelief']);
+    assert.strictEqual(requests.find((r) => r.method === 'wallet_sendCalls'), undefined);
+  });
+
   it('does not attach the paymaster when the statement is not enrolled', async () => {
     const { clients, writes, requests } = makeClients({});
     const hash = await believeStatement(
