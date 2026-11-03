@@ -12,7 +12,7 @@ import {
   Clear as ClearIcon,
 } from '@mui/icons-material'
 import { useAccount } from 'wagmi'
-import { useWriteClients } from '../../shared'
+import { sponsoredBeliefOptions, useWriteClients } from '../../shared'
 import { BeliefsAbi } from '@commonality/sdk/abis'
 import { believeStatement, disbelieveStatement, clearOpinion, NO_OPINION, BELIEVES, DISBELIEVES, type BeliefsContract } from '@commonality/sdk/conceptspace'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
@@ -66,7 +66,7 @@ export function BeliefControls({
 
       switch (action) {
         case 'believe':
-          txHash = await believeStatement(clients, beliefsContract, statementCid)
+          txHash = await believeStatement(clients, beliefsContract, statementCid, sponsoredBeliefOptions())
           actionText = 'Agreement recorded'
           break
         case 'disbelieve':

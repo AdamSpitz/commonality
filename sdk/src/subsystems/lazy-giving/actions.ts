@@ -2,7 +2,7 @@
  * User actions for LazyGiving subsystem
  */
 
-import { type Address, type Hash, type Abi, parseEventLogs, encodeFunctionData, numberToHex } from 'viem';
+import { type Address, type Hash, type Abi, parseEventLogs } from 'viem';
 import { type WriteClients } from '../../utils/ethereum.js';
 import {
   PremintingERC1155Abi,
@@ -12,10 +12,8 @@ import {
 } from '../../abis.js';
 import { IpfsCidV1 } from '../../utils/cid-types.js';
 import { approveERC20Spend, erc20ApproveAbi } from '../../utils/erc20.js';
-import {
-  getWriteClientCapabilities,
-  paymasterServiceCapability,
-} from '../../utils/walletCapabilities.js';
+import { sendAtomicContractCalls } from '../../utils/sendAtomicContractCalls.js';
+import { getWriteClientCapabilities } from '../../utils/walletCapabilities.js';
 
 // ============================================================================
 // LazyGiving Actions
@@ -157,47 +155,6 @@ async function ensureERC20Allowance(
 ): Promise<void> {
   if (await hasSufficientERC20Allowance(clients, token, spender, amount)) return;
   await approveERC20Spend(clients, token, spender, amount);
-}
-
-async function sendAtomicContractCalls(
-  clients: WriteClients,
-  calls: readonly { to: Address; abi: Abi; functionName: string; args: readonly unknown[] }[],
-  paymasterUrl?: string,
-): Promise<Hash> {
-  const chainId = clients.walletClient.chain?.id;
-  if (!chainId) throw new Error('Atomic transactions require a configured wallet chain.');
-  const walletCaps = await getWriteClientCapabilities(clients);
-  const paymaster = paymasterServiceCapability(paymasterUrl, walletCaps);
-  const id = await clients.walletClient.request({
-    method: 'wallet_sendCalls',
-    params: [{
-      version: '2.0.0',
-      chainId: numberToHex(chainId),
-      from: clients.account,
-      atomicRequired: true,
-      calls: calls.map(({ to, abi, functionName, args }) => ({
-        to,
-        data: encodeFunctionData({ abi, functionName, args }),
-      })),
-      ...(paymaster ? { capabilities: paymaster } : {}),
-    }],
-  });
-  const batchId = typeof id === 'string' ? id : (id as { id: string }).id;
-  const deadline = Date.now() + 120_000;
-  while (Date.now() < deadline) {
-    const status = await clients.walletClient.request({
-      method: 'wallet_getCallsStatus',
-      params: [batchId],
-    }) as { status: number; receipts?: { transactionHash?: Hash }[] };
-    if (status.status === 200) {
-      const hash = status.receipts?.[0]?.transactionHash;
-      if (!hash) throw new Error('Atomic transaction completed without a transaction hash.');
-      return hash;
-    }
-    if (status.status >= 300) throw new Error('Atomic transaction failed.');
-    await new Promise(resolve => setTimeout(resolve, 1_000));
-  }
-  throw new Error('Timed out waiting for atomic transaction confirmation.');
 }
 
 /**

@@ -33,6 +33,7 @@ export {
   getRuntimeConfigValue,
   loadRuntimeConfig,
 } from './config/runtimeConfig'
+export { sponsoredBeliefOptions } from './config/sponsoredBeliefOptions'
 export type { UiRuntimeConfig } from './config/runtimeConfig'
 export { installStaleBuildRecovery } from './config/staleBuildRecovery'
 export { displayPolicyFromDenylist, isCidDeniedByDisplayDenylist, loadDisplayDenylist } from './config/displayDenylist'

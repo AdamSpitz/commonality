@@ -2,13 +2,15 @@
  * User actions for Conceptspace subsystem
  */
 
-import { type Address, type Hash, type Abi } from 'viem';
+import { type Address, type Hash, type Abi, zeroAddress } from 'viem';
 import { type WriteClients } from '../../utils/ethereum.js';
 import { type DisplayableDocument, createDefaultDocumentStore, toCanonicalJson, validateDisplayableDocument } from '../displayable-documents/displayable-document.js';
 import { cidToBytes32, IpfsCidV1 } from '../../utils/cid-types.js';
 import { SDKMachinery } from '../../machinery.js';
 import { addToCreatedStatements } from '../mutable-refs/actions.js';
 import { publishData, type PublishedDataContract } from '../published-data/actions.js';
+import { sendAtomicContractCalls } from '../../utils/sendAtomicContractCalls.js';
+import { getWriteClientCapabilities } from '../../utils/walletCapabilities.js';
 import { BeliefStates } from './types.js';
 
 // ============================================================================
@@ -20,8 +22,96 @@ export interface BeliefsContract {
   abi: Abi;
 }
 
+/** Attach ERC-7677 only for enrolled support calls (one sponsor per batch). */
+export interface SponsoredBeliefOptions {
+  paymasterUrl?: string;
+  statementGasTankAddress?: Address;
+}
+
+const statementGasTankSponsorOfAbi = [{
+  type: 'function',
+  name: 'sponsorOf',
+  stateMutability: 'view',
+  inputs: [{ name: 'statementId', type: 'bytes32' }],
+  outputs: [{ type: 'address' }],
+}] as const;
+
 // Belief state constants
 export const { NO_OPINION, BELIEVES, DISBELIEVES } = BeliefStates;
+
+async function sponsorOfStatement(
+  clients: WriteClients,
+  tank: Address,
+  statementId: `0x${string}`,
+): Promise<Address | undefined> {
+  // @ts-expect-error - viem type inference issue with readContract
+  const sponsor = await clients.publicClient.readContract({
+    address: tank,
+    abi: statementGasTankSponsorOfAbi,
+    functionName: 'sponsorOf',
+    args: [statementId],
+  }) as Address;
+  if (!sponsor || sponsor.toLowerCase() === zeroAddress) return undefined;
+  return sponsor;
+}
+
+async function sameEnrolledSponsor(
+  clients: WriteClients,
+  tank: Address,
+  statementIds: readonly `0x${string}`[],
+): Promise<boolean> {
+  let sponsor: Address | undefined;
+  for (const statementId of statementIds) {
+    const next = await sponsorOfStatement(clients, tank, statementId);
+    if (!next) return false;
+    if (sponsor && next.toLowerCase() !== sponsor.toLowerCase()) return false;
+    sponsor = next;
+  }
+  return statementIds.length > 0;
+}
+
+async function writeBelief(
+  clients: WriteClients,
+  beliefsContract: BeliefsContract,
+  functionName: 'setBelief' | 'setBeliefsInBatch',
+  args: readonly unknown[],
+): Promise<Hash> {
+  const hash = await clients.walletClient.writeContract({
+    address: beliefsContract.address,
+    abi: beliefsContract.abi,
+    functionName,
+    args,
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+  return hash;
+}
+
+async function sendBelief(
+  clients: WriteClients,
+  beliefsContract: BeliefsContract,
+  functionName: 'setBelief' | 'setBeliefsInBatch',
+  args: readonly unknown[],
+  options: SponsoredBeliefOptions | undefined,
+  eligible: boolean,
+): Promise<Hash> {
+  const paymasterUrl = options?.paymasterUrl?.trim();
+  if (eligible && paymasterUrl && clients.walletClient.chain?.id) {
+    const caps = await getWriteClientCapabilities(clients);
+    // A plain wallet must keep working. Attach the paymaster only when this
+    // wallet can actually send a sponsored atomic batch.
+    if (caps.atomicBatches && caps.paymasterService) {
+      return sendAtomicContractCalls(clients, [{
+        to: beliefsContract.address,
+        abi: beliefsContract.abi,
+        functionName,
+        args,
+      }], paymasterUrl);
+    }
+  }
+  return writeBelief(clients, beliefsContract, functionName, args);
+}
 
 /**
  * Express belief in a statement
@@ -42,19 +132,20 @@ export const { NO_OPINION, BELIEVES, DISBELIEVES } = BeliefStates;
 export async function believeStatement(
   clients: WriteClients,
   beliefsContract: BeliefsContract,
-  statementCid: IpfsCidV1
+  statementCid: IpfsCidV1,
+  options?: SponsoredBeliefOptions,
 ): Promise<Hash> {
-  const hash = await clients.walletClient.writeContract({
-    address: beliefsContract.address,
-    abi: beliefsContract.abi,
-    functionName: 'setBelief',
-    args: [cidToBytes32(statementCid), BELIEVES],
-    chain: clients.walletClient.chain,
-    account: clients.walletClient.account!,
-  });
-
-  await clients.publicClient.waitForTransactionReceipt({ hash });
-  return hash;
+  const statementId = cidToBytes32(statementCid);
+  const tank = options?.statementGasTankAddress;
+  const eligible = Boolean(tank && await sameEnrolledSponsor(clients, tank, [statementId]));
+  return sendBelief(
+    clients,
+    beliefsContract,
+    'setBelief',
+    [statementId, BELIEVES],
+    options,
+    eligible,
+  );
 }
 
 /**
@@ -102,18 +193,24 @@ export async function setBeliefsBatch(
   clients: WriteClients,
   beliefsContract: BeliefsContract,
   updates: readonly { statementCid: IpfsCidV1; beliefState: number }[],
+  options?: SponsoredBeliefOptions,
 ): Promise<Hash> {
   if (updates.length === 0) throw new Error('setBeliefsBatch requires at least one belief');
-  const hash = await clients.walletClient.writeContract({
-    address: beliefsContract.address,
-    abi: beliefsContract.abi,
-    functionName: 'setBeliefsInBatch',
-    args: [updates.map((update) => cidToBytes32(update.statementCid)), updates.map((update) => update.beliefState)],
-    chain: clients.walletClient.chain,
-    account: clients.walletClient.account!,
-  });
-  await clients.publicClient.waitForTransactionReceipt({ hash });
-  return hash;
+  const statementIds = updates.map((update) => cidToBytes32(update.statementCid));
+  const beliefStates = updates.map((update) => update.beliefState);
+  const tank = options?.statementGasTankAddress;
+  const supportOnly = beliefStates.every((state) => state === BELIEVES);
+  const eligible = Boolean(
+    supportOnly && tank && await sameEnrolledSponsor(clients, tank, statementIds),
+  );
+  return sendBelief(
+    clients,
+    beliefsContract,
+    'setBeliefsInBatch',
+    [statementIds, beliefStates],
+    options,
+    eligible,
+  );
 }
 
 export async function clearOpinion(

@@ -16,7 +16,7 @@ Getting **testnet to a two-person shared lab** is also a standing plan, not a pi
 
 ----
 
-- **(Ask)** Complete portable-wallet sponsorship for statement signatures: `believeStatement` / `setBeliefsBatch` still use `writeContract`, so they never pass the ERC-7677 URL after Privy removal. Add an explicit eligible-statement path (enrolled statements, support only, one sponsor per batch) with wallet capability checks and an end-to-end Base Account test. Donations and roster publication are not in the current tank allowlist; do not attach its paymaster to those operations.
+- **(Ask)** Manually confirm enrolled statement support is sponsored on a Base Account against the HTTPS paymaster after the statement tank is redeployed. Disbelief, mixed batches, and unenrolled statements must stay on the user's own gas.
 
 - **(Ask)** Harden sponsored-gas accounting before production: `CreatorGasTank` checks balances/caps during validation but debits only in `postOp`, so multiple operations validated in a bundle can oversubscribe one creator's balance and spend other creators' shared EntryPoint funds. Its debit also excludes post-operation gas and the EntryPoint unused-gas penalty. `StatementGasTank` prevents this by charging the full maximum cost in validation; refunds remain stranded as unallocated EntryPoint surplus. Design accurate reconciliation without cross-sponsor subsidy and test against a real EntryPoint bundle.
 
