@@ -92,7 +92,7 @@ reconciliation or rebuilding under a new configuration identity.
 
 ### 1. Make the raw feed dependable for followers
 
-Started: `GET /api/events?follow=1` pages forward by block and log index, binds `after` to filter scope plus a frozen `checkpoint`, and reports `truncated` / `completeThroughCheckpoint`. A full legacy page now also sets `truncated`. Still open: a cheap indexed-through / finalized-through watermark that advances on quiet chains, composite topic indexes, and switching `fetchEventsComplete` off block-range splitting (a single block at the 10,000 cap still cannot be completed on the legacy path).
+Started: `GET /api/events?follow=1` pages forward by block and log index, binds `after` to filter scope plus a frozen `checkpoint`, and reports `truncated` / `completeThroughCheckpoint`. A full legacy page now also sets `truncated`. `GET /api/sync` reads Ponder's committed checkpoint (`indexedThrough`, `finalizedThrough`, raw checkpoint strings, `ready`). Follow mode uses `indexedThrough` as the default freeze point only when `chainId` is set and `ready` is true, so quiet blocks advance after backfill. Still open: composite topic indexes, and switching `fetchEventsComplete` off block-range splitting (a single block at the 10,000 cap still cannot be completed on the legacy path). Archive segments still derive finality from the newest stored event, because empty finalized windows are omitted and clients would skip them.
 
 - Add bounded cursor pagination in deterministic chain order, including the
   ability to page within a block. Bind cursors to query scope and a fixed upper

@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { fetchAllBoughtEvents, fetchAllContentFundingEvents, fetchAllDelegationEvents, fetchAllNoteIntentEvents, fetchAllRefUpdatedEvents, fetchAllSoldEvents, fetchERC1155TransferEvents, fetchEventFeedPage, fetchEvents, fetchEventsComplete } from './eventCacheClient.js';
+import { fetchAllBoughtEvents, fetchAllContentFundingEvents, fetchAllDelegationEvents, fetchAllNoteIntentEvents, fetchAllRefUpdatedEvents, fetchAllSoldEvents, fetchChainSync, fetchERC1155TransferEvents, fetchEventFeedPage, fetchEvents, fetchEventsComplete } from './eventCacheClient.js';
 import type { SDKMachinery } from '../machinery.js';
 
 const machinery = {
@@ -279,6 +279,37 @@ describe('event archive segments', () => {
 
     const fallback = await fetchEventsComplete(machinery, { eventName: 'BadHash', chainId: 31337 });
     assert.deepStrictEqual(fallback.map(event => event.blockNumber), ['4', '80']);
+  });
+});
+
+describe('fetchChainSync', () => {
+  const originalFetch = globalThis.fetch;
+
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  it('reads the committed head and rejects a malformed body', async () => {
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      assert.match(String(input), /\/api\/sync\?/);
+      return new Response(JSON.stringify({
+        ready: true,
+        chains: [{
+          chainId: '31337',
+          chainName: 'anvil',
+          indexedThrough: '9',
+          finalizedThrough: '7',
+          indexedCheckpoint: '1',
+          finalizedCheckpoint: '1',
+        }],
+      }), { status: 200 });
+    }) as typeof fetch;
+    const sync = await fetchChainSync(machinery, 31337);
+    assert.equal(sync.ready, true);
+    assert.equal(sync.chains[0]?.indexedThrough, '9');
+
+    globalThis.fetch = (async () => new Response(JSON.stringify({ ready: true }), { status: 200 })) as typeof fetch;
+    await assert.rejects(() => fetchChainSync(machinery), /Malformed sync watermark/);
   });
 });
 

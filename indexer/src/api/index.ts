@@ -33,6 +33,11 @@ import { getAddress, isAddress, type Hex } from "viem";
 import { fundingIndexerRoutesEnabled } from "../indexing/contractCapabilities";
 import { noteIndexerWake, requestWakesIndexer } from "../rpc/idleHeadCache";
 import { isBareContractLogQuery, projectReadDemandReport, recordUnindexedProjectLogRequest } from "./projectReadDemand";
+import {
+  chainSyncWatermarks,
+  followCheckpointFromSync,
+  type CheckpointRow,
+} from "./syncWatermark";
 
 /**
  * Recursively convert BigInt values to strings for JSON serialization.
@@ -278,6 +283,45 @@ app.get("/api/published-data/:publisher/:dataId", async (c) => {
   }
 });
 
+type PonderDatabase = {
+  readonlyQB?: {
+    wrap: (label: { label: string }, fn: (db: { execute: (query: string) => Promise<{ rows: unknown[] }> }) => Promise<{ rows: unknown[] }>) => Promise<{ rows: unknown[] }>;
+  };
+};
+
+async function readChainSync(): Promise<{ ready: boolean; chains: ReturnType<typeof chainSyncWatermarks> }> {
+  const database = (globalThis as { PONDER_DATABASE?: PonderDatabase }).PONDER_DATABASE;
+  const qb = database?.readonlyQB;
+  if (!qb) return { ready: false, chains: [] };
+  const [meta, checkpoints] = await Promise.all([
+    qb.wrap({ label: "select_sync_ready" }, (inner) => inner.execute(
+      "SELECT value FROM _ponder_meta WHERE key = 'app'",
+    )),
+    qb.wrap({ label: "select_sync_checkpoints" }, (inner) => inner.execute(
+      "SELECT chain_id, chain_name, latest_checkpoint, finalized_checkpoint FROM _ponder_checkpoint",
+    )),
+  ]);
+  const app = meta.rows[0] as { value?: { is_ready?: number } } | undefined;
+  return {
+    ready: app?.value?.is_ready === 1,
+    chains: chainSyncWatermarks(checkpoints.rows as CheckpointRow[]),
+  };
+}
+
+app.get("/api/sync", async (c) => {
+  try {
+    const chainId = c.req.query("chainId");
+    const sync = await readChainSync();
+    const chains = chainId ? sync.chains.filter(row => row.chainId === chainId) : sync.chains;
+    return c.json({
+      ready: sync.ready,
+      chains,
+    });
+  } catch (error) {
+    return c.json({ error: String(error) }, 500);
+  }
+});
+
 app.get("/api/events", async (c) => {
   try {
     const chainId = c.req.query("chainId");
@@ -328,6 +372,10 @@ app.get("/api/events", async (c) => {
       const after = afterParam ? decodeEventFeedCursor(afterParam) : null;
       let checkpoint = checkpointParam ?? after?.checkpoint;
       if (after && checkpoint) assertCursorMatchesRequest(after, scope, checkpoint);
+      if (!checkpoint) {
+        const sync = await readChainSync();
+        checkpoint = followCheckpointFromSync(sync.chains, chainId, sync.ready);
+      }
       if (!checkpoint) {
         const headConditions = chainId ? [eq(schema.events.chainId, Number(chainId))] : [];
         const headQuery = db.select({ head: max(schema.events.blockNumber) }).from(schema.events);

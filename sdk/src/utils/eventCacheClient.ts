@@ -401,6 +401,59 @@ export type EventFeedPage = {
  * together. A full page is incomplete unless `completeThroughCheckpoint` is true.
  * `checkpoint` null means the indexer had no head; do not treat that as caught up.
  */
+export type ChainSyncWatermark = {
+  chainId: string;
+  chainName: string;
+  indexedThrough: string;
+  finalizedThrough: string;
+  indexedCheckpoint: string;
+  finalizedCheckpoint: string;
+};
+
+export type ChainSyncStatus = {
+  ready: boolean;
+  chains: ChainSyncWatermark[];
+};
+
+function isChainSyncWatermark(value: unknown): value is ChainSyncWatermark {
+  if (!isRecord(value)) return false;
+  return typeof value.chainId === 'string'
+    && typeof value.chainName === 'string'
+    && typeof value.indexedThrough === 'string'
+    && typeof value.finalizedThrough === 'string'
+    && typeof value.indexedCheckpoint === 'string'
+    && typeof value.finalizedCheckpoint === 'string';
+}
+
+/**
+ * Committed indexing head. `ready` false means historical backfill is still
+ * running; do not freeze a follower on `indexedThrough` until it flips.
+ * A shorter `indexedCheckpoint` than one previously observed is a reset.
+ */
+export async function fetchChainSync(
+  machinery: SDKMachinery,
+  chainId?: number,
+): Promise<ChainSyncStatus> {
+  if (machinery.eventCacheUrl == null) {
+    throw new Error('eventCacheUrl not configured');
+  }
+  const url = buildEventCacheUrl(machinery.eventCacheUrl, 'sync', {
+    chainId: chainId ?? machinery.defaultChainId,
+  });
+  const response = await fetchEventCacheResponse(url);
+  let data: unknown;
+  try {
+    data = await response.json();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to parse sync watermark: ${message}`);
+  }
+  if (!isRecord(data) || typeof data.ready !== 'boolean' || !Array.isArray(data.chains) || !data.chains.every(isChainSyncWatermark)) {
+    throw new Error('Malformed sync watermark');
+  }
+  return { ready: data.ready, chains: data.chains };
+}
+
 export async function fetchEventFeedPage(
   machinery: SDKMachinery,
   params: Omit<EventQueryParams, 'limit' | 'allowTruncation' | 'blockNumber_lte'>,
