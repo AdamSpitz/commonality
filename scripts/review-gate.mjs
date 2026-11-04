@@ -11,6 +11,10 @@
 // ...and reports the answer as a commit status named `review-received`, which
 // branch protection on `dev` requires to be green before merge.
 //
+// A missing receipt is a failed *status*, not a failed Actions job. Exiting
+// non-zero here makes GitHub email "PR run failed: review-gate" on every new
+// PR, before anyone has had a chance to review. The status alone blocks merge.
+//
 // Because the check is just "a receipt exists for this exact commit", ANY
 // reviewer can satisfy it — Claude Code (`/code-review --comment`), pi, or a
 // human — as long as they post the review via scripts/post-review.sh (or an
@@ -129,9 +133,10 @@ if (receipt) {
   );
   console.log(
     `review-gate: no receipt for ${headSha.slice(0, 12)}. ` +
-      `Review the diff and post via scripts/post-review.sh (any agent).`,
+      `Review the diff and post via scripts/post-review.sh (any agent). ` +
+      `Posted a failing review-received status; the Actions job itself succeeds ` +
+      `so this expected pre-review state does not email a failed run.`,
   );
-  process.exit(1);
 }
 
 // --- Status helper -----------------------------------------------------------
