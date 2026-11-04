@@ -122,6 +122,19 @@ describe("StatementGasTank", function () {
       .withArgs(sponsor.address);
   });
 
+  it("enrolls many statements in one transaction and rejects a duplicate in the batch", async function () {
+    await expect(gasTank.connect(sponsor).enrollMany([STATEMENT_A, STATEMENT_B]))
+      .to.emit(gasTank, "StatementEnrolled")
+      .withArgs(sponsor.address, STATEMENT_A)
+      .and.to.emit(gasTank, "StatementEnrolled")
+      .withArgs(sponsor.address, STATEMENT_B);
+    expect(await gasTank.sponsorOf(STATEMENT_B)).to.equal(sponsor.address);
+    await expect(gasTank.connect(sponsor).enrollMany([STATEMENT_C, STATEMENT_A]))
+      .to.be.revertedWithCustomError(gasTank, "StatementAlreadyEnrolled")
+      .withArgs(sponsor.address);
+    expect(await gasTank.sponsorOf(STATEMENT_C)).to.equal(ethers.ZeroAddress);
+  });
+
   it("sponsors a Coinbase Smart Wallet executeBatch of setBelief", async function () {
     await fundAndEnroll();
     const accountCall = coinbaseInterface.encodeFunctionData("executeBatch", [[
