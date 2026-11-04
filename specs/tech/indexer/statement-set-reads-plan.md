@@ -76,21 +76,14 @@ Never treat a partially read source history as its current belief state.
 
 ## Implementation sequence
 
-### 1. Establish an exact browser baseline
+### 1. Establish an exact browser baseline — implemented
 
-Started: `readStatementSet` batches incoming-implication and direct-support
-queries for a chosen set, fetches each source statement once, and freezes every
-page at the chain's finalized checkpoint. Counts are exact direct signers,
-indirect-only supporters, and their union. A not-ready indexer returns
-`not-ready` rather than zeros. Completed scans are stored per statement in the
-machinery fold store: the position is the block fully scanned through, not the
-last matching event. A higher finalized head fetches `blockNumber_gte` of that
-position plus one. Policy is applied at read time, so a trust-config change does
-not require a new event scan. A lower head, or the same head with a different
-checkpoint, discards the scan. A failed refresh keeps a previous complete scan
-as `stale` instead of presenting it as exact. Positions for a read advance
-together: a refresh that fails after fetching one event family does not persist
-that family ahead of the others.
+Implemented: the exact browser baseline is in place (checkpoint freeze, shared
+source fetch, persisted scan position, upstream build id, atomic family persist,
+stale previous snapshot including recorded retraction). Recorded retraction
+covers a source that is also a displayed target. Step 2 live cold/warm byte
+measurement is still required before any new raw-event partition, and step 3
+remains conditional on that measurement.
 
 Persist reusable per-statement state and completed scan positions in the browser.
 Fetch deltas on subsequent reads; do not download full histories and filter them
@@ -107,8 +100,9 @@ complete snapshot clearly dated when refreshing fails.
 
 ### 2. Measure and improve raw-event organization
 
-Measure cold and warm browser loads before adding new storage formats. Current
-topic indexes and batching may be sufficient.
+Open gate: live cold/warm byte measurement has not been run, and it is required
+before any new raw-event partition. Current topic indexes and batching may be
+sufficient.
 
 If delivery is still expensive, investigate immutable finalized raw-event chunks
 partitioned by statement and block window, with a small mutable tail. The same
@@ -120,7 +114,7 @@ These are alternate organizations of raw logs, not tables of supporter counts.
 Do not implement a new archive layout without evidence that it improves the
 relevant workload.
 
-### 3. Add budgeted indirect evaluation if needed
+### 3. Add budgeted indirect evaluation if needed — conditional
 
 Limit time, bytes, or source work for a read. Reuse already-complete source state
 first; schedule additional sources using locally known size, activity, or prior

@@ -3,7 +3,9 @@
  *
  * One finalized checkpoint covers every target. Incoming implications and
  * direct-support histories are fetched in topic batches, and a source statement
- * is fetched once even when several targets depend on it.
+ * is fetched once even when several targets depend on it. A source that is also
+ * a displayed target is still checked for retraction; that flag is stored on its
+ * belief scan. Its belief history is not fetched a second time.
  *
  * Completed scans live in the machinery fold store (IndexedDB in the browser).
  * The stored position is the block the statement was fully scanned through,
@@ -168,9 +170,11 @@ export async function readStatementSet(
         foldImplications(implicationEvents.filter(event => targets.includes(event.toStatementCid as IpfsCidV1))),
         trustedAttesters ? [...trustedAttesters] : undefined,
       );
-      sources = uniqueCids(accepted.map(implication => implication.fromStatementCid))
-        .filter(source => !targets.includes(source));
-      const beliefCids = [...targets, ...sources];
+      // Accepted sources include statements that are also targets. Those belief
+      // histories are already in `targets`, so only non-target sources are fetched again.
+      sources = uniqueCids(accepted.map(implication => implication.fromStatementCid));
+      const extraSources = sources.filter(source => !targets.includes(source));
+      const beliefCids = [...targets, ...extraSources];
       const beliefScans = await loadScans(store, beliefCids.map(cid => beliefKey(scope, cid)));
       const beliefs = await advanceBeliefs(machinery, scope, beliefCids, beliefScans, head);
       directSupport = beliefs.events;
@@ -486,9 +490,9 @@ async function staleRead(
     return null;
   }
   const implications = complete.flatMap(scan => [...deserializeImplications(scan.edges).values()]);
-  const sources = uniqueCids(implications.map(implication => implication.fromStatementCid))
-    .filter(source => !targets.includes(source));
-  const beliefIds = [...targets, ...sources];
+  const sources = uniqueCids(implications.map(implication => implication.fromStatementCid));
+  const extraSources = sources.filter(source => !targets.includes(source));
+  const beliefIds = [...targets, ...extraSources];
   const beliefRecords = await loadScans(store, beliefIds.map(cid => beliefKey(scope, cid)));
   const beliefScans = beliefRecords.map(record => record?.version === STATEMENT_SCAN_VERSION
     ? asBeliefScan(record.accumulator)
@@ -496,9 +500,10 @@ async function staleRead(
   if (beliefScans.some(scan => scan == null || scan.checkpoint !== head.checkpoint || scan.asOfBlock !== head.asOfBlock)) {
     return null;
   }
+  const beliefScanByCid = new Map(beliefIds.map((cid, index) => [cid, beliefScans[index]]));
   const retractedSources = new Set<IpfsCidV1>();
-  for (const [index, cid] of sources.entries()) {
-    const retracted = beliefScans[targets.length + index]?.retracted;
+  for (const cid of sources) {
+    const retracted = beliefScanByCid.get(cid)?.retracted;
     if (retracted == null) return null;
     if (retracted) retractedSources.add(cid);
   }

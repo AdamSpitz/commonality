@@ -1,8 +1,14 @@
 import assert from 'node:assert/strict';
 import { afterEach, describe, it } from 'mocha';
+import { encodeAbiParameters, encodeEventTopics, parseAbiParameters, type Address } from 'viem';
 import type { SDKMachinery } from '../../../machinery.js';
-import type { IpfsCidV1 } from '../../../utils/cid-types.js';
+import { BeliefsAbi, ImplicationsAbi } from '../../../abis/conceptspace.js';
+import { bytes32ToCid, cidToBytes32, type IpfsCidV1 } from '../../../utils/cid-types.js';
+import type { RawEventFromCache } from '../../../utils/eventCacheClient.js';
 import { MemoryFoldStore } from '../../../utils/resumableFold.js';
+import { createStatement, toCanonicalJson } from '../../displayable-documents/displayable-document.js';
+import { computePublishedDataId } from '../../published-data/id.js';
+import { fakeContentResolver } from '../../published-data/test-support.js';
 import { readStatementSet, statementSetSupportFromEvents } from './statement-set.js';
 import type { DecodedDirectSupportEvent, DecodedImplicationAttestationEvent } from '../../../utils/event-decoders/conceptspace.js';
 
@@ -10,6 +16,101 @@ const targetA = 'bafybeiaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as
 const targetB = 'bafybeibbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' as IpfsCidV1;
 const source = 'bafybeicccccccccccccccccccccccccccccccccccccccccccccccccccc' as IpfsCidV1;
 const user = (n: number) => `0x${n.toString(16).padStart(40, '0')}` as const;
+
+// Event decoders rehydrate bytes32 statement ids as dag-pb CIDv1. These are that
+// form of bafkreifzjut3te2nhyekklss27nh3k7232xplrvgnbo3wxj335rkr3v36m and
+// bafkreib6z3wp7uj3d7ct6e3efwvl7yuxtzvqhvzq2g3m5v45x7zqsc2xmi.
+const namedTarget = 'bafybeifzjut3te2nhyekklss27nh3k7232xplrvgnbo3wxj335rkr3v36m' as IpfsCidV1;
+const namedSource = 'bafybeib6z3wp7uj3d7ct6e3efwvl7yuxtzvqhvzq2g3m5v45x7zqsc2xmi' as IpfsCidV1;
+const ZERO_BYTES32 = '0x0000000000000000000000000000000000000000000000000000000000000000' as const;
+const BELIEFS = '0x00000000000000000000000000000000000000b1';
+const IMPLICATIONS = '0x00000000000000000000000000000000000000c1';
+
+function topicAt(topics: readonly unknown[], index: number): string | null {
+  const topic = topics[index];
+  return typeof topic === 'string' ? topic : null;
+}
+
+function directSupportRawEvent(
+  address: Address,
+  statementCid: string,
+  beliefState: number,
+  logIndex = 0,
+): RawEventFromCache {
+  const topics = encodeEventTopics({
+    abi: BeliefsAbi,
+    eventName: 'DirectSupport',
+    args: { user: address, statementId: cidToBytes32(statementCid) },
+  });
+  return {
+    id: `${address}-${statementCid}-${logIndex}`,
+    contractAddress: BELIEFS,
+    eventName: 'DirectSupport',
+    blockNumber: '10',
+    blockTimestamp: '1700000000',
+    transactionHash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    logIndex,
+    topic0: topicAt(topics, 0),
+    topic1: topicAt(topics, 1),
+    topic2: topicAt(topics, 2),
+    topic3: null,
+    data: encodeAbiParameters(parseAbiParameters('uint8'), [beliefState]),
+  };
+}
+
+function implicationRawEvent(fromCid: string, toCid: string, attester: Address, logIndex = 0): RawEventFromCache {
+  const topics = encodeEventTopics({
+    abi: ImplicationsAbi,
+    eventName: 'ImplicationAttestation',
+    args: {
+      attester,
+      fromStatementCid: cidToBytes32(fromCid),
+      toStatementCid: cidToBytes32(toCid),
+    },
+  });
+  return {
+    id: `${fromCid}-${toCid}-${logIndex}`,
+    contractAddress: IMPLICATIONS,
+    eventName: 'ImplicationAttestation',
+    blockNumber: '10',
+    blockTimestamp: '1700000000',
+    transactionHash: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+    logIndex,
+    topic0: topicAt(topics, 0),
+    topic1: topicAt(topics, 1),
+    topic2: topicAt(topics, 2),
+    topic3: topicAt(topics, 3),
+    data: encodeAbiParameters(parseAbiParameters('bytes32'), [ZERO_BYTES32]),
+  };
+}
+
+function syncBody(head: string) {
+  return new Response(JSON.stringify({
+    ready: true,
+    chains: [{
+      chainId: '84532',
+      chainName: 'base-sepolia',
+      indexedThrough: head,
+      finalizedThrough: head,
+      indexedCheckpoint: head,
+      finalizedCheckpoint: head,
+    }],
+  }), { status: 200 });
+}
+
+function eventPage(items: RawEventFromCache[], checkpoint: string) {
+  return new Response(JSON.stringify({
+    items,
+    truncated: false,
+    nextCursor: null,
+    checkpoint,
+    completeThroughCheckpoint: true,
+  }), { status: 200 });
+}
+
+function cidForIndex(index: number): IpfsCidV1 {
+  return bytes32ToCid(`0x${(index + 1).toString(16).padStart(64, '0')}`);
+}
 
 function belief(
   statementId: string,
@@ -406,5 +507,144 @@ describe('readStatementSet', () => {
     const read = await readStatementSet(scoped, [targetA]);
     assert.equal(read.status, 'complete');
     assert.equal(pages.get('DirectSupport'), 2);
+  });
+
+  it('drops indirect support from a retracted source that is also a target', async () => {
+    const document = createStatement({ content: 'Retracted source that is also a target' });
+    const bytes = new TextEncoder().encode(toCanonicalJson(document));
+    const dataId = computePublishedDataId(bytes);
+    const sourceTarget = bytes32ToCid(dataId);
+    const store = new MemoryFoldStore();
+    const scoped = {
+      ...machinery,
+      foldStore: store,
+      publishedContentResolver: fakeContentResolver([bytes]),
+    } as unknown as SDKMachinery;
+    let head = '12';
+    let failEvents = false;
+    const seen: string[] = [];
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      const url = new URL(String(input));
+      seen.push(url.pathname);
+      if (url.pathname.endsWith('/sync')) return syncBody(head);
+      if (url.pathname.toLowerCase().includes('/api/published-data/')) {
+        assert.equal(url.pathname.toLowerCase(), `/api/published-data/${dataId.toLowerCase()}`);
+        // The reader needs a publication pointer before it will accept retracted bytes.
+        return new Response(JSON.stringify({
+          status: 'retracted',
+          publications: [{
+            publisher: user(1),
+            transactionHash: `0x${'ab'.repeat(32)}`,
+            blockNumber: '1',
+            logIndex: 0,
+          }],
+        }), { status: 200 });
+      }
+      if (failEvents) return new Response('events down', { status: 500 });
+      const eventName = url.searchParams.get('eventName');
+      if (eventName === 'ImplicationAttestation') {
+        return eventPage([implicationRawEvent(sourceTarget, namedTarget, user(9))], head);
+      }
+      if (eventName === 'DirectSupport') {
+        return eventPage([
+          directSupportRawEvent(user(1), sourceTarget, 1, 0),
+          directSupportRawEvent(user(2), namedTarget, 1, 1),
+        ], head);
+      }
+      return eventPage([], head);
+    }) as typeof fetch;
+
+    const read = await readStatementSet(scoped, [sourceTarget, namedTarget]);
+    assert.equal(read.status, 'complete');
+    assert.ok(seen.some(path => path.toLowerCase().includes('/api/published-data/')));
+    assert.deepEqual(read.targets, [
+      { statementCid: sourceTarget, directSigners: 1, indirectOnlySupporters: 0, totalSupporters: 1 },
+      { statementCid: namedTarget, directSigners: 1, indirectOnlySupporters: 0, totalSupporters: 1 },
+    ]);
+    assert.deepEqual(read.sourceStatements, []);
+
+    failEvents = true;
+    head = '13';
+    const stale = await readStatementSet(scoped, [sourceTarget, namedTarget]);
+    assert.equal(stale.status, 'stale');
+    assert.equal(stale.asOfBlock, '12');
+    assert.equal(stale.targets[0]?.directSigners, 1);
+    assert.equal(stale.targets[1]?.directSigners, 1);
+    assert.equal(stale.targets[1]?.indirectOnlySupporters, 0);
+    assert.deepEqual(stale.sourceStatements, []);
+  });
+
+  it('fetches a shared external source once in the same direct-support group as the targets', async () => {
+    const otherTarget = cidForIndex(7);
+    const store = new MemoryFoldStore();
+    const scoped = { ...machinery, foldStore: store, ipfsConfig: {} } as unknown as SDKMachinery;
+    const directTopics: string[] = [];
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      const url = new URL(String(input));
+      if (url.pathname.endsWith('/sync')) return syncBody('12');
+      if (url.pathname.toLowerCase().includes('/api/published-data/')) {
+        return new Response(JSON.stringify({ status: 'not-published' }), { status: 200 });
+      }
+      const eventName = url.searchParams.get('eventName');
+      if (eventName === 'DirectSupport') directTopics.push(url.searchParams.get('topic2_in') ?? '');
+      if (eventName === 'ImplicationAttestation') {
+        return eventPage([
+          implicationRawEvent(namedSource, namedTarget, user(9), 0),
+          implicationRawEvent(namedSource, otherTarget, user(9), 1),
+          implicationRawEvent(namedTarget, otherTarget, user(9), 2),
+        ], '12');
+      }
+      return eventPage([], '12');
+    }) as typeof fetch;
+
+    const read = await readStatementSet(scoped, [namedTarget, otherTarget]);
+    assert.equal(read.status, 'complete', read.error);
+    assert.deepEqual(directTopics, [[
+      cidToBytes32(namedTarget),
+      cidToBytes32(otherTarget),
+      cidToBytes32(namedSource),
+    ].join(',')]);
+    assert.equal(directTopics[0]?.split(',').filter(topic => topic === cidToBytes32(namedSource)).length, 1);
+    assert.deepEqual([...read.sourceStatements].sort(), [namedSource, namedTarget].sort());
+  });
+
+  it('chunks a 100-target read and warms from the scanned block', async () => {
+    const store = new MemoryFoldStore();
+    const scoped = { ...machinery, foldStore: store } as unknown as SDKMachinery;
+    const targets = Array.from({ length: 100 }, (_, index) => cidForIndex(index));
+    let head = '12';
+    const cold: Array<{ eventName: string; gte: string | null; topics: number }> = [];
+    const warm: Array<{ eventName: string; gte: string | null; topics: number }> = [];
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      const url = new URL(String(input));
+      if (url.pathname.endsWith('/sync')) return syncBody(head);
+      const topicIn = url.searchParams.get('topic2_in') ?? url.searchParams.get('topic3_in') ?? '';
+      const hit = {
+        eventName: url.searchParams.get('eventName') ?? '',
+        gte: url.searchParams.get('blockNumber_gte'),
+        topics: topicIn === '' ? 0 : topicIn.split(',').length,
+      };
+      (head === '12' ? cold : warm).push(hit);
+      return eventPage([], head);
+    }) as typeof fetch;
+
+    const first = await readStatementSet(scoped, targets);
+    assert.equal(first.status, 'complete');
+    head = '20';
+    const second = await readStatementSet(scoped, targets);
+    assert.equal(second.status, 'complete');
+    assert.equal(second.asOfBlock, '20');
+
+    const counts = (hits: typeof cold, eventName: string) => hits.filter(hit => hit.eventName === eventName);
+    for (const eventName of ['ImplicationAttestation', 'ImplicationRevoked', 'DirectSupport']) {
+      const firstChunks = counts(cold, eventName);
+      const secondChunks = counts(warm, eventName);
+      assert.equal(firstChunks.length, 4, eventName);
+      assert.deepEqual(firstChunks.map(hit => hit.topics), [32, 32, 32, 4], eventName);
+      assert.ok(firstChunks.every(hit => hit.gte == null), eventName);
+      assert.equal(secondChunks.length, 4, eventName);
+      assert.ok(secondChunks.every(hit => hit.gte === '13'), eventName);
+    }
+    assert.equal(warm.filter(hit => hit.gte == null).length, 0);
   });
 });
