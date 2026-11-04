@@ -17,6 +17,8 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ## Main list
 
+- **Tell Report:** Base Sepolia content check for the raw-CID change. 246 of 254 chain digests already resolve through PublishedData calldata. Four well-known documents that did not (CSM mission, project-alignment topic, roster coherence claim and topic) were published as raw bytes by lab wallet `0x60ec8A30…` in tx `0xeb9dc6437805ef0cb053f5bbfa53dfa4417ad710c3e94fc29ec82fcdd4ccb5c3`. They will read once the indexer sees that tx. Four other digests have no recoverable bytes (one implication pair and two alignment statement ids). Public IPFS did not have either codec. Mainnet was not touched.
+
 - **Tell Report:** Testnet ops pager is in (`scripts/testnet-ops-pager.mjs`, every 15 minutes once this is on the default branch). It comments on an `ops-pager` issue only when a probe flips. Subscribe to repo issue notifications if you want the mail. `RENDER_API_KEY` is now a GitHub secret. Those three workers are not suspended now (checked the Render API). Optional later: set secret `OPS_PAGER_NTFY_TOPIC` if you also want ntfy.
 
 - **Tell Report:** Cold-start step 5 is done. The project registry and statement browse run in a Web Worker. Smaller global folds stay on the calling thread. The step 2 bench still describes request counts.
