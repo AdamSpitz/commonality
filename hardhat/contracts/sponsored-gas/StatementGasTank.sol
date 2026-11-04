@@ -85,6 +85,17 @@ contract StatementGasTank is Ownable {
   }
 
   function enroll(bytes32 statementId) external {
+    _enroll(statementId);
+  }
+
+  /// @notice Same rules as `enroll`, one transaction. Chunk large sets; each id is a cold SSTORE.
+  function enrollMany(bytes32[] calldata statementIds) external {
+    for (uint256 i = 0; i < statementIds.length; i++) {
+      _enroll(statementIds[i]);
+    }
+  }
+
+  function _enroll(bytes32 statementId) private {
     if (statementId == bytes32(0)) revert StatementNotEnrolled(statementId);
     address existingSponsor = sponsorOf[statementId];
     if (existingSponsor != address(0)) revert StatementAlreadyEnrolled(existingSponsor);
