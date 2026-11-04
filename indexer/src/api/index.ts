@@ -36,6 +36,7 @@ import { isBareContractLogQuery, projectReadDemandReport, recordUnindexedProject
 import {
   chainSyncWatermarks,
   followCheckpointFromSync,
+  upstreamIdFromAppMeta,
   type CheckpointRow,
 } from "./syncWatermark";
 
@@ -289,10 +290,10 @@ type PonderDatabase = {
   };
 };
 
-async function readChainSync(): Promise<{ ready: boolean; chains: ReturnType<typeof chainSyncWatermarks> }> {
+async function readChainSync(): Promise<{ ready: boolean; upstreamId: string; chains: ReturnType<typeof chainSyncWatermarks> }> {
   const database = (globalThis as { PONDER_DATABASE?: PonderDatabase }).PONDER_DATABASE;
   const qb = database?.readonlyQB;
-  if (!qb) return { ready: false, chains: [] };
+  if (!qb) return { ready: false, upstreamId: "", chains: [] };
   const [meta, checkpoints] = await Promise.all([
     qb.wrap({ label: "select_sync_ready" }, (inner) => inner.execute(
       "SELECT value FROM _ponder_meta WHERE key = 'app'",
@@ -301,9 +302,10 @@ async function readChainSync(): Promise<{ ready: boolean; chains: ReturnType<typ
       "SELECT chain_id, chain_name, latest_checkpoint, finalized_checkpoint FROM _ponder_checkpoint",
     )),
   ]);
-  const app = meta.rows[0] as { value?: { is_ready?: number } } | undefined;
+  const app = meta.rows[0] as { value?: { is_ready?: number; build_id?: unknown } } | undefined;
   return {
     ready: app?.value?.is_ready === 1,
+    upstreamId: upstreamIdFromAppMeta(app?.value),
     chains: chainSyncWatermarks(checkpoints.rows as CheckpointRow[]),
   };
 }
@@ -315,6 +317,7 @@ app.get("/api/sync", async (c) => {
     const chains = chainId ? sync.chains.filter(row => row.chainId === chainId) : sync.chains;
     return c.json({
       ready: sync.ready,
+      upstreamId: sync.upstreamId,
       chains,
     });
   } catch (error) {

@@ -328,6 +328,7 @@ describe('fetchChainSync', () => {
     }) as typeof fetch;
     const sync = await fetchChainSync(machinery, 31337);
     assert.equal(sync.ready, true);
+    assert.equal(sync.upstreamId, '');
     assert.equal(sync.chains[0]?.indexedThrough, '9');
 
     globalThis.fetch = (async () => new Response(JSON.stringify({ ready: true }), { status: 200 })) as typeof fetch;

@@ -3,6 +3,7 @@ import {
   blockFromPonderCheckpoint,
   chainSyncWatermarks,
   followCheckpointFromSync,
+  upstreamIdFromAppMeta,
 } from "./syncWatermark.js";
 
 function checkpoint(block: bigint): string {
@@ -27,3 +28,6 @@ assert.equal(followCheckpointFromSync(rows, "84532", true), "120");
 assert.equal(followCheckpointFromSync(rows, "84532", false), undefined);
 assert.equal(followCheckpointFromSync(rows, undefined, true), undefined);
 assert.equal(followCheckpointFromSync(rows, "1", true), undefined);
+assert.equal(upstreamIdFromAppMeta({ build_id: "abc" }), "abc");
+assert.equal(upstreamIdFromAppMeta({}), "");
+assert.equal(upstreamIdFromAppMeta(null), "");

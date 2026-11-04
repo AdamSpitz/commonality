@@ -35,6 +35,13 @@ export function blockFromPonderCheckpoint(checkpoint: string): string {
   return BigInt(checkpoint.slice(BLOCK_NUMBER_OFFSET, BLOCK_NUMBER_OFFSET + BLOCK_NUMBER_DIGITS)).toString();
 }
 
+/** Ponder replaces `build_id` when the indexing database is rebuilt. */
+export function upstreamIdFromAppMeta(value: unknown): string {
+  if (value == null || typeof value !== "object") return "";
+  const buildId = (value as { build_id?: unknown }).build_id;
+  return typeof buildId === "string" ? buildId : "";
+}
+
 export function chainSyncWatermarks(rows: CheckpointRow[]): ChainSyncWatermark[] {
   return rows.map(row => ({
     chainId: BigInt(row.chain_id).toString(),

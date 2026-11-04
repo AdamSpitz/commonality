@@ -202,6 +202,43 @@ describe('readStatementSet', () => {
     assert.equal(gte.filter(value => value === 'start').length, 3);
   });
 
+  it('discards scans when the indexer build id changes', async () => {
+    const store = new MemoryFoldStore();
+    const scoped = { ...machinery, foldStore: store } as unknown as SDKMachinery;
+    let upstreamId = 'build-a';
+    const gte: string[] = [];
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      const url = new URL(String(input));
+      if (url.pathname.endsWith('/sync')) {
+        return new Response(JSON.stringify({
+          ready: true,
+          upstreamId,
+          chains: [{
+            chainId: '84532',
+            chainName: 'base-sepolia',
+            indexedThrough: '12',
+            finalizedThrough: '12',
+            indexedCheckpoint: '12',
+            finalizedCheckpoint: '12',
+          }],
+        }), { status: 200 });
+      }
+      gte.push(url.searchParams.get('blockNumber_gte') ?? 'start');
+      return new Response(JSON.stringify({
+        items: [],
+        truncated: false,
+        nextCursor: null,
+        checkpoint: '12',
+        completeThroughCheckpoint: true,
+      }), { status: 200 });
+    }) as typeof fetch;
+
+    await readStatementSet(scoped, [targetA]);
+    upstreamId = 'build-b';
+    await readStatementSet(scoped, [targetA]);
+    assert.equal(gte.filter(value => value === 'start').length, 6);
+  });
+
   it('discards a scan when the finalized head moves backwards', async () => {
     const store = new MemoryFoldStore();
     const scoped = { ...machinery, foldStore: store } as unknown as SDKMachinery;

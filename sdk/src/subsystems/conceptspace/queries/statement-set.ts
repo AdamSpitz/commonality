@@ -9,8 +9,10 @@
  * The stored position is the block the statement was fully scanned through,
  * which may be later than its last matching event. A repeat read at a higher
  * finalized head fetches only later blocks. Cached folds do not include trust
- * policy; policy is applied when the read is computed. A lower head, or the
- * same head under a different checkpoint, discards the scan.
+ * policy; policy is applied when the read is computed. Keys include chain,
+ * both statement contracts, the indexer URL, and upstream build id. A lower
+ * head, the same head under a different checkpoint, or a new upstream id
+ * discards the scan.
  */
 
 import type { Address } from 'viem';
@@ -49,7 +51,7 @@ import { fetchStatementDocument, uniqueAddresses } from './documents.js';
 import { filterByTrustedAttesters } from './implications.js';
 
 const TOPIC_IN_CHUNK = 32;
-const STATEMENT_SCAN_VERSION = 1;
+const STATEMENT_SCAN_VERSION = 2;
 
 export type StatementSetReadStatus = 'complete' | 'not-ready' | 'failed' | 'stale';
 
@@ -148,14 +150,16 @@ export async function readStatementSet(
     }
     const asOfBlock = watermark.finalizedThrough;
     const checkpoint = watermark.finalizedCheckpoint;
+    const upstreamId = sync.upstreamId;
     const head = { asOfBlock, checkpoint };
+    const scope = scanScope(machinery, upstreamId);
 
-    const implicationScans = await loadScans(store, targets.map(cid => implicationKey(machinery, cid)));
+    const implicationScans = await loadScans(store, targets.map(cid => implicationKey(scope, cid)));
     let implicationEvents: Array<DecodedImplicationAttestationEvent | DecodedImplicationRevokedEvent>;
     try {
-      implicationEvents = await advanceImplications(machinery, store, targets, implicationScans, head);
+      implicationEvents = await advanceImplications(machinery, store, scope, targets, implicationScans, head);
     } catch (error) {
-      const stale = await staleRead(machinery, targets, chainId, trustedAttesters, error);
+      const stale = await staleRead(machinery, scope, targets, chainId, trustedAttesters, error);
       if (stale) return stale;
       throw error;
     }
@@ -166,16 +170,17 @@ export async function readStatementSet(
     const sources = uniqueCids(accepted.map(implication => implication.fromStatementCid))
       .filter(source => !targets.includes(source));
     const beliefCids = [...targets, ...sources];
-    const beliefScans = await loadScans(store, beliefCids.map(cid => beliefKey(machinery, cid)));
+    const beliefScans = await loadScans(store, beliefCids.map(cid => beliefKey(scope, cid)));
     let directSupport: DecodedDirectSupportEvent[];
     try {
-      directSupport = await advanceBeliefs(machinery, store, beliefCids, beliefScans, head);
+      directSupport = await advanceBeliefs(machinery, store, scope, beliefCids, beliefScans, head);
     } catch (error) {
-      const stale = await staleRead(machinery, targets, chainId, trustedAttesters, error);
+      const stale = await staleRead(machinery, scope, targets, chainId, trustedAttesters, error);
       if (stale) return stale;
       throw error;
     }
     const retractedSources = await retractedSourceCids(machinery, sources, directSupport);
+    await markRetracted(store, scope, sources, retractedSources, head);
     return {
       status: 'complete',
       chainId,
@@ -211,30 +216,34 @@ function emptyRead(status: 'not-ready' | 'failed', chainId: number | null): Stat
 
 type Head = { asOfBlock: string; checkpoint: string };
 
+type ScanScope = { machinery: SDKMachinery; upstreamId: string };
+
 type BeliefScan = Head & {
   beliefs: Array<{ user: string; beliefState: number; blockNumber: string; logIndex: number }>;
+  /** Set after a completed read checked the statement document. */
+  retracted?: boolean;
 };
 
 type ImplicationScan = Head & { edges: unknown };
 
-function beliefKey(machinery: SDKMachinery, statementCid: string): string {
-  return scanKey(machinery, 'statement-belief', machinery.contractAddresses?.beliefs, statementCid);
+function scanScope(machinery: SDKMachinery, upstreamId: string): ScanScope {
+  return { machinery, upstreamId };
 }
 
-function implicationKey(machinery: SDKMachinery, statementCid: string): string {
-  return scanKey(machinery, 'statement-implications', machinery.contractAddresses?.implications, statementCid);
+function beliefKey(scope: ScanScope, statementCid: string): string {
+  return scanKey(scope, 'statement-belief', statementCid);
 }
 
-function scanKey(
-  machinery: SDKMachinery,
-  id: string,
-  contract: string | undefined,
-  statementCid: string,
-): string {
+function implicationKey(scope: ScanScope, statementCid: string): string {
+  return scanKey(scope, 'statement-implications', statementCid);
+}
+
+function scanKey(scope: ScanScope, id: string, statementCid: string): string {
+  const addresses = scope.machinery.contractAddresses;
   return foldStoreKey({
-    chainId: machinery.defaultChainId ?? 'unknown',
-    eventCacheUrl: machinery.eventCacheUrl ?? '',
-    contracts: [contract ?? ''],
+    chainId: scope.machinery.defaultChainId ?? 'unknown',
+    eventCacheUrl: scope.machinery.eventCacheUrl ?? '',
+    contracts: [addresses?.beliefs ?? '', addresses?.implications ?? '', scope.upstreamId],
     id: `${id}:${statementCid}`,
     version: STATEMENT_SCAN_VERSION,
   });
@@ -274,6 +283,7 @@ function resumeFrom(scan: Head | null, head: Head): { fromBlock: string | null; 
 async function advanceImplications(
   machinery: SDKMachinery,
   store: FoldStore,
+  scope: ScanScope,
   targets: readonly IpfsCidV1[],
   stored: Array<StoredFold | null>,
   head: Head,
@@ -296,7 +306,7 @@ async function advanceImplications(
       ? deserializeImplications(scans[index]!.edges)
       : emptyImplications();
     const next = stepImplications(previous, eventsByTarget.get(cid) ?? []);
-    await store.put(implicationKey(machinery, cid), {
+    await store.put(implicationKey(scope, cid), {
       version: STATEMENT_SCAN_VERSION,
       cursor: null,
       accumulator: { ...head, edges: serializeImplications(next) },
@@ -321,6 +331,7 @@ async function advanceImplications(
 async function advanceBeliefs(
   machinery: SDKMachinery,
   store: FoldStore,
+  scope: ScanScope,
   statementCids: readonly IpfsCidV1[],
   stored: Array<StoredFold | null>,
   head: Head,
@@ -357,10 +368,15 @@ async function advanceBeliefs(
       });
     }
     const beliefs = [...latest.values()];
-    await store.put(beliefKey(machinery, cid), {
+    const previousRetracted = scans[index]?.retracted;
+    await store.put(beliefKey(scope, cid), {
       version: STATEMENT_SCAN_VERSION,
       cursor: null,
-      accumulator: { ...head, beliefs },
+      accumulator: {
+        ...head,
+        beliefs,
+        ...(previousRetracted === undefined ? {} : { retracted: previousRetracted }),
+      },
     }).catch(() => { /* Persistence is optional. */ });
     for (const belief of beliefs) {
       directSupport.push({
@@ -425,15 +441,36 @@ async function fetchGrouped<T>(
   }
 }
 
+async function markRetracted(
+  store: FoldStore,
+  scope: ScanScope,
+  sources: readonly IpfsCidV1[],
+  retracted: ReadonlySet<IpfsCidV1>,
+  head: Head,
+): Promise<void> {
+  await Promise.all(sources.map(async source => {
+    const key = beliefKey(scope, source);
+    const stored = await store.get(key).catch(() => null);
+    const scan = stored?.version === STATEMENT_SCAN_VERSION ? asBeliefScan(stored.accumulator) : null;
+    if (scan == null || scan.asOfBlock !== head.asOfBlock || scan.checkpoint !== head.checkpoint) return;
+    await store.put(key, {
+      version: STATEMENT_SCAN_VERSION,
+      cursor: null,
+      accumulator: { ...scan, retracted: retracted.has(source) },
+    }).catch(() => { /* Persistence is optional. */ });
+  }));
+}
+
 async function staleRead(
   machinery: SDKMachinery,
+  scope: ScanScope,
   targets: readonly IpfsCidV1[],
   chainId: number | null,
   trustedAttesters: readonly string[] | undefined,
   error: unknown,
 ): Promise<StatementSetRead | null> {
   const store = machinery.foldStore ?? defaultFoldStore;
-  const implicationRecords = await loadScans(store, targets.map(cid => implicationKey(machinery, cid)));
+  const implicationRecords = await loadScans(store, targets.map(cid => implicationKey(scope, cid)));
   const implicationScans = implicationRecords.map(record => record?.version === STATEMENT_SCAN_VERSION
     ? asImplicationScan(record.accumulator)
     : null);
@@ -447,12 +484,18 @@ async function staleRead(
   const sources = uniqueCids(implications.map(implication => implication.fromStatementCid))
     .filter(source => !targets.includes(source));
   const beliefIds = [...targets, ...sources];
-  const beliefRecords = await loadScans(store, beliefIds.map(cid => beliefKey(machinery, cid)));
+  const beliefRecords = await loadScans(store, beliefIds.map(cid => beliefKey(scope, cid)));
   const beliefScans = beliefRecords.map(record => record?.version === STATEMENT_SCAN_VERSION
     ? asBeliefScan(record.accumulator)
     : null);
   if (beliefScans.some(scan => scan == null || scan.checkpoint !== head.checkpoint || scan.asOfBlock !== head.asOfBlock)) {
     return null;
+  }
+  const retractedSources = new Set<IpfsCidV1>();
+  for (const [index, cid] of sources.entries()) {
+    const retracted = beliefScans[targets.length + index]?.retracted;
+    if (retracted == null) return null;
+    if (retracted) retractedSources.add(cid);
   }
   const directSupport = beliefIds.flatMap((cid, index) => (beliefScans[index]?.beliefs ?? []).map(belief => ({
     user: belief.user as Address,
@@ -484,9 +527,10 @@ async function staleRead(
       targets,
       directSupport,
       implications: implicationEvents,
+      retractedSources,
       trustedAttesters,
     }),
-    sourceStatements: sources,
+    sourceStatements: sources.filter(source => !retractedSources.has(source)),
     error: error instanceof Error ? error.message : String(error),
   };
 }

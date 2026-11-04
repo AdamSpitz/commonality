@@ -94,7 +94,10 @@ Persist reusable per-statement state and completed scan positions in the browser
 Fetch deltas on subsequent reads; do not download full histories and filter them
 locally. Scope stored state by chain, deployments, upstream identity, and fold
 version, and include policy identity wherever cached results depend on policy.
-Handle configuration changes and upstream invalidation explicitly.
+`GET /api/sync` now returns Ponder's `build_id` as `upstreamId`. Statement-set
+scan keys include that id plus both statement-contract addresses, so a rebuilt
+indexer or a deployment change is not resumed as a delta. A failed refresh
+still requires the previous scan to have recorded source retraction, which is how configuration changes and upstream invalidation stay explicit.
 
 Separate a completed scan position from the last matching event. Distinguish
 not loaded, complete zero, partial, stale, and failed results. Keep a previously

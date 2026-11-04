@@ -502,6 +502,8 @@ export type ChainSyncWatermark = {
 
 export type ChainSyncStatus = {
   ready: boolean;
+  /** Empty when the indexer does not report a build id. A change means the feed was rebuilt. */
+  upstreamId: string;
   chains: ChainSyncWatermark[];
 };
 
@@ -519,6 +521,7 @@ function isChainSyncWatermark(value: unknown): value is ChainSyncWatermark {
  * Committed indexing head. `ready` false means historical backfill is still
  * running; do not freeze a follower on `indexedThrough` until it flips.
  * A shorter `indexedCheckpoint` than one previously observed is a reset.
+ * `upstreamId` is empty on older indexers; a non-empty change is also a reset.
  */
 export async function fetchChainSync(
   machinery: SDKMachinery,
@@ -541,7 +544,10 @@ export async function fetchChainSync(
   if (!isRecord(data) || typeof data.ready !== 'boolean' || !Array.isArray(data.chains) || !data.chains.every(isChainSyncWatermark)) {
     throw new Error('Malformed sync watermark');
   }
-  return { ready: data.ready, chains: data.chains };
+  if (data.upstreamId != null && typeof data.upstreamId !== 'string') {
+    throw new Error('Malformed sync watermark');
+  }
+  return { ready: data.ready, upstreamId: typeof data.upstreamId === 'string' ? data.upstreamId : '', chains: data.chains };
 }
 
 export async function fetchEventFeedPage(
