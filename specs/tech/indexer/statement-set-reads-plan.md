@@ -1,7 +1,9 @@
 # Browser-first statement-set reads
 
-Status: current direction, agreed with Adam on 2026-11-03. Replaces the earlier
-plan for a separate vertical-specific counts service.
+Status: paused on 2026-11-04, agreed with Adam. The exact browser baseline is
+enough for now. Do not add a per-statement archive, a budgeted indirect mode, or
+a counts service unless a real workload shows this reader is too expensive.
+Replaces the earlier plan for a separate vertical-specific counts service.
 
 ## Decision and rationale
 
@@ -82,8 +84,8 @@ Implemented: the exact browser baseline is in place (checkpoint freeze, shared
 source fetch, persisted scan position, upstream build id, atomic family persist,
 stale previous snapshot including recorded retraction). Recorded retraction
 covers a source that is also a displayed target. A local cold/warm measurement
-is recorded below. It does not justify a new raw-event partition. Step 3 remains
-conditional on a larger workload than this local chain.
+is recorded below. It does not justify more work now. Steps 2 and 3 are paused,
+not the next task.
 
 Persist reusable per-statement state and completed scan positions in the browser.
 Fetch deltas on subsequent reads; do not download full histories and filter them
@@ -98,7 +100,7 @@ Separate a completed scan position from the last matching event. Distinguish
 not loaded, complete zero, partial, stale, and failed results. Keep a previously
 complete snapshot clearly dated when refreshing fails.
 
-### 2. Measure and improve raw-event organization
+### 2. Measure and improve raw-event organization — paused
 
 Local measurement, 2026-11-03, after rebuilding the indexer image so `GET /api/sync`
 and follower event pages were actually served (the previously running image was
@@ -117,7 +119,8 @@ That is not evidence for a new raw-event partition. Current topic indexes and
 batching were sufficient for this world. Do not treat it as proof that every
 direct history stays small; this chain has no large indirect fan-in. Re-run the
 same script against a 100-target shared-source fixture or a busier deployment
-before revisiting archive layout.
+before revisiting archive layout. That rerun is not scheduled. Adam stopped this
+work here on 2026-11-04.
 
 If delivery is still expensive, investigate immutable finalized raw-event chunks
 partitioned by statement and block window, with a small mutable tail. The same
@@ -129,7 +132,7 @@ These are alternate organizations of raw logs, not tables of supporter counts.
 Do not implement a new archive layout without evidence that it improves the
 relevant workload.
 
-### 3. Add budgeted indirect evaluation if needed — conditional
+### 3. Add budgeted indirect evaluation if needed — paused
 
 Limit time, bytes, or source work for a read. Reuse already-complete source state
 first; schedule additional sources using locally known size, activity, or prior
