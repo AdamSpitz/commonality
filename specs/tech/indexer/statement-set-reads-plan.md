@@ -82,8 +82,13 @@ Started: `readStatementSet` batches incoming-implication and direct-support
 queries for a chosen set, fetches each source statement once, and freezes every
 page at the chain's finalized checkpoint. Counts are exact direct signers,
 indirect-only supporters, and their union. A not-ready indexer returns
-`not-ready` rather than zeros. Persistence is not done: each call still re-reads
-from genesis through that checkpoint, and browser scan positions are not stored.
+`not-ready` rather than zeros. Completed scans are stored per statement in the
+machinery fold store: the position is the block fully scanned through, not the
+last matching event. A higher finalized head fetches `blockNumber_gte` of that
+position plus one. Policy is applied at read time, so a trust-config change does
+not require a new event scan. A lower head, or the same head with a different
+checkpoint, discards the scan. A failed refresh keeps a previous complete scan
+as `stale` instead of presenting it as exact.
 
 Persist reusable per-statement state and completed scan positions in the browser.
 Fetch deltas on subsequent reads; do not download full histories and filter them

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { afterEach, describe, it } from 'mocha';
 import type { SDKMachinery } from '../../../machinery.js';
 import type { IpfsCidV1 } from '../../../utils/cid-types.js';
+import { MemoryFoldStore } from '../../../utils/resumableFold.js';
 import { readStatementSet, statementSetSupportFromEvents } from './statement-set.js';
 import type { DecodedDirectSupportEvent, DecodedImplicationAttestationEvent } from '../../../utils/event-decoders/conceptspace.js';
 
@@ -94,6 +95,7 @@ describe('readStatementSet', () => {
       beliefs: '0x00000000000000000000000000000000000000b1',
       implications: '0x00000000000000000000000000000000000000c1',
     },
+    foldStore: new MemoryFoldStore(),
   } as unknown as SDKMachinery;
 
   afterEach(() => {
@@ -155,5 +157,125 @@ describe('readStatementSet', () => {
       'DirectSupport',
     ]);
     assert.equal(topics.filter(topic => topic.startsWith('DirectSupport:')).length, 1);
+  });
+
+  it('reuses a completed scan and fetches only later blocks', async () => {
+    const store = new MemoryFoldStore();
+    const scoped = { ...machinery, foldStore: store } as unknown as SDKMachinery;
+    let head = '12';
+    const gte: string[] = [];
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      const url = new URL(String(input));
+      if (url.pathname.endsWith('/sync')) {
+        return new Response(JSON.stringify({
+          ready: true,
+          chains: [{
+            chainId: '84532',
+            chainName: 'base-sepolia',
+            indexedThrough: head,
+            finalizedThrough: head,
+            indexedCheckpoint: head,
+            finalizedCheckpoint: head,
+          }],
+        }), { status: 200 });
+      }
+      gte.push(url.searchParams.get('blockNumber_gte') ?? 'start');
+      return new Response(JSON.stringify({
+        items: [],
+        truncated: false,
+        nextCursor: null,
+        checkpoint: head,
+        completeThroughCheckpoint: true,
+      }), { status: 200 });
+    }) as typeof fetch;
+
+    const first = await readStatementSet(scoped, [targetA]);
+    assert.equal(first.status, 'complete');
+    assert.equal(first.targets[0]?.totalSupporters, 0);
+    head = '20';
+    const second = await readStatementSet(scoped, [targetA]);
+    assert.equal(second.status, 'complete');
+    assert.equal(second.asOfBlock, '20');
+    assert.equal(second.targets[0]?.totalSupporters, 0);
+    assert.ok(gte.includes('start'));
+    assert.ok(gte.includes('13'));
+    assert.equal(gte.filter(value => value === 'start').length, 3);
+  });
+
+  it('discards a scan when the finalized head moves backwards', async () => {
+    const store = new MemoryFoldStore();
+    const scoped = { ...machinery, foldStore: store } as unknown as SDKMachinery;
+    let head = '12';
+    const gte: Array<string | null> = [];
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      const url = new URL(String(input));
+      if (url.pathname.endsWith('/sync')) {
+        return new Response(JSON.stringify({
+          ready: true,
+          chains: [{
+            chainId: '84532',
+            chainName: 'base-sepolia',
+            indexedThrough: head,
+            finalizedThrough: head,
+            indexedCheckpoint: `cp-${head}`,
+            finalizedCheckpoint: `cp-${head}`,
+          }],
+        }), { status: 200 });
+      }
+      gte.push(url.searchParams.get('blockNumber_gte'));
+      return new Response(JSON.stringify({
+        items: [],
+        truncated: false,
+        nextCursor: null,
+        checkpoint: `cp-${head}`,
+        completeThroughCheckpoint: true,
+      }), { status: 200 });
+    }) as typeof fetch;
+
+    await readStatementSet(scoped, [targetA]);
+    head = '9';
+    await readStatementSet(scoped, [targetA]);
+    assert.equal(gte.at(-1), null);
+  });
+
+  it('returns the previous complete scan when a refresh fails', async () => {
+    const store = new MemoryFoldStore();
+    const scoped = { ...machinery, foldStore: store } as unknown as SDKMachinery;
+    let failEvents = false;
+    let head = '12';
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      const url = new URL(String(input));
+      if (url.pathname.endsWith('/sync')) {
+        return new Response(JSON.stringify({
+          ready: true,
+          chains: [{
+            chainId: '84532',
+            chainName: 'base-sepolia',
+            indexedThrough: head,
+            finalizedThrough: head,
+            indexedCheckpoint: head,
+            finalizedCheckpoint: head,
+          }],
+        }), { status: 200 });
+      }
+      if (failEvents) return new Response('nope', { status: 500 });
+      return new Response(JSON.stringify({
+        items: [],
+        truncated: false,
+        nextCursor: null,
+        checkpoint: '12',
+        completeThroughCheckpoint: true,
+      }), { status: 200 });
+    }) as typeof fetch;
+
+    const first = await readStatementSet(scoped, [targetA]);
+    assert.equal(first.status, 'complete');
+    failEvents = true;
+    head = '13';
+    const second = await readStatementSet(scoped, [targetA]);
+    assert.equal(second.status, 'stale');
+    assert.equal(second.asOfBlock, '12');
+    assert.equal(second.targets[0]?.totalSupporters, 0);
+    assert.match(second.error ?? '', /500|nope|Event/);
   });
 });
