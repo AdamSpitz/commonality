@@ -12,7 +12,8 @@
  * policy; policy is applied when the read is computed. Keys include chain,
  * both statement contracts, the indexer URL, and upstream build id. A lower
  * head, the same head under a different checkpoint, or a new upstream id
- * discards the scan.
+ * discards the scan. A refresh persists implication and belief positions
+ * together, only after both families and source-retraction checks succeed.
  */
 
 import type { Address } from 'viem';
@@ -155,32 +156,47 @@ export async function readStatementSet(
     const scope = scanScope(machinery, upstreamId);
 
     const implicationScans = await loadScans(store, targets.map(cid => implicationKey(scope, cid)));
+    let pending: PendingScan[];
     let implicationEvents: Array<DecodedImplicationAttestationEvent | DecodedImplicationRevokedEvent>;
-    try {
-      implicationEvents = await advanceImplications(machinery, store, scope, targets, implicationScans, head);
-    } catch (error) {
-      const stale = await staleRead(machinery, scope, targets, chainId, trustedAttesters, error);
-      if (stale) return stale;
-      throw error;
-    }
-    const accepted = filterByTrustedAttesters(
-      foldImplications(implicationEvents.filter(event => targets.includes(event.toStatementCid as IpfsCidV1))),
-      trustedAttesters ? [...trustedAttesters] : undefined,
-    );
-    const sources = uniqueCids(accepted.map(implication => implication.fromStatementCid))
-      .filter(source => !targets.includes(source));
-    const beliefCids = [...targets, ...sources];
-    const beliefScans = await loadScans(store, beliefCids.map(cid => beliefKey(scope, cid)));
     let directSupport: DecodedDirectSupportEvent[];
+    let sources: IpfsCidV1[];
+    let retractedSources: Set<IpfsCidV1>;
     try {
-      directSupport = await advanceBeliefs(machinery, store, scope, beliefCids, beliefScans, head);
+      const implications = await advanceImplications(machinery, scope, targets, implicationScans, head);
+      implicationEvents = implications.events;
+      const accepted = filterByTrustedAttesters(
+        foldImplications(implicationEvents.filter(event => targets.includes(event.toStatementCid as IpfsCidV1))),
+        trustedAttesters ? [...trustedAttesters] : undefined,
+      );
+      sources = uniqueCids(accepted.map(implication => implication.fromStatementCid))
+        .filter(source => !targets.includes(source));
+      const beliefCids = [...targets, ...sources];
+      const beliefScans = await loadScans(store, beliefCids.map(cid => beliefKey(scope, cid)));
+      const beliefs = await advanceBeliefs(machinery, scope, beliefCids, beliefScans, head);
+      directSupport = beliefs.events;
+      retractedSources = await retractedSourceCids(machinery, sources, directSupport);
+      pending = [
+        ...implications.pending,
+        ...beliefs.pending.map(record => ({
+          ...record,
+          accumulator: {
+            ...record.accumulator,
+            ...(sources.includes(record.statementCid)
+              ? { retracted: retractedSources.has(record.statementCid) }
+              : {}),
+          },
+        })),
+      ];
     } catch (error) {
       const stale = await staleRead(machinery, scope, targets, chainId, trustedAttesters, error);
       if (stale) return stale;
       throw error;
     }
-    const retractedSources = await retractedSourceCids(machinery, sources, directSupport);
-    await markRetracted(store, scope, sources, retractedSources, head);
+    await Promise.all(pending.map(record => store.put(record.key, {
+      version: STATEMENT_SCAN_VERSION,
+      cursor: null,
+      accumulator: record.accumulator,
+    }).catch(() => { /* Persistence is optional. */ })));
     return {
       status: 'complete',
       chainId,
@@ -280,14 +296,22 @@ function resumeFrom(scan: Head | null, head: Head): { fromBlock: string | null; 
   return { fromBlock: (scanned + 1n).toString(), keep: true };
 }
 
+type PendingScan = {
+  key: string;
+  statementCid: IpfsCidV1;
+  accumulator: BeliefScan | ImplicationScan;
+};
+
 async function advanceImplications(
   machinery: SDKMachinery,
-  store: FoldStore,
   scope: ScanScope,
   targets: readonly IpfsCidV1[],
   stored: Array<StoredFold | null>,
   head: Head,
-): Promise<Array<DecodedImplicationAttestationEvent | DecodedImplicationRevokedEvent>> {
+): Promise<{
+  events: Array<DecodedImplicationAttestationEvent | DecodedImplicationRevokedEvent>;
+  pending: PendingScan[];
+}> {
   const scans = stored.map(record => record?.version === STATEMENT_SCAN_VERSION
     ? asImplicationScan(record.accumulator)
     : null);
@@ -300,19 +324,20 @@ async function advanceImplications(
   }, (cid, events) => {
     eventsByTarget.set(cid, events.filter(event => event.toStatementCid === cid));
   });
-  const folded: Array<DecodedImplicationAttestationEvent | DecodedImplicationRevokedEvent> = [];
-  await Promise.all(targets.map(async (cid, index) => {
+  const events: Array<DecodedImplicationAttestationEvent | DecodedImplicationRevokedEvent> = [];
+  const pending: PendingScan[] = [];
+  for (const [index, cid] of targets.entries()) {
     const previous = scans[index] != null && resumeFrom(scans[index], head).keep
       ? deserializeImplications(scans[index]!.edges)
       : emptyImplications();
     const next = stepImplications(previous, eventsByTarget.get(cid) ?? []);
-    await store.put(implicationKey(scope, cid), {
-      version: STATEMENT_SCAN_VERSION,
-      cursor: null,
+    pending.push({
+      key: implicationKey(scope, cid),
+      statementCid: cid,
       accumulator: { ...head, edges: serializeImplications(next) },
-    }).catch(() => { /* Persistence is optional. */ });
+    });
     for (const implication of next.values()) {
-      folded.push({
+      events.push({
         attester: implication.attester as Address,
         fromStatementCid: implication.fromStatementCid,
         toStatementCid: implication.toStatementCid,
@@ -324,18 +349,17 @@ async function advanceImplications(
         logIndex: 0,
       });
     }
-  }));
-  return folded;
+  }
+  return { events, pending };
 }
 
 async function advanceBeliefs(
   machinery: SDKMachinery,
-  store: FoldStore,
   scope: ScanScope,
   statementCids: readonly IpfsCidV1[],
   stored: Array<StoredFold | null>,
   head: Head,
-): Promise<DecodedDirectSupportEvent[]> {
+): Promise<{ events: DecodedDirectSupportEvent[]; pending: PendingScan[] }> {
   const scans = stored.map(record => record?.version === STATEMENT_SCAN_VERSION
     ? asBeliefScan(record.accumulator)
     : null);
@@ -351,8 +375,9 @@ async function advanceBeliefs(
   }, (cid, events) => {
     eventsByStatement.set(cid, events.filter(event => event.statementId === cid));
   });
-  const directSupport: DecodedDirectSupportEvent[] = [];
-  await Promise.all(statementCids.map(async (cid, index) => {
+  const events: DecodedDirectSupportEvent[] = [];
+  const pending: PendingScan[] = [];
+  for (const [index, cid] of statementCids.entries()) {
     const latest = new Map<string, BeliefScan['beliefs'][number]>();
     const previous = scans[index] != null && resumeFrom(scans[index], head).keep ? scans[index]!.beliefs : [];
     for (const belief of previous) latest.set(belief.user.toLowerCase(), belief);
@@ -369,17 +394,17 @@ async function advanceBeliefs(
     }
     const beliefs = [...latest.values()];
     const previousRetracted = scans[index]?.retracted;
-    await store.put(beliefKey(scope, cid), {
-      version: STATEMENT_SCAN_VERSION,
-      cursor: null,
+    pending.push({
+      key: beliefKey(scope, cid),
+      statementCid: cid,
       accumulator: {
         ...head,
         beliefs,
         ...(previousRetracted === undefined ? {} : { retracted: previousRetracted }),
       },
-    }).catch(() => { /* Persistence is optional. */ });
+    });
     for (const belief of beliefs) {
-      directSupport.push({
+      events.push({
         user: belief.user as Address,
         statementId: cid,
         beliefState: belief.beliefState,
@@ -390,8 +415,8 @@ async function advanceBeliefs(
         logIndex: belief.logIndex,
       });
     }
-  }));
-  return directSupport;
+  }
+  return { events, pending };
 }
 
 function isLaterBelief(
@@ -439,26 +464,6 @@ async function fetchGrouped<T>(
   for (const cid of statementCids) {
     if (!fetched.has(cid)) assign(cid, []);
   }
-}
-
-async function markRetracted(
-  store: FoldStore,
-  scope: ScanScope,
-  sources: readonly IpfsCidV1[],
-  retracted: ReadonlySet<IpfsCidV1>,
-  head: Head,
-): Promise<void> {
-  await Promise.all(sources.map(async source => {
-    const key = beliefKey(scope, source);
-    const stored = await store.get(key).catch(() => null);
-    const scan = stored?.version === STATEMENT_SCAN_VERSION ? asBeliefScan(stored.accumulator) : null;
-    if (scan == null || scan.asOfBlock !== head.asOfBlock || scan.checkpoint !== head.checkpoint) return;
-    await store.put(key, {
-      version: STATEMENT_SCAN_VERSION,
-      cursor: null,
-      accumulator: { ...scan, retracted: retracted.has(source) },
-    }).catch(() => { /* Persistence is optional. */ });
-  }));
 }
 
 async function staleRead(

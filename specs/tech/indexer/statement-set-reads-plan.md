@@ -88,7 +88,9 @@ last matching event. A higher finalized head fetches `blockNumber_gte` of that
 position plus one. Policy is applied at read time, so a trust-config change does
 not require a new event scan. A lower head, or the same head with a different
 checkpoint, discards the scan. A failed refresh keeps a previous complete scan
-as `stale` instead of presenting it as exact.
+as `stale` instead of presenting it as exact. Positions for a read advance
+together: a refresh that fails after fetching one event family does not persist
+that family ahead of the others.
 
 Persist reusable per-statement state and completed scan positions in the browser.
 Fetch deltas on subsequent reads; do not download full histories and filter them

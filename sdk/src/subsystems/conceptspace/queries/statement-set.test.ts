@@ -315,4 +315,96 @@ describe('readStatementSet', () => {
     assert.equal(second.targets[0]?.totalSupporters, 0);
     assert.match(second.error ?? '', /500|nope|Event/);
   });
+
+  it('keeps the previous snapshot when belief paging fails after implications succeed', async () => {
+    const store = new MemoryFoldStore();
+    const scoped = { ...machinery, foldStore: store } as unknown as SDKMachinery;
+    let head = '12';
+    let failBeliefs = false;
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      const url = new URL(String(input));
+      if (url.pathname.endsWith('/sync')) {
+        return new Response(JSON.stringify({
+          ready: true,
+          chains: [{
+            chainId: '84532',
+            chainName: 'base-sepolia',
+            indexedThrough: head,
+            finalizedThrough: head,
+            indexedCheckpoint: head,
+            finalizedCheckpoint: head,
+          }],
+        }), { status: 200 });
+      }
+      if (failBeliefs && url.searchParams.get('eventName') === 'DirectSupport') {
+        return new Response('beliefs down', { status: 500 });
+      }
+      return new Response(JSON.stringify({
+        items: [],
+        truncated: false,
+        nextCursor: null,
+        checkpoint: head,
+        completeThroughCheckpoint: true,
+      }), { status: 200 });
+    }) as typeof fetch;
+
+    const first = await readStatementSet(scoped, [targetA]);
+    assert.equal(first.status, 'complete');
+    failBeliefs = true;
+    head = '13';
+    const failed = await readStatementSet(scoped, [targetA]);
+    assert.equal(failed.status, 'stale');
+    assert.equal(failed.asOfBlock, '12');
+
+    failBeliefs = false;
+    const recovered = await readStatementSet(scoped, [targetA]);
+    assert.equal(recovered.status, 'complete');
+    assert.equal(recovered.asOfBlock, '13');
+  });
+
+  it('follows a follower cursor until the frozen checkpoint is complete', async () => {
+    const store = new MemoryFoldStore();
+    const scoped = { ...machinery, foldStore: store } as unknown as SDKMachinery;
+    const pages = new Map<string, number>();
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      const url = new URL(String(input));
+      if (url.pathname.endsWith('/sync')) {
+        return new Response(JSON.stringify({
+          ready: true,
+          chains: [{
+            chainId: '84532',
+            chainName: 'base-sepolia',
+            indexedThrough: '12',
+            finalizedThrough: '12',
+            indexedCheckpoint: 'finalized-head',
+            finalizedCheckpoint: 'finalized-head',
+          }],
+        }), { status: 200 });
+      }
+      const eventName = url.searchParams.get('eventName') ?? '';
+      const seen = pages.get(eventName) ?? 0;
+      pages.set(eventName, seen + 1);
+      if (eventName === 'DirectSupport' && seen === 0) {
+        return new Response(JSON.stringify({
+          items: [],
+          truncated: true,
+          nextCursor: 'page-2',
+          checkpoint: 'finalized-head',
+          completeThroughCheckpoint: false,
+        }), { status: 200 });
+      }
+      assert.equal(url.searchParams.get('after') ?? '', eventName === 'DirectSupport' ? 'page-2' : '');
+      return new Response(JSON.stringify({
+        items: [],
+        truncated: false,
+        nextCursor: null,
+        checkpoint: 'finalized-head',
+        completeThroughCheckpoint: true,
+      }), { status: 200 });
+    }) as typeof fetch;
+
+    const read = await readStatementSet(scoped, [targetA]);
+    assert.equal(read.status, 'complete');
+    assert.equal(pages.get('DirectSupport'), 2);
+  });
 });
