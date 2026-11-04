@@ -81,9 +81,9 @@ Never treat a partially read source history as its current belief state.
 Implemented: the exact browser baseline is in place (checkpoint freeze, shared
 source fetch, persisted scan position, upstream build id, atomic family persist,
 stale previous snapshot including recorded retraction). Recorded retraction
-covers a source that is also a displayed target. Step 2 live cold/warm byte
-measurement is still required before any new raw-event partition, and step 3
-remains conditional on that measurement.
+covers a source that is also a displayed target. A local cold/warm measurement
+is recorded below. It does not justify a new raw-event partition. Step 3 remains
+conditional on a larger workload than this local chain.
 
 Persist reusable per-statement state and completed scan positions in the browser.
 Fetch deltas on subsequent reads; do not download full histories and filter them
@@ -100,9 +100,24 @@ complete snapshot clearly dated when refreshing fails.
 
 ### 2. Measure and improve raw-event organization
 
-Open gate: live cold/warm byte measurement has not been run, and it is required
-before any new raw-event partition. Current topic indexes and batching may be
-sufficient.
+Local measurement, 2026-11-03, after rebuilding the indexer image so `GET /api/sync`
+and follower event pages were actually served (the previously running image was
+built from 2026-10-28 sources and returned 404 for `/api/sync`). Command:
+`npx tsx scripts/measure-statement-set-reads.ts` against `http://127.0.0.1:42069`,
+chain 31337.
+
+The local chain had 20 distinct DirectSupport statements, not the 100-target
+fixture. Whole-corpus downloads were about 34KB DirectSupport (51 events),
+155KB ImplicationAttestation (210), and 17KB ImplicationRevoked (26). The exact
+reader completed at finalized block 386. Cold: 3 event requests, 45,956 event
+bytes, 9 requests / 46,815 bytes total. Warm, same head: 0 event requests,
+6 requests / 859 bytes (sync and document checks only).
+
+That is not evidence for a new raw-event partition. Current topic indexes and
+batching were sufficient for this world. Do not treat it as proof that every
+direct history stays small; this chain has no large indirect fan-in. Re-run the
+same script against a 100-target shared-source fixture or a busier deployment
+before revisiting archive layout.
 
 If delivery is still expensive, investigate immutable finalized raw-event chunks
 partitioned by statement and block window, with a small mutable tail. The same
