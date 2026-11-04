@@ -78,9 +78,12 @@ Never treat a partially read source history as its current belief state.
 
 ### 1. Establish an exact browser baseline
 
-Build a statement-set read path using the existing raw feed. Batch target and
-source queries, deduplicate shared dependencies, and avoid retrieving unrelated
-signature histories. Freeze related reads at one finalized checkpoint initially.
+Started: `readStatementSet` batches incoming-implication and direct-support
+queries for a chosen set, fetches each source statement once, and freezes every
+page at the chain's finalized checkpoint. Counts are exact direct signers,
+indirect-only supporters, and their union. A not-ready indexer returns
+`not-ready` rather than zeros. Persistence is not done: each call still re-reads
+from genesis through that checkpoint, and browser scan positions are not stored.
 
 Persist reusable per-statement state and completed scan positions in the browser.
 Fetch deltas on subsequent reads; do not download full histories and filter them
