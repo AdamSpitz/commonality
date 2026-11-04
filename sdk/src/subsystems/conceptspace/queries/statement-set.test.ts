@@ -9,6 +9,7 @@ import { MemoryFoldStore } from '../../../utils/resumableFold.js';
 import { createStatement, toCanonicalJson } from '../../displayable-documents/displayable-document.js';
 import { computePublishedDataId } from '../../published-data/id.js';
 import { fakeContentResolver } from '../../published-data/test-support.js';
+import { computeAnonymizedId } from '../../identity/unique-human-id.js';
 import { readStatementSet, statementSetSupportFromEvents } from './statement-set.js';
 import type { DecodedDirectSupportEvent, DecodedImplicationAttestationEvent } from '../../../utils/event-decoders/conceptspace.js';
 
@@ -164,6 +165,30 @@ describe('statementSetSupportFromEvents', () => {
       { statementCid: targetA, directSigners: 1, indirectOnlySupporters: 1, totalSupporters: 2 },
       { statementCid: targetB, directSigners: 1, indirectOnlySupporters: 3, totalSupporters: 4 },
     ]);
+
+    const classified = statementSetSupportFromEvents({
+      targets: [targetA, targetB],
+      implications: [implication(source, targetA), implication(source, targetB)],
+      directSupport: [
+        belief(targetA, user(1), 1, 2n),
+        belief(targetA, user(2), 2, 2n),
+        belief(source, user(1), 1, 3n),
+        belief(source, user(2), 1, 3n),
+        belief(source, user(3), 1, 3n),
+        belief(targetB, user(4), 1, 4n),
+      ],
+      viewerId: computeAnonymizedId(user(3)),
+    });
+    assert.equal(classified[0]?.viewer, 'indirect-only');
+    assert.equal(classified[1]?.viewer, 'indirect-only');
+    const signer = statementSetSupportFromEvents({
+      targets: [targetA],
+      implications: [implication(source, targetA)],
+      directSupport: [belief(targetA, user(1), 1, 2n), belief(source, user(1), 1, 3n)],
+      viewerId: computeAnonymizedId(user(1)),
+    });
+    assert.equal(signer[0]?.viewer, 'direct');
+    assert.equal(signer[0]?.indirectOnlySupporters, 0);
   });
 
   it('drops untrusted and retracted sources, and a later no-opinion clears a signer', () => {
@@ -246,8 +271,11 @@ describe('readStatementSet', () => {
       }), { status: 200 });
     }) as typeof fetch;
 
-    const read = await readStatementSet(machinery, [targetA, targetA]);
+    const read = await readStatementSet(machinery, [targetA, targetA], undefined, {
+      address: user(1),
+    });
     assert.equal(read.status, 'complete');
+    assert.equal(read.targets[0]?.viewer, 'neither');
     assert.equal(read.asOfBlock, '12');
     assert.equal(read.checkpoint, 'finalized-head');
     assert.equal(read.targets[0]?.directSigners, 0);

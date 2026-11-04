@@ -189,3 +189,18 @@ reading a chosen set of statements.
 
 No counts service, contract changes, global ranking system, or arbitrary
 transitive inference is required by this plan.
+
+## Caller notes (2026-11-04)
+
+A vertical classifies one person with the optional `viewer` argument on
+`readStatementSet`. Pass a wallet address or an anonymized id. The address is
+hashed in the client with the same identity convention as the counts, and it is
+not sent to the indexer. The result is `direct`, `indirect-only`, or `neither`
+on each target. Do not add a route that returns those counts or that membership.
+A static page bundles the SDK and calls `readStatementSet`.
+
+`GET /api/sync` already wakes the idle head cache, and `readStatementSet` calls
+it. Do not `POST /api/indexer-wake` just to refresh a statement-set read. That
+POST is for a submitted transaction when nothing else is reading. Waking does
+not skip finality: `finalizedThrough` still trails the indexed head by the
+configured confirmations.

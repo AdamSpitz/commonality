@@ -58,11 +58,26 @@ const STATEMENT_SCAN_VERSION = 2;
 
 export type StatementSetReadStatus = 'complete' | 'not-ready' | 'failed' | 'stale';
 
+/** How the optional viewer sits relative to one target. Same rules as the counts. */
+export type StatementSetViewerRole = 'direct' | 'indirect-only' | 'neither';
+
+/**
+ * Who to classify. Pass an address when the page has a wallet; the SDK hashes it
+ * locally and does not send it to the indexer. Pass an anonymized id when that is
+ * all the page has. If both are set, the address wins.
+ */
+export interface StatementSetViewer {
+  address?: Address;
+  anonymizedId?: AnonymizedId;
+}
+
 export interface StatementSetSupport {
   statementCid: IpfsCidV1;
   directSigners: number;
   indirectOnlySupporters: number;
   totalSupporters: number;
+  /** Present only when the read was given a viewer. */
+  viewer?: StatementSetViewerRole;
 }
 
 export interface StatementSetRead {
@@ -88,7 +103,9 @@ export interface StatementSetEvents {
   trustedAttesters?: readonly string[];
 }
 
-export function statementSetSupportFromEvents(input: StatementSetEvents): StatementSetSupport[] {
+export function statementSetSupportFromEvents(
+  input: StatementSetEvents & { viewerId?: AnonymizedId },
+): StatementSetSupport[] {
   const targets = uniqueCids(input.targets);
   const targetSet = new Set<string>(targets);
   const implications = filterByTrustedAttesters(
@@ -128,12 +145,20 @@ export function statementSetSupportFromEvents(input: StatementSetEvents): Statem
         if (!direct.has(id) && !disbelievers.has(id)) indirectOnly.add(id);
       }
     }
-    return {
+    const support: StatementSetSupport = {
       statementCid,
       directSigners: direct.size,
       indirectOnlySupporters: indirectOnly.size,
       totalSupporters: direct.size + indirectOnly.size,
     };
+    if (input.viewerId != null) {
+      support.viewer = direct.has(input.viewerId)
+        ? 'direct'
+        : indirectOnly.has(input.viewerId)
+          ? 'indirect-only'
+          : 'neither';
+    }
+    return support;
   });
 }
 
@@ -141,7 +166,9 @@ export async function readStatementSet(
   machinery: SDKMachinery,
   statementCids: readonly IpfsCidV1[],
   trustedAttesters?: readonly string[],
+  viewer?: StatementSetViewer,
 ): Promise<StatementSetRead> {
+  const viewerId = viewerAnonymizedId(viewer);
   const targets = uniqueCids(statementCids);
   const chainId = machinery.defaultChainId ?? null;
   const store = machinery.foldStore ?? defaultFoldStore;
@@ -192,7 +219,7 @@ export async function readStatementSet(
         })),
       ];
     } catch (error) {
-      const stale = await staleRead(machinery, scope, targets, chainId, trustedAttesters, error);
+      const stale = await staleRead(machinery, scope, targets, chainId, trustedAttesters, viewerId, error);
       if (stale) return stale;
       throw error;
     }
@@ -212,6 +239,7 @@ export async function readStatementSet(
         implications: implicationEvents,
         retractedSources,
         trustedAttesters,
+        viewerId,
       }),
       sourceStatements: sources.filter(source => !retractedSources.has(source)),
     };
@@ -475,6 +503,7 @@ async function staleRead(
   targets: readonly IpfsCidV1[],
   chainId: number | null,
   trustedAttesters: readonly string[] | undefined,
+  viewerId: AnonymizedId | undefined,
   error: unknown,
 ): Promise<StatementSetRead | null> {
   const store = machinery.foldStore ?? defaultFoldStore;
@@ -541,10 +570,16 @@ async function staleRead(
       implications: implicationEvents,
       retractedSources,
       trustedAttesters,
+      viewerId,
     }),
     sourceStatements: sources.filter(source => !retractedSources.has(source)),
     error: error instanceof Error ? error.message : String(error),
   };
+}
+
+function viewerAnonymizedId(viewer: StatementSetViewer | undefined): AnonymizedId | undefined {
+  if (viewer?.address) return computeAnonymizedId(viewer.address);
+  return viewer?.anonymizedId;
 }
 
 function uniqueCids(cids: readonly IpfsCidV1[]): IpfsCidV1[] {

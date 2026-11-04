@@ -11,6 +11,8 @@ export {
   type StatementSetRead,
   type StatementSetReadStatus,
   type StatementSetSupport,
+  type StatementSetViewer,
+  type StatementSetViewerRole,
 } from './queries/statement-set.js';
 export { getImplicationsFrom, getImplicationsTo, getImplication } from './queries/implications.js';
 export {
