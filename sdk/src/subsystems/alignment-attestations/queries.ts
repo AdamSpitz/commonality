@@ -60,19 +60,6 @@ function normalizeSubjectIdForTopic(subjectId: string): `0x${string}` {
   return subjectId.toLowerCase() as `0x${string}`;
 }
 
-export function cidReferencesSameDigest(left: string, right: string): boolean {
-  if (left.toLowerCase() === right.toLowerCase()) return true;
-
-  try {
-    // AlignmentAttestations stores only the CID multihash digest in bytes32.
-    // Decoding therefore cannot preserve whether the original CID used raw or
-    // dag-pb codecs (bafkrei… vs bafybei…), so compare their stored digests.
-    return cidToBytes32(left) === cidToBytes32(right);
-  } catch {
-    return false;
-  }
-}
-
 /**
  * Get all alignment attestations for a specific statement (by attester if provided)
  */
@@ -93,7 +80,7 @@ export async function getAlignedSubjects(
 
   if (topicStatementCid) {
     attestations = attestations.filter((attestation) =>
-      cidReferencesSameDigest(attestation.topicStatementCid, topicStatementCid),
+      attestation.topicStatementCid === topicStatementCid,
     );
   }
 
@@ -134,7 +121,7 @@ export async function getSubjectStatements(
 
   if (topicStatementCid) {
     attestations = attestations.filter(a =>
-      cidReferencesSameDigest(a.topicStatementCid, topicStatementCid),
+      a.topicStatementCid === topicStatementCid,
     );
   }
 
@@ -178,7 +165,7 @@ export async function getAlignmentAttestation(
 
   const active = foldAlignmentAttestations(matching).find((attestation) =>
     !topicStatementCid
-    || cidReferencesSameDigest(attestation.topicStatementCid, topicStatementCid),
+    || attestation.topicStatementCid === topicStatementCid,
   );
   if (!active) return null;
 
@@ -207,7 +194,7 @@ export async function getAlignmentsByAttester(
   let attestations = foldAlignmentAttestations(decodedEvents);
   if (topicStatementCid) {
     attestations = attestations.filter((attestation) =>
-      cidReferencesSameDigest(attestation.topicStatementCid, topicStatementCid),
+      attestation.topicStatementCid === topicStatementCid,
     );
   }
 

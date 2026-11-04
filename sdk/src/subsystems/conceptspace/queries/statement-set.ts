@@ -54,7 +54,7 @@ import { fetchStatementDocument, uniqueAddresses } from './documents.js';
 import { filterByTrustedAttesters } from './implications.js';
 
 const TOPIC_IN_CHUNK = 32;
-const STATEMENT_SCAN_VERSION = 2;
+const STATEMENT_SCAN_VERSION = 3;
 
 export type StatementSetReadStatus = 'complete' | 'not-ready' | 'failed' | 'stale';
 

@@ -383,9 +383,9 @@ function canonicalDocumentBytes(doc: DisplayableDocument): Uint8Array {
  * The canonical PublishedData CID a document will have once published.
  *
  * This is a pure function of the document's canonical bytes, so callers can pin a
- * well-known CID (or check one) without publishing anything. Note that it is *not*
- * the legacy `publishDocument` IPFS CID: PublishedData pins the raw multicodec
- * (`bafkrei…`) where `ipfs add` defaults to dag-pb (`bafybei…`) over the same digest.
+ * well-known CID (or check one) without publishing anything. PublishedData uses
+ * the raw multicodec (`bafkrei…`): the digest hashes the canonical document bytes,
+ * not a UnixFS/dag-pb wrapper (which would have a different digest).
  */
 export function publishedDataCidForDocument(doc: DisplayableDocument): PublishedDataCid {
   return publishedDataIdToCid(computePublishedDataId(canonicalDocumentBytes(doc)));

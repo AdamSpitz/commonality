@@ -13,7 +13,7 @@ const NOTES = '0x3333333333333333333333333333333333333333';
 const RECEIPTS = '0x4444444444444444444444444444444444444444';
 const TOKEN = '0x6666666666666666666666666666666666666666';
 const MARKET = '0x5555555555555555555555555555555555555555';
-const STATEMENT = 'bafybeigdyrzt5sfp7edupa6g6csmvofsnquhcsstrmfe737k63zgla52gq';
+const STATEMENT = 'bafkreigdyrzt5sfp7edupa6g6csmvofsnquhcsstrmfe737k63zgla52gq';
 
 function encode(eventName: string, abi: readonly unknown[], args: Record<string, unknown>, blockNumber: bigint, logIndex: number) {
   const item = (abi as Array<{ type: string; name: string; inputs?: Array<{ name: string; indexed?: boolean }> }>).find(
@@ -69,6 +69,8 @@ describe('getNoteIntentAggregate', () => {
 
     try {
       const aggregate = await getNoteIntentAggregate({
+        ipfsConfig: { shouldUseMock: true },
+        testConfig: {},
         eventCacheUrl: 'http://intent.test',
         defaultChainId: 31337,
         contractAddresses: { delegatableNotes: NOTES },

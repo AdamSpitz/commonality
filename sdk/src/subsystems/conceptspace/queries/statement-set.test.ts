@@ -13,16 +13,14 @@ import { computeAnonymizedId } from '../../identity/unique-human-id.js';
 import { readStatementSet, statementSetSupportFromEvents } from './statement-set.js';
 import type { DecodedDirectSupportEvent, DecodedImplicationAttestationEvent } from '../../../utils/event-decoders/conceptspace.js';
 
-const targetA = 'bafybeiaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as IpfsCidV1;
-const targetB = 'bafybeibbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' as IpfsCidV1;
-const source = 'bafybeicccccccccccccccccccccccccccccccccccccccccccccccccccc' as IpfsCidV1;
+const targetA = bytes32ToCid(`0x${'01'.repeat(32)}`);
+const targetB = bytes32ToCid(`0x${'02'.repeat(32)}`);
+const source = bytes32ToCid(`0x${'03'.repeat(32)}`);
 const user = (n: number) => `0x${n.toString(16).padStart(40, '0')}` as const;
 
-// Event decoders rehydrate bytes32 statement ids as dag-pb CIDv1. These are that
-// form of bafkreifzjut3te2nhyekklss27nh3k7232xplrvgnbo3wxj335rkr3v36m and
-// bafkreib6z3wp7uj3d7ct6e3efwvl7yuxtzvqhvzq2g3m5v45x7zqsc2xmi.
-const namedTarget = 'bafybeifzjut3te2nhyekklss27nh3k7232xplrvgnbo3wxj335rkr3v36m' as IpfsCidV1;
-const namedSource = 'bafybeib6z3wp7uj3d7ct6e3efwvl7yuxtzvqhvzq2g3m5v45x7zqsc2xmi' as IpfsCidV1;
+// Event decoding preserves the canonical raw PublishedData CIDs.
+const namedTarget = 'bafkreifzjut3te2nhyekklss27nh3k7232xplrvgnbo3wxj335rkr3v36m' as IpfsCidV1;
+const namedSource = 'bafkreib6z3wp7uj3d7ct6e3efwvl7yuxtzvqhvzq2g3m5v45x7zqsc2xmi' as IpfsCidV1;
 const ZERO_BYTES32 = '0x0000000000000000000000000000000000000000000000000000000000000000' as const;
 const BELIEFS = '0x00000000000000000000000000000000000000b1';
 const IMPLICATIONS = '0x00000000000000000000000000000000000000c1';

@@ -15,7 +15,6 @@ import {
   decodeSuccessRevokedEvent,
 } from '../../utils/eventDecoder.js';
 import {
-  cidReferencesSameDigest,
   getAlignedProjects,
   getAlignedSubjects,
   getAlignmentAttestation,
@@ -288,7 +287,7 @@ export async function getSuccessfulSubjects(
   let attestations = foldAlignmentAttestations(decodedEvents);
   if (topicStatementCid) {
     attestations = attestations.filter((attestation) =>
-      cidReferencesSameDigest(attestation.topicStatementCid, topicStatementCid),
+      attestation.topicStatementCid === topicStatementCid,
     );
   }
 

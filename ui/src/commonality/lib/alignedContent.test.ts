@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { bytes32ToCid, cidToBytes32 } from '@commonality/sdk/utils'
 import type { ChannelWithCanonicalId } from '@commonality/sdk/content-funding'
 import {
   contentChannelPath,
@@ -80,9 +81,9 @@ describe('selectAlignedContentItems', () => {
     expect(selectAlignedContentItems([channel()], attestations, [STATEMENT_A])).toEqual([])
   })
 
-  it('matches a raw PublishedData CID against a dag-pb decoded alignment CID', () => {
+  it('matches a PublishedData CID against its canonical chain-decoded CID', () => {
     const rosterCid = 'bafkreiccc5wjz3uw6ag2qdu25ftvqp3tt5txt5ornuvtcnjibwdx4mf74e'
-    const decodedCid = 'bafybeiccc5wjz3uw6ag2qdu25ftvqp3tt5txt5ornuvtcnjibwdx4mf74e'
+    const decodedCid = bytes32ToCid(cidToBytes32(rosterCid))
     const attestations = new Map([
       ['twitter:uid:1:111', [{
         canonicalId: 'twitter:uid:1:111',

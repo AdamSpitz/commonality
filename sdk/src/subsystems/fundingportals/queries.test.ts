@@ -217,7 +217,7 @@ describe('funding portal queries', () => {
     }
   });
 
-  it('matches topic CIDs by digest when the on-chain decoder cannot preserve the CID codec', async () => {
+  it('matches the canonical raw topic CID reconstructed from the on-chain digest', async () => {
     global.fetch = (async () => new Response(JSON.stringify({
       items: [{
         id: 'alignment-1',
@@ -232,8 +232,7 @@ describe('funding portal queries', () => {
         topic1: `0x${'0'.repeat(24)}${A.slice(2).toLowerCase()}`,
         topic2: `0x${'0'.repeat(24)}${PROJECT_ADDRESS.slice(2)}`,
         topic3: `0x${'3'.repeat(64)}`,
-        // PROJECT_ALIGNMENT_TOPIC is a raw-codec bafkrei… CID. Decoding the
-        // bytes32 digest produces a dag-pb bafybei… CID with the same digest.
+        // Decoding this digest must reproduce PROJECT_ALIGNMENT_TOPIC exactly.
         data: '0x6035f99179e73cd2d378bb9272b40a0cd4a50e103eb49486a674aaa7aff4ac7e',
       }],
     }), { status: 200, headers: { 'content-type': 'application/json' } })) as typeof fetch;

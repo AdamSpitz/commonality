@@ -10,9 +10,10 @@
  * `sha256(content)`, and a CIDv1 with the raw multicodec plus a sha2-256 multihash is exactly
  * that digest, so `publishedDataIdToCid` turns the on-chain pointer straight into the lookup key.
  * There is no manifest, no mapping table, and no second pointer to publish or keep in sync. Note
- * the consequence for whoever writes the copier: bytes must be added with `--cid-version=1
- * --raw-leaves` so the CID really is `sha256(content)`. Default `ipfs add` flags chunk into
- * dag-pb and produce a different CID, which would silently break this derivation.
+ * the consequence for whoever writes the copier: store the bytes as a single raw block
+ * (`block/put?format=raw&mhtype=sha2-256`), so the CID really contains `sha256(content)`.
+ * UnixFS `add` may produce a dag-pb root (even with raw leaves for chunked files),
+ * which has a different digest and would silently break this derivation.
  *
  * This resolver ignores `publisher` and the transaction fields entirely. That is the point: the
  * same bytes published by anyone resolve identically, which is what lets a third party heal a

@@ -20,6 +20,20 @@ The SDK provides two main interfaces:
    - Reads current on-chain state via contract view functions (balances, thresholds, etc.)
    - Fetches IPFS content directly from a gateway
 
+### Content identifiers
+
+Chain-backed content identifiers use **CIDv1/base32 + raw codec + SHA-256**
+(`bafkrei…`). Contracts store only the 32-byte digest; `cidToBytes32` validates
+this convention and `bytes32ToCid` reconstructs it. PublishedData uses the same
+encoding. JSON IPFS uploads store raw blocks, including in mock mode.
+
+This intentionally breaks the old SDK behavior that reconstructed dag-pb CIDs
+(`bafybei…`) from chain digests. Raw PublishedData digests on chain are unchanged;
+old decoded-CID caches must be rebuilt. Genuine legacy dag-pb publications cannot
+be converted by changing their CID prefix: republish their content as raw bytes.
+Generic IPFS metadata and binary-file references remain codec-aware and may still
+use dag-pb/CIDv0; they must not be passed to chain-digest conversion helpers.
+
 ### Key concepts
 
 - **Event cache**: The indexer stores raw on-chain events in a single `events` table, served via `GET /api/events`. No business logic in the indexer.

@@ -102,7 +102,7 @@ function implicationKey(event: ImplicationLifecycleEvent): string {
 }
 
 /** Bump when {@link stepImplications} changes the stored accumulator. */
-export const IMPLICATION_FOLD_VERSION = 1;
+export const IMPLICATION_FOLD_VERSION = 2;
 
 export function emptyImplications(): Map<string, Implication> {
   return new Map();
@@ -204,7 +204,7 @@ export function foldAllStatements(
 }
 
 /** Bump when {@link stepDirectSupportBrowse} changes the stored accumulator. */
-export const DIRECT_SUPPORT_BROWSE_FOLD_VERSION = 1;
+export const DIRECT_SUPPORT_BROWSE_FOLD_VERSION = 2;
 
 export interface DirectSupportBrowseState {
   latest: Map<string, { beliefState: number; blockNumber: bigint; logIndex: number }>;
