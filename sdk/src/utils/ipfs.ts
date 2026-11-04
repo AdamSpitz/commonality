@@ -1,4 +1,4 @@
-import { IpfsCidV1, normalizeCidV1 } from "./cid-types.js";
+import { IpfsCidV1, normalizeCidV1, cidToBytes32 } from "./cid-types.js";
 import { fetchFromMockIPFS, uploadToMockIPFS, uploadBlobToMockIPFS } from "./mock-ipfs.js";
 
 export type IPFSConfig = {
@@ -116,7 +116,9 @@ export async function uploadToIPFS(ipfsConfig: IPFSConfig, content: object): Pro
   const blob = new Blob([jsonContent], { type: 'application/json' });
   formData.append('file', blob);
 
-  const response = await fetch(`${ipfsApi}/api/v0/add?pin=true`, {
+  // Store the JSON bytes directly, not a UnixFS/dag-pb wrapper. Unlike `add`,
+  // block/put cannot silently switch to a chunked dag-pb root for larger payloads.
+  const response = await fetch(`${ipfsApi}/api/v0/block/put?format=raw&mhtype=sha2-256&pin=true`, {
     method: 'POST',
     body: formData,
   });
@@ -125,8 +127,9 @@ export async function uploadToIPFS(ipfsConfig: IPFSConfig, content: object): Pro
     throw new Error(`IPFS upload failed: ${response.status} ${response.statusText}`);
   }
 
-  const result = await response.json() as { Hash: string };
-  const cid = normalizeCidV1(result.Hash);
+  const result = await response.json() as { Key: string };
+  const cid = normalizeCidV1(result.Key);
+  cidToBytes32(cid); // Refuse a node response that violates the protocol codec.
 
   if (ipfsConfig.debugIpfs) {
     console.log(`[IPFS] Uploaded CID: ${cid}`);

@@ -18,6 +18,7 @@ Getting **testnet to a two-person shared lab** is also a standing plan, not a pi
 
 - **(Ask)** Manually confirm enrolled statement support is sponsored on a Base Account against the HTTPS paymaster after the statement tank is redeployed. Disbelief, mixed batches, and unenrolled statements must stay on the user's own gas.
 
+
 - **(Ask)** Harden sponsored-gas accounting before production: `CreatorGasTank` checks balances/caps during validation but debits only in `postOp`, so multiple operations validated in a bundle can oversubscribe one creator's balance and spend other creators' shared EntryPoint funds. Its debit also excludes post-operation gas and the EntryPoint unused-gas penalty. `StatementGasTank` prevents this by charging the full maximum cost in validation; refunds remain stranded as unallocated EntryPoint surplus. Design accurate reconciliation without cross-sponsor subsidy and test against a real EntryPoint bundle.
 
 - **(Ask)** Resolve gas-tank enrollment squatting and account trust before production: permissionless first enrollment permanently binds a statement/project to the first caller, who can leave its tank empty. Decide how sponsors can recover or independently sponsor an already-enrolled statement. Both paymasters also interpret account calldata without authenticating the account implementation; a malicious account can expose the expected selector without performing the promised action. Repeat support calls and new-wallet Sybils can consume a statement tank even with per-wallet caps; define the intended abuse budget.

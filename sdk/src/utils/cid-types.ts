@@ -1,4 +1,6 @@
 const DAG_PB_CODE = 0x70;
+/** Canonical codec for chain-backed Commonality content identifiers. */
+export const RAW_CID_CODEC = 0x55;
 
 /**
  * Branded string types for IPFS CIDs to prevent mixing up formats at the type level.
@@ -101,38 +103,43 @@ export function isValidCidV1(cid: string): cid is IpfsCidV1 {
 /**
  * Convert a CIDv1 string to a bytes32 hex string for on-chain storage.
  *
- * Extracts the 32-byte sha2-256 digest from the CID. Only works with
- * CIDv1 strings that use sha2-256 as the hash function.
+ * Extracts the 32-byte sha2-256 digest from a canonical raw CIDv1.
+ * Other codecs must not be stored as bare digests: their codec would be lost.
  *
  * @param cid - CIDv1 string (base32, starts with 'b')
  * @returns 32-byte hex string (0x-prefixed, 66 chars total)
- * @throws Error if the CID is not CIDv1 or doesn't use sha2-256
+ * @throws Error unless the CID is canonical CIDv1/base32 + raw + sha2-256
  */
 export function cidToBytes32(cid: string): `0x${string}` {
   if (!cid.startsWith('b')) throw new Error(`Expected CIDv1 (base32, starts with 'b'), got: ${cid}`);
   const cidBytes = base32Decode(cid.slice(1));
   // CID bytes: [version=1, codec, 0x12 (sha2-256), 0x20 (32 bytes), ...digest]
   if (cidBytes[0] !== 1) throw new Error('Not a CIDv1');
+  if (cidBytes[1] !== RAW_CID_CODEC) throw new Error('Expected raw codec for chain-backed CID');
   if (cidBytes[2] !== 0x12 || cidBytes[3] !== 0x20) throw new Error('Expected sha2-256 multihash');
-  const digest = cidBytes.slice(4, 36);
-  if (digest.length !== 32) throw new Error('CID digest must be 32 bytes for bytes32 conversion');
+  if (cidBytes.length !== 36) throw new Error('CID digest must be exactly 32 bytes for bytes32 conversion');
+  const digest = cidBytes.slice(4);
+  if (buildCidV1FromDigest(RAW_CID_CODEC, digest) !== cid) throw new Error('Expected canonical base32 CID');
   return `0x${Array.from(digest).map(b => b.toString(16).padStart(2, '0')).join('')}` as `0x${string}`;
 }
 
 /**
  * Convert a bytes32 hex string back to a CIDv1 string.
  *
- * Wraps the 32-byte digest with CIDv1 headers (version=1, codec=dag-pb,
+ * Wraps the 32-byte digest with CIDv1 headers (version=1, codec=raw,
  * multihash=sha2-256) and encodes as base32.
  *
  * @param bytes32 - 32-byte hex string (0x-prefixed)
  * @returns CIDv1 string in base32 encoding
  */
 export function bytes32ToCid(bytes32: `0x${string}`): IpfsCidV1 {
+  if (!/^0x[0-9a-fA-F]{64}$/.test(bytes32)) {
+    throw new Error(`Expected bytes32 hex value, got: ${bytes32}`);
+  }
   const hex = bytes32.slice(2);
   const digest = new Uint8Array(32);
   for (let i = 0; i < 32; i++) digest[i] = parseInt(hex.slice(i * 2, i * 2 + 2), 16);
-  return buildCidV1FromDigest(DAG_PB_CODE, digest);
+  return buildCidV1FromDigest(RAW_CID_CODEC, digest);
 }
 
 // ============================================================================

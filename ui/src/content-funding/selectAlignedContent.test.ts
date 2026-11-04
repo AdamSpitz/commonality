@@ -63,7 +63,7 @@ describe('selectAlignedContentContracts', () => {
     expect(rows).toEqual([])
   })
 
-  it('matches roster raw CIDs with dag-pb decoded alignment CIDs', () => {
+  it('does not conflate different CID codecs with the same digest', () => {
     const rosterCid = 'bafkreiccc5wjz3uw6ag2qdu25ftvqp3tt5txt5ornuvtcnjibwdx4mf74e'
     const decodedCid = 'bafybeiccc5wjz3uw6ag2qdu25ftvqp3tt5txt5ornuvtcnjibwdx4mf74e'
     const rows = selectAlignedContentContracts(
@@ -79,7 +79,7 @@ describe('selectAlignedContentContracts', () => {
       ]),
       [rosterCid],
     )
-    expect(rows).toHaveLength(1)
+    expect(rows).toHaveLength(0)
   })
 
   it('omits excluded addresses so unmaterialized prospective rounds stay off the post-attestation path', () => {

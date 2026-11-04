@@ -52,17 +52,10 @@ export async function loadRosterCoherenceBadge(
     return null
   }
 
-  // AlignmentAttestations stores only the multihash digest; decoded CIDs may use
-  // dag-pb (bafybei…) while well-known PublishedData CIDs use raw (bafkrei…).
-  const claimDigest = cidToBytes32(ROSTER_COHERENCE_CLAIM).toLowerCase()
-  const matching = attestations.filter((a) => {
-    if (a.attester.toLowerCase() !== operatorAddress) return false
-    try {
-      return cidToBytes32(a.statementCid).toLowerCase() === claimDigest
-    } catch {
-      return a.statementCid === ROSTER_COHERENCE_CLAIM
-    }
-  })
+  const matching = attestations.filter((a) =>
+    a.attester.toLowerCase() === operatorAddress
+    && a.statementCid === ROSTER_COHERENCE_CLAIM,
+  )
 
   if (matching.length === 0) return null
   const active = matching

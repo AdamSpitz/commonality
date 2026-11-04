@@ -129,6 +129,23 @@ The full set of touchpoints to add a vertical today:
 That's the whole job: pick substrate, write a manifest + landing page + pages,
 register it, wire the build, write the positioning docs.
 
+## Reading support for a fixed statement set
+
+A vertical that cares about a small set of statements should bundle the SDK and
+call `readStatementSet` from `@commonality/sdk/conceptspace`. Do not reimplement
+the fold, and do not expect an HTTP route that returns counts. The indexer serves
+raw events; the SDK applies your trust list.
+
+Pass `{ address }` or `{ anonymizedId }` as the viewer when the page should say
+whether this person is a direct signer or an indirect-only supporter of each
+statement. The address is hashed in the browser. It is not sent to the indexer.
+Counts and the viewer role use the same anonymized-id convention, not unique humans.
+
+The read is exact at `finalizedThrough`, which lags the chain tip by the indexer's
+confirmation depth. Calling `readStatementSet` already wakes the indexer through
+`GET /api/sync`. A static page does not also `POST /api/indexer-wake` unless it
+just submitted a transaction and is not reading.
+
 ## The end state: a vertical is its own repo
 
 Today a vertical lives in this monorepo because the whole system was built at once
