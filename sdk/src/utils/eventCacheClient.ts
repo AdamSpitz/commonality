@@ -63,7 +63,7 @@ export interface EventQueryParams {
   limit?: number;
   /**
    * Return a full page even when older matches may have been dropped.
-   * `fetchEventsComplete` sets this while it splits the block range.
+   * `fetchEventsComplete` sets this on the legacy block-range split.
    * Callers that want a sample must set it too; otherwise a page that
    * fills `limit` without a topic filter is treated as a silent truncation.
    */
@@ -330,11 +330,102 @@ async function readEventArchive(
   }
 
   const tailFrom = BigInt(manifest.segments[manifest.segments.length - 1]!.toBlock) + 1n;
-  const tail = await fetchEventsBySplitting(machinery, params, tailFrom);
+  const tail = await fetchEventsComplete(machinery, params, tailFrom);
   return [...archived, ...tail].sort(compareRawEvents);
 }
 
-/** Fetch a complete event set by recursively splitting capped block ranges. */
+function isFollowPage(value: unknown): value is {
+  items: RawEventFromCache[];
+  truncated: boolean;
+  nextCursor: string | null;
+  checkpoint: string | null;
+  completeThroughCheckpoint: boolean;
+} {
+  return isRecord(value)
+    && Array.isArray(value.items)
+    && typeof value.truncated === 'boolean'
+    && typeof value.completeThroughCheckpoint === 'boolean'
+    && (value.checkpoint == null || typeof value.checkpoint === 'string')
+    && (value.nextCursor == null || typeof value.nextCursor === 'string');
+}
+
+/**
+ * Page forward with the follower cursor so a block larger than the API cap
+ * is still complete. Indexers that omit follow fields fall back to block splits.
+ */
+async function fetchEventsByFollowing(
+  machinery: SDKMachinery,
+  params: Omit<EventQueryParams, 'limit' | 'blockNumber_gte' | 'blockNumber_lte'>,
+  fromBlock: bigint,
+): Promise<RawEventFromCache[] | null> {
+  if (machinery.eventCacheUrl == null) {
+    throw new Error('eventCacheUrl not configured');
+  }
+  // (blockNumber, logIndex) is unique only within one chain. Keep legacy
+  // range splitting for explicitly cross-chain reads.
+  if (params.chainId == null && machinery.defaultChainId == null) return null;
+  const collected: RawEventFromCache[] = [];
+  let after: string | undefined;
+  let checkpoint: string | undefined;
+  const seenCursors = new Set<string>();
+  for (;;) {
+    const url = buildEventCacheUrl(machinery.eventCacheUrl, 'events', {
+      chainId: params.chainId ?? machinery.defaultChainId,
+      contractAddress: params.contractAddress,
+      eventName: params.eventName,
+      topic1: params.topic1,
+      topic2: params.topic2,
+      topic3: params.topic3,
+      topic1_in: params.topic1_in,
+      topic2_in: params.topic2_in,
+      topic3_in: params.topic3_in,
+      blockNumber_gte: fromBlock.toString(),
+      limit: EVENT_API_CAP,
+      follow: 1,
+      checkpoint,
+      after,
+    });
+    const response = await fetchEventCacheResponse(url);
+    let data: unknown;
+    try {
+      data = await response.json();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to parse event-cache response: ${message}`);
+    }
+    if (!isFollowPage(data)) {
+      // A short legacy page is already complete. A full page is not; the
+      // caller falls back to block-range splitting.
+      if (collected.length === 0 && isRecord(data) && Array.isArray(data.items) && data.items.length < EVENT_API_CAP) {
+        return data.items as RawEventFromCache[];
+      }
+      return null;
+    }
+    const page = data;
+    if (page.checkpoint == null) {
+      if (page.items.length > 0 || page.truncated) {
+        throw new Error('Event-feed page included rows without a checkpoint');
+      }
+      return collected;
+    }
+    if (checkpoint != null && page.checkpoint !== checkpoint) {
+      throw new Error(`Event-feed checkpoint changed from ${checkpoint} to ${page.checkpoint}`);
+    }
+    checkpoint = page.checkpoint;
+    collected.push(...page.items);
+    if (page.completeThroughCheckpoint && !page.truncated) return collected;
+    if (!page.nextCursor) {
+      throw new Error('Event-feed page was truncated without a cursor');
+    }
+    if (seenCursors.has(page.nextCursor)) {
+      throw new Error(`Event-feed cursor repeated: ${page.nextCursor}`);
+    }
+    seenCursors.add(page.nextCursor);
+    after = page.nextCursor;
+  }
+}
+
+/** Fetch a complete event set, paging by log cursor when the indexer supports it. */
 export async function fetchEventsComplete(
   machinery: SDKMachinery,
   params: Omit<EventQueryParams, 'limit' | 'blockNumber_gte' | 'blockNumber_lte'>,
@@ -344,6 +435,8 @@ export async function fetchEventsComplete(
     const archived = await readEventArchive(machinery, params);
     if (archived) return archived;
   }
+  const followed = await fetchEventsByFollowing(machinery, params, fromBlock);
+  if (followed) return followed;
   return fetchEventsBySplitting(machinery, params, fromBlock);
 }
 
@@ -386,6 +479,123 @@ async function fetchEventsBySplitting(
   };
 
   return fetchRange(fromBlock, endBlock);
+}
+
+export type EventFeedPage = {
+  items: RawEventFromCache[];
+  truncated: boolean;
+  nextCursor: string | null;
+  checkpoint: string | null;
+  completeThroughCheckpoint: boolean;
+};
+
+/**
+ * One forward page of a follower read. Persist `checkpoint` and `nextCursor`
+ * together. A full page is incomplete unless `completeThroughCheckpoint` is true.
+ * `checkpoint` null means the indexer had no head; do not treat that as caught up.
+ */
+export type ChainSyncWatermark = {
+  chainId: string;
+  chainName: string;
+  indexedThrough: string;
+  finalizedThrough: string;
+  indexedCheckpoint: string;
+  finalizedCheckpoint: string;
+};
+
+export type ChainSyncStatus = {
+  ready: boolean;
+  /** Empty when the indexer does not report a build id. A change means the feed was rebuilt. */
+  upstreamId: string;
+  chains: ChainSyncWatermark[];
+};
+
+function isChainSyncWatermark(value: unknown): value is ChainSyncWatermark {
+  if (!isRecord(value)) return false;
+  return typeof value.chainId === 'string'
+    && typeof value.chainName === 'string'
+    && typeof value.indexedThrough === 'string'
+    && typeof value.finalizedThrough === 'string'
+    && typeof value.indexedCheckpoint === 'string'
+    && typeof value.finalizedCheckpoint === 'string';
+}
+
+/**
+ * Committed indexing head. `ready` false means historical backfill is still
+ * running; do not freeze a follower on `indexedThrough` until it flips.
+ * A shorter `indexedCheckpoint` than one previously observed is a reset.
+ * `upstreamId` is empty on older indexers; a non-empty change is also a reset.
+ */
+export async function fetchChainSync(
+  machinery: SDKMachinery,
+  chainId?: number,
+): Promise<ChainSyncStatus> {
+  if (machinery.eventCacheUrl == null) {
+    throw new Error('eventCacheUrl not configured');
+  }
+  const url = buildEventCacheUrl(machinery.eventCacheUrl, 'sync', {
+    chainId: chainId ?? machinery.defaultChainId,
+  });
+  const response = await fetchEventCacheResponse(url);
+  let data: unknown;
+  try {
+    data = await response.json();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to parse sync watermark: ${message}`);
+  }
+  if (!isRecord(data) || typeof data.ready !== 'boolean' || !Array.isArray(data.chains) || !data.chains.every(isChainSyncWatermark)) {
+    throw new Error('Malformed sync watermark');
+  }
+  if (data.upstreamId != null && typeof data.upstreamId !== 'string') {
+    throw new Error('Malformed sync watermark');
+  }
+  return { ready: data.ready, upstreamId: typeof data.upstreamId === 'string' ? data.upstreamId : '', chains: data.chains };
+}
+
+export async function fetchEventFeedPage(
+  machinery: SDKMachinery,
+  params: Omit<EventQueryParams, 'limit' | 'allowTruncation' | 'blockNumber_lte'>,
+  options: { checkpoint?: string; after?: string; limit?: number } = {},
+): Promise<EventFeedPage> {
+  if (machinery.eventCacheUrl == null) {
+    throw new Error('eventCacheUrl not configured');
+  }
+  const limit = Math.min(options.limit ?? 1000, EVENT_API_CAP);
+  const url = buildEventCacheUrl(machinery.eventCacheUrl, 'events', {
+    chainId: params.chainId ?? machinery.defaultChainId,
+    contractAddress: params.contractAddress,
+    eventName: params.eventName,
+    topic1: params.topic1,
+    topic2: params.topic2,
+    topic3: params.topic3,
+    topic1_in: params.topic1_in,
+    topic2_in: params.topic2_in,
+    topic3_in: params.topic3_in,
+    blockNumber_gte: params.blockNumber_gte,
+    limit,
+    follow: 1,
+    checkpoint: options.checkpoint,
+    after: options.after,
+  });
+  const response = await fetchEventCacheResponse(url);
+  let data: unknown;
+  try {
+    data = await response.json();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to parse event-cache response: ${message}`);
+  }
+  if (!isRecord(data) || !Array.isArray(data.items) || typeof data.truncated !== 'boolean') {
+    throw new Error('Malformed event-feed page: expected items and truncated');
+  }
+  return {
+    items: data.items as RawEventFromCache[],
+    truncated: data.truncated,
+    nextCursor: typeof data.nextCursor === 'string' ? data.nextCursor : null,
+    checkpoint: typeof data.checkpoint === 'string' ? data.checkpoint : null,
+    completeThroughCheckpoint: data.completeThroughCheckpoint === true,
+  };
 }
 
 // ============================================================================

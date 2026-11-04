@@ -11,7 +11,14 @@ import { db } from "ponder:api";
 import schema from "ponder:schema";
 import { Hono } from "hono";
 import { client, graphql } from "ponder";
-import { and, asc, desc, eq, gte, lte, max, or } from "ponder";
+import { and, asc, desc, eq, gt, gte, lte, max, or } from "ponder";
+import {
+  EventCursorError,
+  assertCursorMatchesRequest,
+  decodeEventFeedCursor,
+  encodeEventFeedCursor,
+  eventFeedScope,
+} from "./eventCursor";
 import {
   encodeSegmentTuples,
   eventSegmentBlocks,
@@ -26,6 +33,12 @@ import { getAddress, isAddress, type Hex } from "viem";
 import { fundingIndexerRoutesEnabled } from "../indexing/contractCapabilities";
 import { noteIndexerWake, requestWakesIndexer } from "../rpc/idleHeadCache";
 import { isBareContractLogQuery, projectReadDemandReport, recordUnindexedProjectLogRequest } from "./projectReadDemand";
+import {
+  chainSyncWatermarks,
+  followCheckpointFromSync,
+  upstreamIdFromAppMeta,
+  type CheckpointRow,
+} from "./syncWatermark";
 
 /**
  * Recursively convert BigInt values to strings for JSON serialization.
@@ -271,6 +284,47 @@ app.get("/api/published-data/:publisher/:dataId", async (c) => {
   }
 });
 
+type PonderDatabase = {
+  readonlyQB?: {
+    wrap: (label: { label: string }, fn: (db: { execute: (query: string) => Promise<{ rows: unknown[] }> }) => Promise<{ rows: unknown[] }>) => Promise<{ rows: unknown[] }>;
+  };
+};
+
+async function readChainSync(): Promise<{ ready: boolean; upstreamId: string; chains: ReturnType<typeof chainSyncWatermarks> }> {
+  const database = (globalThis as { PONDER_DATABASE?: PonderDatabase }).PONDER_DATABASE;
+  const qb = database?.readonlyQB;
+  if (!qb) return { ready: false, upstreamId: "", chains: [] };
+  const [meta, checkpoints] = await Promise.all([
+    qb.wrap({ label: "select_sync_ready" }, (inner) => inner.execute(
+      "SELECT value FROM _ponder_meta WHERE key = 'app'",
+    )),
+    qb.wrap({ label: "select_sync_checkpoints" }, (inner) => inner.execute(
+      "SELECT chain_id, chain_name, latest_checkpoint, finalized_checkpoint FROM _ponder_checkpoint",
+    )),
+  ]);
+  const app = meta.rows[0] as { value?: { is_ready?: number; build_id?: unknown } } | undefined;
+  return {
+    ready: app?.value?.is_ready === 1,
+    upstreamId: upstreamIdFromAppMeta(app?.value),
+    chains: chainSyncWatermarks(checkpoints.rows as CheckpointRow[]),
+  };
+}
+
+app.get("/api/sync", async (c) => {
+  try {
+    const chainId = c.req.query("chainId");
+    const sync = await readChainSync();
+    const chains = chainId ? sync.chains.filter(row => row.chainId === chainId) : sync.chains;
+    return c.json({
+      ready: sync.ready,
+      upstreamId: sync.upstreamId,
+      chains,
+    });
+  } catch (error) {
+    return c.json({ error: String(error) }, 500);
+  }
+});
+
 app.get("/api/events", async (c) => {
   try {
     const chainId = c.req.query("chainId");
@@ -287,6 +341,9 @@ app.get("/api/events", async (c) => {
     const blockNumber_gte = c.req.query("blockNumber_gte");
     const blockNumber_lte = c.req.query("blockNumber_lte");
     const limit = Math.min(parseInt(c.req.query("limit") ?? "1000", 10) || 1000, 10000);
+    const follow = c.req.query("follow") === "1";
+    const afterParam = c.req.query("after");
+    const checkpointParam = c.req.query("checkpoint");
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const conditions: any[] = [];
@@ -300,7 +357,83 @@ app.get("/api/events", async (c) => {
     pushTopicIn(conditions, schema.events.topic2, topicLists.topic2);
     pushTopicIn(conditions, schema.events.topic3, topicLists.topic3);
     if (blockNumber_gte) conditions.push(gte(schema.events.blockNumber, BigInt(blockNumber_gte)));
-    if (blockNumber_lte) conditions.push(lte(schema.events.blockNumber, BigInt(blockNumber_lte)));
+    if (blockNumber_lte && !follow) conditions.push(lte(schema.events.blockNumber, BigInt(blockNumber_lte)));
+
+    if (follow) {
+      if (!chainId) throw new EventCursorError("follow=1 requires chainId");
+      const scope = eventFeedScope({
+        chainId,
+        contractAddress,
+        eventName,
+        topic1,
+        topic2,
+        topic3,
+        topic1_in: c.req.query("topic1_in"),
+        topic2_in: c.req.query("topic2_in"),
+        topic3_in: c.req.query("topic3_in"),
+        blockNumber_gte,
+      });
+      const after = afterParam ? decodeEventFeedCursor(afterParam) : null;
+      let checkpoint = checkpointParam ?? after?.checkpoint;
+      if (after && checkpoint) assertCursorMatchesRequest(after, scope, checkpoint);
+      if (!checkpoint) {
+        const sync = await readChainSync();
+        checkpoint = followCheckpointFromSync(sync.chains, chainId, sync.ready);
+      }
+      if (!checkpoint) {
+        const headConditions = chainId ? [eq(schema.events.chainId, Number(chainId))] : [];
+        const headQuery = db.select({ head: max(schema.events.blockNumber) }).from(schema.events);
+        const [headRow] = headConditions.length > 0
+          ? await headQuery.where(and(...headConditions))
+          : await headQuery;
+        checkpoint = headRow?.head == null ? undefined : headRow.head.toString();
+      }
+      if (!checkpoint) {
+        return c.json({
+          items: [],
+          truncated: false,
+          nextCursor: null,
+          checkpoint: null,
+          completeThroughCheckpoint: false,
+        });
+      }
+      if (blockNumber_lte && BigInt(blockNumber_lte) < BigInt(checkpoint)) {
+        checkpoint = blockNumber_lte;
+      }
+      // The upper-bound clamp is part of the effective checkpoint too. Do not
+      // accept a cursor for a larger range and silently complete a smaller one.
+      if (after) assertCursorMatchesRequest(after, scope, checkpoint);
+      conditions.push(lte(schema.events.blockNumber, BigInt(checkpoint)));
+      if (after) {
+        const afterBlock = BigInt(after.blockNumber);
+        conditions.push(or(
+          gt(schema.events.blockNumber, afterBlock),
+          and(eq(schema.events.blockNumber, afterBlock), gt(schema.events.logIndex, after.logIndex)),
+        ));
+      }
+      const query = db.select().from(schema.events);
+      const filtered = conditions.length > 0 ? query.where(and(...conditions)) : query;
+      const items = await filtered
+        .orderBy(asc(schema.events.blockNumber), asc(schema.events.logIndex))
+        .limit(limit);
+      const truncated = items.length === limit;
+      const last = items[items.length - 1];
+      const nextCursor = truncated && last
+        ? encodeEventFeedCursor({
+          blockNumber: last.blockNumber.toString(),
+          logIndex: last.logIndex,
+          checkpoint,
+          scope,
+        })
+        : null;
+      return c.json(serializeBigInts({
+        items,
+        truncated,
+        nextCursor,
+        checkpoint,
+        completeThroughCheckpoint: !truncated,
+      }) as object);
+    }
 
     // Select the newest transitions when a bounded query is truncated, then
     // restore chain order for legacy clients that still fold sequentially.
@@ -329,9 +462,14 @@ app.get("/api/events", async (c) => {
       recordUnindexedProjectLogRequest(contractAddress!);
     }
 
-    return c.json(serializeBigInts({ items }) as object);
+    return c.json(serializeBigInts({
+      items,
+      truncated: items.length === limit,
+    }) as object);
   } catch (error) {
-    if (error instanceof TopicInError) return c.json({ error: error.message }, 400);
+    if (error instanceof TopicInError || error instanceof EventCursorError) {
+      return c.json({ error: error.message }, 400);
+    }
     return c.json({ error: String(error) }, 500);
   }
 });

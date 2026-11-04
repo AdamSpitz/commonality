@@ -1,6 +1,6 @@
 /**
  * Event-cache reads for conceptspace. Always uses {@link fetchEventsComplete}
- * so a 10_000-row page is split rather than folded as if it were the whole set.
+ * so a full page is paged by log cursor (or split on older indexers) rather than folded as the whole set.
  */
 
 import { fetchEventsComplete, type EventQueryParams } from '../../../utils/eventCacheClient.js';

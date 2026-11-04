@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { fetchAllBoughtEvents, fetchAllContentFundingEvents, fetchAllDelegationEvents, fetchAllNoteIntentEvents, fetchAllRefUpdatedEvents, fetchAllSoldEvents, fetchERC1155TransferEvents, fetchEvents, fetchEventsComplete } from './eventCacheClient.js';
+import { fetchAllBoughtEvents, fetchAllContentFundingEvents, fetchAllDelegationEvents, fetchAllNoteIntentEvents, fetchAllRefUpdatedEvents, fetchAllSoldEvents, fetchChainSync, fetchERC1155TransferEvents, fetchEventFeedPage, fetchEvents, fetchEventsComplete } from './eventCacheClient.js';
 import type { SDKMachinery } from '../machinery.js';
 
 const machinery = {
@@ -194,6 +194,36 @@ describe('complete global fetches', () => {
     globalThis.fetch = originalFetch;
   });
 
+  it('pages a single block larger than the API cap when follow cursors are present', async () => {
+    const block = Array.from({ length: 12 }, (_, logIndex) => rawEvent('Dense', 9, logIndex));
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      const url = new URL(String(input));
+      assert.equal(url.searchParams.get('follow'), '1');
+      const after = url.searchParams.get('after');
+      const start = after == null ? 0 : block.findIndex(event => event.id === after) + 1;
+      const items = block.slice(start, start + 5);
+      const truncated = start + items.length < block.length;
+      return new Response(JSON.stringify({
+        items,
+        truncated,
+        nextCursor: truncated ? items[items.length - 1]?.id ?? null : null,
+        checkpoint: '9',
+        completeThroughCheckpoint: !truncated,
+      }), { status: 200 });
+    }) as typeof fetch;
+
+    const events = await fetchEventsComplete(machinery, { eventName: 'Dense', chainId: 1 });
+    assert.deepStrictEqual(events.map(event => event.logIndex), block.map(event => event.logIndex));
+  });
+
+  it('uses legacy reads without a chain so cross-chain cursor ties cannot drop logs', async () => {
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      assert.equal(new URL(String(input)).searchParams.get('follow'), null);
+      return new Response(JSON.stringify({ items: [] }), { status: 200 });
+    }) as typeof fetch;
+    assert.deepStrictEqual(await fetchEventsComplete(machinery, { eventName: 'Dense' }), []);
+  });
+
   it('splits a capped block range until every matching event is returned', async () => {
     installTruncatingCache();
 
@@ -279,5 +309,95 @@ describe('event archive segments', () => {
 
     const fallback = await fetchEventsComplete(machinery, { eventName: 'BadHash', chainId: 31337 });
     assert.deepStrictEqual(fallback.map(event => event.blockNumber), ['4', '80']);
+  });
+});
+
+describe('fetchChainSync', () => {
+  const originalFetch = globalThis.fetch;
+
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  it('reads the committed head and rejects a malformed body', async () => {
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      assert.match(String(input), /\/api\/sync\?/);
+      return new Response(JSON.stringify({
+        ready: true,
+        chains: [{
+          chainId: '31337',
+          chainName: 'anvil',
+          indexedThrough: '9',
+          finalizedThrough: '7',
+          indexedCheckpoint: '1',
+          finalizedCheckpoint: '1',
+        }],
+      }), { status: 200 });
+    }) as typeof fetch;
+    const sync = await fetchChainSync(machinery, 31337);
+    assert.equal(sync.ready, true);
+    assert.equal(sync.upstreamId, '');
+    assert.equal(sync.chains[0]?.indexedThrough, '9');
+
+    globalThis.fetch = (async () => new Response(JSON.stringify({ ready: true }), { status: 200 })) as typeof fetch;
+    await assert.rejects(() => fetchChainSync(machinery), /Malformed sync watermark/);
+  });
+});
+
+describe('fetchEventFeedPage', () => {
+  const originalFetch = globalThis.fetch;
+
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  it('walks a checkpoint in chain order, including logs inside one block', async () => {
+    const rows = [
+      { id: 'a', blockNumber: '5', logIndex: 1 },
+      { id: 'b', blockNumber: '5', logIndex: 2 },
+      { id: 'c', blockNumber: '6', logIndex: 0 },
+    ];
+    const seen: string[] = [];
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      const url = new URL(String(input));
+      seen.push(url.search);
+      assert.equal(url.searchParams.get('follow'), '1');
+      const after = url.searchParams.get('after');
+      const start = after == null ? 0 : rows.findIndex(row => row.id === after) + 1;
+      const items = rows.slice(start, start + 2);
+      return new Response(JSON.stringify({
+        items,
+        truncated: start + items.length < rows.length,
+        nextCursor: start + items.length < rows.length ? items[items.length - 1]?.id ?? null : null,
+        checkpoint: '6',
+        completeThroughCheckpoint: start + items.length >= rows.length,
+      }), { status: 200 });
+    }) as typeof fetch;
+
+    const first = await fetchEventFeedPage(machinery, { eventName: 'DirectSupport' }, { checkpoint: '6', limit: 2 });
+    assert.equal(first.completeThroughCheckpoint, false);
+    assert.equal(first.nextCursor, 'b');
+    const second = await fetchEventFeedPage(machinery, { eventName: 'DirectSupport' }, {
+      checkpoint: first.checkpoint ?? undefined,
+      after: first.nextCursor ?? undefined,
+      limit: 2,
+    });
+    assert.equal(second.completeThroughCheckpoint, true);
+    assert.deepStrictEqual([...first.items, ...second.items].map(row => row.id), ['a', 'b', 'c']);
+    assert.match(seen[0] ?? '', /checkpoint=6/);
+    assert.match(seen[1] ?? '', /after=b/);
+  });
+
+  it('does not treat a headless empty page as caught up', async () => {
+    globalThis.fetch = (async () => new Response(JSON.stringify({
+      items: [],
+      truncated: false,
+      nextCursor: null,
+      checkpoint: null,
+      completeThroughCheckpoint: false,
+    }), { status: 200 })) as typeof fetch;
+    const page = await fetchEventFeedPage(machinery, { eventName: 'DirectSupport' });
+    assert.equal(page.checkpoint, null);
+    assert.equal(page.completeThroughCheckpoint, false);
   });
 });
