@@ -361,6 +361,9 @@ async function fetchEventsByFollowing(
   if (machinery.eventCacheUrl == null) {
     throw new Error('eventCacheUrl not configured');
   }
+  // (blockNumber, logIndex) is unique only within one chain. Keep legacy
+  // range splitting for explicitly cross-chain reads.
+  if (params.chainId == null && machinery.defaultChainId == null) return null;
   const collected: RawEventFromCache[] = [];
   let after: string | undefined;
   let checkpoint: string | undefined;

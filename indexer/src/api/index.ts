@@ -360,6 +360,7 @@ app.get("/api/events", async (c) => {
     if (blockNumber_lte && !follow) conditions.push(lte(schema.events.blockNumber, BigInt(blockNumber_lte)));
 
     if (follow) {
+      if (!chainId) throw new EventCursorError("follow=1 requires chainId");
       const scope = eventFeedScope({
         chainId,
         contractAddress,
@@ -399,6 +400,9 @@ app.get("/api/events", async (c) => {
       if (blockNumber_lte && BigInt(blockNumber_lte) < BigInt(checkpoint)) {
         checkpoint = blockNumber_lte;
       }
+      // The upper-bound clamp is part of the effective checkpoint too. Do not
+      // accept a cursor for a larger range and silently complete a smaller one.
+      if (after) assertCursorMatchesRequest(after, scope, checkpoint);
       conditions.push(lte(schema.events.blockNumber, BigInt(checkpoint)));
       if (after) {
         const afterBlock = BigInt(after.blockNumber);

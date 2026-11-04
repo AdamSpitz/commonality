@@ -212,8 +212,16 @@ describe('complete global fetches', () => {
       }), { status: 200 });
     }) as typeof fetch;
 
-    const events = await fetchEventsComplete(machinery, { eventName: 'Dense' });
+    const events = await fetchEventsComplete(machinery, { eventName: 'Dense', chainId: 1 });
     assert.deepStrictEqual(events.map(event => event.logIndex), block.map(event => event.logIndex));
+  });
+
+  it('uses legacy reads without a chain so cross-chain cursor ties cannot drop logs', async () => {
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      assert.equal(new URL(String(input)).searchParams.get('follow'), null);
+      return new Response(JSON.stringify({ items: [] }), { status: 200 });
+    }) as typeof fetch;
+    assert.deepStrictEqual(await fetchEventsComplete(machinery, { eventName: 'Dense' }), []);
   });
 
   it('splits a capped block range until every matching event is returned', async () => {
