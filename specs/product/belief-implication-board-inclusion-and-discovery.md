@@ -215,6 +215,14 @@ ranking; “require” constrains a published board or delegation authorization.
 view/funding instructions, not statements about what the person believes. This UI and
 delegation extension is deferred until there is a concrete consumer for it.
 
+### Statement search collapses by implication
+
+There is no global statement search or browse yet. When one is built, it should group results by implication, not list every statement. Show the general statement once, with "plus N more specific versions" that open into the statements that imply it.
+
+Commonality is meant to allow many statements: everyone says exactly what they mean, and the common ground is found afterwards. A flat list would bury the general statements under near-duplicates. Grouping shows the common ground first and still lets you open the specific versions.
+
+The first real case is ai-risk.solutions. It publishes about 2,000 statements from a template, each implying one or both of two bridge statements. Under grouping, that is two results with "plus about 1,000 more specific versions" each.
+
 ## Implementation boundary
 
 Do not change the implication attester to force nested-place statements to imply
