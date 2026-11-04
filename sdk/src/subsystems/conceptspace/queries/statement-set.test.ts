@@ -236,12 +236,12 @@ describe('readStatementSet', () => {
       }
       topics.push(`${url.searchParams.get('eventName')}:${url.searchParams.get('topic2_in') ?? ''}:${url.searchParams.get('topic3_in') ?? ''}`);
       assert.equal(url.searchParams.get('follow'), '1');
-      assert.equal(url.searchParams.get('checkpoint'), 'finalized-head');
+      assert.equal(url.searchParams.get('checkpoint'), '12');
       return new Response(JSON.stringify({
         items: [],
         truncated: false,
         nextCursor: null,
-        checkpoint: 'finalized-head',
+        checkpoint: '12',
         completeThroughCheckpoint: true,
       }), { status: 200 });
     }) as typeof fetch;
@@ -361,11 +361,12 @@ describe('readStatementSet', () => {
         }), { status: 200 });
       }
       gte.push(url.searchParams.get('blockNumber_gte'));
+      assert.equal(url.searchParams.get('checkpoint'), head);
       return new Response(JSON.stringify({
         items: [],
         truncated: false,
         nextCursor: null,
-        checkpoint: `cp-${head}`,
+        checkpoint: head,
         completeThroughCheckpoint: true,
       }), { status: 200 });
     }) as typeof fetch;
@@ -490,16 +491,17 @@ describe('readStatementSet', () => {
           items: [],
           truncated: true,
           nextCursor: 'page-2',
-          checkpoint: 'finalized-head',
+          checkpoint: '12',
           completeThroughCheckpoint: false,
         }), { status: 200 });
       }
+      assert.equal(url.searchParams.get('checkpoint'), '12');
       assert.equal(url.searchParams.get('after') ?? '', eventName === 'DirectSupport' ? 'page-2' : '');
       return new Response(JSON.stringify({
         items: [],
         truncated: false,
         nextCursor: null,
-        checkpoint: 'finalized-head',
+        checkpoint: '12',
         completeThroughCheckpoint: true,
       }), { status: 200 });
     }) as typeof fetch;

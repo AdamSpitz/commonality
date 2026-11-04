@@ -458,7 +458,6 @@ async function fetchGrouped<T>(
     const events = await fetchDecodedAtCheckpoint(machinery, {
       ...query,
       values: cids.map(cid => cidToBytes32(cid)),
-      checkpoint: head.checkpoint,
       asOfBlock: head.asOfBlock,
       fromBlock: fromBlock === '0' ? undefined : fromBlock,
     });
@@ -489,7 +488,10 @@ async function staleRead(
   if (head == null || complete.some(scan => scan.checkpoint !== head.checkpoint || scan.asOfBlock !== head.asOfBlock)) {
     return null;
   }
-  const implications = complete.flatMap(scan => [...deserializeImplications(scan.edges).values()]);
+  const implications = filterByTrustedAttesters(
+    complete.flatMap(scan => [...deserializeImplications(scan.edges).values()]),
+    trustedAttesters ? [...trustedAttesters] : undefined,
+  );
   const sources = uniqueCids(implications.map(implication => implication.fromStatementCid));
   const extraSources = sources.filter(source => !targets.includes(source));
   const beliefIds = [...targets, ...extraSources];
@@ -596,7 +598,6 @@ async function fetchDecodedAtCheckpoint<T>(
     topic: 'topic2' | 'topic3';
     values: string[];
     contractAddress?: string;
-    checkpoint: string;
     asOfBlock: string;
     fromBlock?: string;
     decode: (event: RawEventFromCache) => T[];
@@ -618,11 +619,11 @@ async function fetchDecodedAtCheckpoint<T>(
       const seen = new Set<string>();
       for (;;) {
         const page = await fetchEventFeedPage(machinery, params, {
-          checkpoint: options.checkpoint,
+          checkpoint: options.asOfBlock,
           after,
         });
-        if (page.checkpoint !== options.checkpoint) {
-          throw new Error(`Event feed checkpoint ${page.checkpoint ?? 'none'} did not match frozen ${options.checkpoint}`);
+        if (page.checkpoint !== options.asOfBlock) {
+          throw new Error(`Event feed checkpoint ${page.checkpoint ?? 'none'} did not match frozen block ${options.asOfBlock}`);
         }
         for (const event of page.items) {
           if (BigInt(event.blockNumber) > asOf) continue;
@@ -630,7 +631,7 @@ async function fetchDecodedAtCheckpoint<T>(
         }
         if (page.completeThroughCheckpoint && !page.truncated) break;
         if (!page.nextCursor || seen.has(page.nextCursor)) {
-          throw new Error(`Incomplete event feed for ${eventName} at checkpoint ${options.checkpoint}`);
+          throw new Error(`Incomplete event feed for ${eventName} through block ${options.asOfBlock}`);
         }
         seen.add(page.nextCursor);
         after = page.nextCursor;
