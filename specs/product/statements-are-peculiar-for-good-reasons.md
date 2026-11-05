@@ -182,6 +182,8 @@ Read these; do not copy them into this file.
 
 **Generation process (bulk seed + cause-assist):** [statement-generation.md](/fake-data-generation/statement-generation.md) — curriculum, checker loop, gold-set rules. Draft exercises (not live seed until vetoed): [statement-generation-exercises/](/fake-data-generation/statement-generation-exercises/).
 
+For "won't there be far too many statements?", and the rule that core statements should be worded to stay stable, see [statement proliferation](./statement-proliferation.md).
+
 ## What not to write
 
 - A single slogan meant to be both “what my side believes” and “the compromise.”

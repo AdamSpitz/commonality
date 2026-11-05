@@ -1,6 +1,6 @@
 # Statement families
 
-Status: proposed. Decision record: [ADR 0019](/specs/decisions/0019-statement-families.md).
+Status: proposed. Decision record: [ADR 0019](/specs/decisions/0019-statement-families.md). Part of the broader answer in [statement proliferation](/specs/product/statement-proliferation.md).
 
 ## Problem
 
