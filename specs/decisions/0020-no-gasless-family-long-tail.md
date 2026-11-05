@@ -8,7 +8,7 @@
 
 [ADR 0019](./0019-statement-families.md) already rejected sponsoring *publication* of every family member. This decision is about the other temptation: sponsoring *signatures* (`Beliefs.setBelief`) for every statement a family can generate, without writing one `enroll` per member.
 
-`StatementGasTank.enroll` stores a content id. It does not require the bytes to be published. The id is the hash of the canonical statement document, so a sponsor can compute it locally. That does not make bulk enrollment cheap. Each id is still a cold storage write. A family that can grow to millions of statements is not something to pre-enroll, and it is not something to pre-publish.
+The tempting shape is a statement gas tank whose `enroll` stores a content id and does not require the bytes to be published. (The gas tank that exists today, `CreatorGasTank`, enrolls projects, not statements. This decision is about not building the statement version.) The id is the hash of the canonical statement document, so a sponsor can compute it locally. That does not make bulk enrollment cheap. Each id is still a cold storage write. A family that can grow to millions of statements is not something to pre-enroll, and it is not something to pre-publish.
 
 The product reason for the tank is narrow: an embedded-wallet signer who has no ETH can still sign a statement the sponsor has chosen to pay for. Anything that makes that signer pay a prover, a service, or the chain has lost that reason.
 
