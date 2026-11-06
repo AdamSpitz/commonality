@@ -33,6 +33,8 @@ Suppose you're a conservative-leaning community in a province with a progressive
 
 **The boring-local-stuff pitch (extending to mundane projects):** This pressure extends beyond obviously controversial causes. Even mundane local public goods become politically vulnerable when funded through hierarchical systems — higher-level governments routinely attach policy conditions to funding, turning your town's sidewalk budget into leverage for compliance on unrelated issues. (Example: federal funding withheld from states/cities over immigration enforcement, or provincial funding contingent on institutional DEI policies.) Commonality can't replace that federal money, but it can provide a funding channel with no political strings — because there's no political entity in the chain. This dynamic — communities building independent funding capacity that erodes higher-level leverage — has [broader implications for the structure of government itself](../so-what/local-government.md).
 
+The concrete form of this insurance is [swappable funders](./swappable-funders.md): put your programs onto open rails *while you're still the one paying for them*, so your supporters can take over funding in one step if you lose power.
+
 ## Adoption dynamics
 
 The realistic adoption path isn't a grand bargain where both sides agree simultaneously. It's a sequential cascade:

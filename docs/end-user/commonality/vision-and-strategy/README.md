@@ -45,6 +45,8 @@ Yes. [But](./getting-people-to-switch.md):
 
 It's [hard to stop](./hard-to-stop/README.md). No bank accounts to freeze, no platform to deplatform, no org to shut down. The system operates with after-tax money you already control. And neither side can stop the other side from using this system, nor can they count on the other side never regaining power, so both sides will want to use this system to prevent the other side from cutting off their funding.
 
+Underneath all of this is one structural property: because projects are open data with permissionless funding, [the funder is swappable](./hard-to-stop/swappable-funders.md). If your side loses power, or a higher-level government pulls out, the project's payees and paperwork stay put and other people can simply start paying for it.
+
 What's more, assurance contracts double as a [credible-threat mechanism](./hard-to-stop/credible-threat.md): a community that visibly demonstrates its ability to fund something independently shifts the negotiating power, even if the independent funding is never used. The threat is costless (pledges refund if never activated) but changes the calculus for anyone threatening to cut funding. See the [walkthrough](/docs/end-user/shared/use-case-walkthroughs/defunding.md) for a concrete example.
 
 **"So what? Why does this actually matter?"**
