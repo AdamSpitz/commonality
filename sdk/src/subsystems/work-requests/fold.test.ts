@@ -2,8 +2,11 @@ import assert from 'node:assert/strict';
 import {
   assembleWorkRequestBoard,
   decisionFor,
+  paymentEvidenceFromChainPayments,
   totalsForRequest,
   type NoteBackingSnapshot,
+  type PaymentEvidence,
+  type ProjectWorkAuthority,
   type WorkRefUpdate,
 } from './fold.js';
 import {
@@ -30,6 +33,88 @@ const NOW = Date.parse('2026-10-01T00:00:00Z');
 
 function docEntry(document: DisplayableDocument) {
   return [cidForWorkDocument(document), { document, retracted: false }] as const;
+}
+
+const CHAIN = 84532;
+const TX = `0x${'11'.repeat(32)}`;
+const REFUND_TX = `0x${'22'.repeat(32)}`;
+
+function linkedBoard(input: {
+  payments?: PaymentEvidence[];
+  projectAuthority?: ProjectWorkAuthority[];
+  refundTxHash?: string | null;
+  amount?: string;
+  token?: string;
+  projectAddress?: string;
+  chainId?: number;
+  txHash?: string;
+  provider?: string;
+  acceptanceOwner?: string;
+  workItemIds?: string[];
+  citeCurrentResponse?: boolean;
+} = {}) {
+  const chainId = input.chainId ?? CHAIN;
+  const provider = input.provider ?? ALICE;
+  const projectAddress = input.projectAddress ?? PROJECT_A;
+  const token = input.token ?? USDC;
+  const amount = input.amount ?? '3000000';
+  const workItemIds = input.workItemIds ?? ['playground:design-build'];
+  const request = buildWorkRequestDocument({
+    slug: 'park', outcome: 'A park', requirements: [], participationLimits: [], statementCids: [], contextNote: '', responseDeadline: null, previousCid: null,
+  });
+  const requestCid = cidForWorkDocument(request);
+  const offer = buildWorkOfferDocument({
+    slug: 'gift', requestVersionCid: requestCid, amount, token, chainId, expiry: '2026-12-01T00:00:00Z',
+    approvalAuthority: 'offer-author', conditions: '', backingNoteId: null, status: 'open', previousCid: null,
+  });
+  const response = buildWorkResponseDocument({
+    slug: 'build', requestVersionCid: requestCid, chainId, projectAddress, providerAddress: provider,
+    workItemIds, scope: 'Build it', exceptions: '', capacity: '', previousCid: null,
+  });
+  const responseCid = cidForWorkDocument(response);
+  const acceptance = buildWorkAcceptanceDocument({
+    responseOwner: ALICE, responseSlug: 'build',
+    responseVersionCid: input.citeCurrentResponse === false ? cidForWorkDocument(request) : responseCid,
+    capacity: 'I accept', previousCid: null,
+  });
+  const link = buildContributionLinkDocument({
+    slug: 'payment', offerVersionCid: cidForWorkDocument(offer), responseVersionCid: responseCid,
+    chainId, projectAddress, txHash: input.txHash ?? TX, amount, token,
+    refundTxHash: input.refundTxHash ?? null, previousCid: null,
+  });
+  const documents = new Map([docEntry(request), docEntry(offer), docEntry(response), docEntry(acceptance), docEntry(link)]);
+  let log = 0;
+  const updates: WorkRefUpdate[] = [];
+  const push = (owner: string, name: string, document: DisplayableDocument) => {
+    log += 1;
+    updates.push({ owner, name, value: cidForWorkDocument(document), blockNumber: '2', logIndex: log, timestamp: String(NOW / 1000) });
+  };
+  push(DONOR, requestRefName('park'), request);
+  push(DONOR, offerRefName('gift'), offer);
+  push(ALICE, responseRefName('build'), response);
+  push(input.acceptanceOwner ?? provider, acceptanceRefName(ALICE, 'build'), acceptance);
+  push(DONOR, contributionLinkRefName('payment'), link);
+  return assembleWorkRequestBoard({
+    updates,
+    documentsByCid: documents,
+    notes: [],
+    settlementTokens: [USDC],
+    nowMs: NOW,
+    paymentEvidence: input.payments,
+    projectAuthority: input.projectAuthority,
+  });
+}
+
+function evidence(kind: PaymentEvidence['kind'], amount: bigint, overrides: Partial<PaymentEvidence> = {}): PaymentEvidence {
+  return {
+    kind,
+    chainId: CHAIN,
+    projectAddress: PROJECT_A,
+    token: USDC,
+    txHash: kind === 'refund' ? REFUND_TX : TX,
+    amount,
+    ...overrides,
+  };
 }
 
 describe('fundable work requests', () => {
@@ -239,12 +324,19 @@ describe('fundable work requests', () => {
       owner: DONOR,
     };
     const stranger: NoteBackingSnapshot = { ...note, id: '10', owner: BOB };
+    const playgroundAuthority: ProjectWorkAuthority[] = [{
+      chainId: 84532,
+      projectAddress: PROJECT_A,
+      beneficiaryAddress: ALICE,
+      workItemIds: ['playground:design-build'],
+    }];
     const board = assembleWorkRequestBoard({
       updates,
       documentsByCid: documents,
       notes: [note, stranger],
       settlementTokens: [USDC],
       nowMs: NOW,
+      projectAuthority: playgroundAuthority,
     });
 
     const requestRecord = board.requests[0]!;
@@ -259,6 +351,8 @@ describe('fundable work requests', () => {
     assert.equal(totals[0]?.approved, 3000000n);
     assert.equal(totals[0]?.contributed, 0n);
     assert.equal(totals[0]?.refunded, 3000000n);
+    assert.equal(totals[0]?.verifiedContributed, 0n);
+    assert.equal(totals[0]?.verifiedRefunded, 0n);
 
     const liveBacking = board.backing.filter((slice) => slice.recognized > 0n);
     assert.equal(liveBacking.length, 1);
@@ -280,7 +374,7 @@ describe('fundable work requests', () => {
     });
     documents.set(...docEntry(revisedResponse));
     push(ALICE, responseRefName('design-build'), revisedResponse);
-    const revisedBoard = assembleWorkRequestBoard({ updates, documentsByCid: documents, notes: [note], settlementTokens: [USDC], nowMs: NOW });
+    const revisedBoard = assembleWorkRequestBoard({ updates, documentsByCid: documents, notes: [note], settlementTokens: [USDC], nowMs: NOW, projectAuthority: playgroundAuthority });
     const revisedAlice = revisedBoard.responses.find((response) => response.actor === ALICE)!;
     assert.equal(revisedBoard.acceptances[0]?.authorityMatchesProvider, false);
     assert.equal(decisionFor(revisedBoard, revisedBoard.offers.find((offer) => offer.slug === 'intention')!, revisedAlice), null);
@@ -353,5 +447,86 @@ describe('fundable work requests', () => {
       });
       assert.equal(board.offers[0]?.current, null);
     }
+  });
+
+  it('verifies a contribution only on an exact chain match and does not require the buyer to be the offer author', () => {
+    const matched = linkedBoard({
+      payments: [evidence('contribution', 3000000n)],
+    });
+    const totals = totalsForRequest(matched, matched.requests[0]!, NOW);
+    assert.equal(totals[0]?.contributed, 3000000n);
+    assert.equal(totals[0]?.verifiedContributed, 3000000n);
+    assert.equal(totals[0]?.refunded, 0n);
+    assert.equal(totals[0]?.verifiedRefunded, 0n);
+
+    for (const payments of [
+      [evidence('contribution', 2999999n)],
+      [evidence('contribution', 3000001n)],
+      [evidence('contribution', 3000000n, { token: PROJECT_B })],
+      [evidence('contribution', 3000000n, { projectAddress: PROJECT_B })],
+      [evidence('contribution', 3000000n, { chainId: 1 })],
+      [evidence('contribution', 3000000n, { txHash: REFUND_TX })],
+      [],
+    ]) {
+      const board = linkedBoard({ payments });
+      const row = totalsForRequest(board, board.requests[0]!, NOW)[0];
+      assert.equal(row?.contributed, 3000000n);
+      assert.equal(row?.verifiedContributed, 0n);
+    }
+  });
+
+  it('verifies a refund only for the exact linked amount and still reports the author amount', () => {
+    const exact = linkedBoard({
+      refundTxHash: REFUND_TX,
+      payments: [evidence('contribution', 3000000n), evidence('refund', 3000000n)],
+    });
+    const exactTotals = totalsForRequest(exact, exact.requests[0]!, NOW)[0];
+    assert.equal(exactTotals?.contributed, 0n);
+    assert.equal(exactTotals?.refunded, 3000000n);
+    assert.equal(exactTotals?.verifiedContributed, 3000000n);
+    assert.equal(exactTotals?.verifiedRefunded, 3000000n);
+
+    for (const amount of [1n, 2999999n, 3000001n]) {
+      const board = linkedBoard({
+        refundTxHash: REFUND_TX,
+        payments: [evidence('refund', amount)],
+      });
+      const row = totalsForRequest(board, board.requests[0]!, NOW)[0];
+      assert.equal(row?.refunded, 3000000n);
+      assert.equal(row?.verifiedRefunded, 0n);
+      assert.equal(row?.verifiedContributed, 0n);
+    }
+  });
+
+  it('keeps provider authority false unless project beneficiary and registered work ids agree', () => {
+    const authority: ProjectWorkAuthority = {
+      chainId: CHAIN,
+      projectAddress: PROJECT_A,
+      beneficiaryAddress: ALICE,
+      workItemIds: ['playground:design-build', 'playground:quiet-corner'],
+    };
+    assert.equal(linkedBoard({ projectAuthority: [authority] }).acceptances[0]?.authorityMatchesProvider, true);
+    assert.equal(linkedBoard().acceptances[0]?.authorityMatchesProvider, false);
+    assert.equal(linkedBoard({ projectAuthority: [{ ...authority, beneficiaryAddress: BOB }] }).acceptances[0]?.authorityMatchesProvider, false);
+    assert.equal(linkedBoard({ projectAuthority: [{ ...authority, chainId: 1 }] }).acceptances[0]?.authorityMatchesProvider, false);
+    assert.equal(linkedBoard({ projectAuthority: [{ ...authority, workItemIds: ['playground:quiet-corner'] }] }).acceptances[0]?.authorityMatchesProvider, false);
+    assert.equal(linkedBoard({ projectAuthority: [authority], acceptanceOwner: BOB }).acceptances[0]?.authorityMatchesProvider, false);
+    assert.equal(linkedBoard({ projectAuthority: [authority], citeCurrentResponse: false }).acceptances[0]?.authorityMatchesProvider, false);
+    assert.equal(linkedBoard({ projectAuthority: [authority], workItemIds: ['playground:design-build', 'missing'] }).acceptances[0]?.authorityMatchesProvider, false);
+  });
+
+  it('drops chain payments that have no settlement token instead of throwing', () => {
+    assert.deepEqual(paymentEvidenceFromChainPayments(CHAIN, 'contribution', [{
+      projectAddress: PROJECT_A,
+      transactionHash: TX,
+      amount: '5',
+      tokenAddress: null,
+    }]), []);
+    assert.equal(paymentEvidenceFromChainPayments(CHAIN, 'refund', [{
+      projectAddress: PROJECT_A,
+      transactionHash: REFUND_TX,
+      amount: '5',
+      tokenAddress: USDC,
+    }]).length, 1);
   });
 });

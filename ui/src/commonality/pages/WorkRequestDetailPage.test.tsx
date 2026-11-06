@@ -6,7 +6,7 @@ import { WorkRequestDetailPage } from './WorkRequestDetailPage'
 const mocks = vi.hoisted(() => {
   const address = `0x${'aa'.repeat(20)}`
   const other = `0x${'bb'.repeat(20)}`
-  return { address, other, decision: vi.fn(), acceptance: vi.fn(), reload: vi.fn() }
+  return { address, other, decision: vi.fn(), acceptance: vi.fn(), reload: vi.fn(), totals: vi.fn((): Array<Record<string, unknown>> => []) }
 })
 
 vi.mock('wagmi', () => ({ useAccount: () => ({ address: mocks.address }) }))
@@ -16,7 +16,7 @@ vi.mock('../../shared', () => ({
 }))
 vi.mock('@commonality/sdk/work-requests', () => ({
   decisionFor: () => null,
-  totalsForRequest: () => [],
+  totalsForRequest: mocks.totals,
   requestVersionCids: () => new Set(['request']),
   publishWorkDecision: mocks.decision,
   publishWorkAcceptance: mocks.acceptance,
@@ -46,7 +46,10 @@ function showPage() {
 }
 
 describe('WorkRequestDetailPage', () => {
-  beforeEach(() => vi.clearAllMocks())
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mocks.totals.mockReturnValue([])
+  })
 
   it('lets the donor decide on their own offer when someone else published first', async () => {
     showPage()
@@ -66,6 +69,24 @@ describe('WorkRequestDetailPage', () => {
   it('requires an explicit offer and response before reporting a contribution', () => {
     showPage()
     expect(screen.getByRole('button', { name: 'Record a contribution link' })).toBeDisabled()
-    expect(screen.getByText(/Contribution and refund transactions are not yet verified/)).toBeInTheDocument()
+    expect(screen.getByText(/Recording a hash does not verify the contribution or refund/)).toBeInTheDocument()
+  })
+
+  it('shows verified contribution and refund figures apart from reported amounts', () => {
+    mocks.totals.mockReturnValue([{
+      token: `0x${'11'.repeat(20)}`,
+      chainId: 1,
+      contributed: 5n,
+      refunded: 2n,
+      verifiedContributed: 4n,
+      verifiedRefunded: 1n,
+      verifiedBacking: 0n,
+      unfundedIntention: 0n,
+      approved: 0n,
+    }])
+    showPage()
+    expect(screen.getByText(/5 reported as contributed, 2 reported as refunded \(transactions unverified\)/)).toBeInTheDocument()
+    expect(screen.getByText(/Verified contributed 4\. Verified refunded 1\./)).toBeInTheDocument()
+    expect(screen.queryByText(/Provider accepted/)).not.toBeInTheDocument()
   })
 })

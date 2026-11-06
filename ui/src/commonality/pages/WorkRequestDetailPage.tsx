@@ -18,10 +18,11 @@ import { useAccount } from 'wagmi'
 import { useMachinery, useWriteClients } from '../../shared'
 import { useWorkRequests } from '../hooks/useWorkRequests'
 
-function formatTotals(board: WorkRequestBoard, request: WorkRequestBoard['requests'][number]): string[] {
-  return totalsForRequest(board, request, Date.now()).map((totals) =>
-    `${totals.verifiedBacking} base units backed on chain ${totals.chainId}, ${totals.unfundedIntention} unfunded intention, ${totals.approved} recorded as approved, ${totals.contributed} reported as contributed, ${totals.refunded} reported as refunded (transactions unverified). Token ${totals.token}.`,
-  )
+function formatTotals(board: WorkRequestBoard, request: WorkRequestBoard['requests'][number]): Array<{ reported: string; verified: string }> {
+  return totalsForRequest(board, request, Date.now()).map((totals) => ({
+    reported: `${totals.verifiedBacking} base units backed on chain ${totals.chainId}, ${totals.unfundedIntention} unfunded intention, ${totals.approved} recorded as approved, ${totals.contributed} reported as contributed, ${totals.refunded} reported as refunded (transactions unverified). Token ${totals.token}.`,
+    verified: `Verified contributed ${totals.verifiedContributed}. Verified refunded ${totals.verifiedRefunded}. Token ${totals.token}.`,
+  }))
 }
 
 export function WorkRequestDetailPage() {
@@ -92,7 +93,12 @@ export function WorkRequestDetailPage() {
       </Typography>
       <Typography variant="body2">Requirements: {current.body.requirements.join('; ') || 'none'}</Typography>
       <Typography variant="body2">Participation limits: {current.body.participationLimits.join('; ') || 'none'}</Typography>
-      {formatTotals(board, request).map((line) => <Typography key={line} variant="body2">{line}</Typography>)}
+      {formatTotals(board, request).map((line) => (
+        <Stack key={line.reported} spacing={0}>
+          <Typography variant="body2">{line.reported}</Typography>
+          <Typography variant="body2">{line.verified}</Typography>
+        </Stack>
+      ))}
       <Typography variant="subtitle2">Versions</Typography>
       {request.versions.map((version) => (
         <Typography key={version.cid} variant="caption" display="block">
@@ -136,7 +142,8 @@ export function WorkRequestDetailPage() {
 
       <Typography variant="subtitle2">Responses</Typography>
       {responses.map((response) => {
-        const acceptance = board.acceptances.find((item) => item.responseOwner === response.actor && item.responseSlug === response.slug && item.authorityMatchesProvider)
+        const acceptance = board.acceptances.find((item) => item.responseOwner === response.actor && item.responseSlug === response.slug)
+        const accepted = acceptance?.authorityMatchesProvider ? acceptance.current : null
         return (
           <Stack key={`${response.actor}:${response.slug}`} spacing={0.5}>
             <Typography variant="body2">
@@ -146,7 +153,7 @@ export function WorkRequestDetailPage() {
               </Button>
               {' '}for work {response.current?.body.workItemIds.join(', ')}.
               Scope: {response.current?.body.scope}. Exceptions: {response.current?.body.exceptions || 'none'}.
-              {acceptance?.current ? ` Provider accepted: ${acceptance.current.body.capacity}.` : ' Provider has not accepted these terms.'}
+              {accepted ? ` Provider accepted: ${accepted.body.capacity}.` : ' Provider has not accepted these terms.'}
             </Typography>
             {offers.map((offer) => {
               const decision = decisionFor(board, offer, response)
@@ -212,7 +219,7 @@ export function WorkRequestDetailPage() {
             })
           })}>Publish response</Button>
           <Typography variant="subtitle2">Report a contribution</Typography>
-          <Typography variant="body2">These links are claims by the publisher. Contribution and refund transactions are not yet verified.</Typography>
+          <Typography variant="body2">These links are claims by the publisher. Recording a hash does not verify the contribution or refund.</Typography>
           <TextField select label="Offer" value={selectedOffer} onChange={(event) => setSelectedOffer(event.target.value)}>
             {offers.map((offer) => <MenuItem key={`${offer.actor}:${offer.slug}`} value={`${offer.actor}:${offer.slug}`}>{offer.actor} · {offer.slug}</MenuItem>)}
           </TextField>

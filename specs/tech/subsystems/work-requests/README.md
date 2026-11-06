@@ -25,6 +25,10 @@ A backed offer counts only while it is open, unexpired, and the named note is an
 
 ## Limits
 
-Contribution and refund links are offer-author reports, not verified transaction evidence. Totals display these as reported amounts. Response provider/work-item fields are declarations; acceptance checks the signer against the named provider and exact response version, but does not yet verify that provider against the project's beneficiary or work registry. These verification gaps and the remaining revision/withdrawal UI are tracked in [TODO.md](/TODO.md).
+Contribution and refund links are still offer-author reports. Totals keep those amounts as reported and do not label them verified. A contribution is verified only when its transaction hash matches an indexed buy for the same chain, project, settlement token, and amount. The buyer does not have to be the offer author. A refund is verified only when its refund transaction matches an indexed sell for the same chain, project, token, and the exact linked amount. Partial and larger refunds are not verified. Missing chain evidence leaves verified amounts at zero; the board still loads.
+
+Provider acceptance counts as project authority only when all of these hold: the acceptance signer is the provider named on the current response version, that provider is the project's work beneficiary (an unset work-beneficiary id uses the project beneficiary), and every work item named by the response is registered to that project. If project authority was not loaded, the acceptance is not project authority.
+
+The fold stays pure. The loader supplies payment evidence from the existing contribution and refund queries, and project authority from the existing work-state read. Request, offer, and response revision and withdrawal controls in the UI remain in [TODO.md](/TODO.md).
 
 The request id is not a work-item id. Provider acceptance is a separate publication and does not replace `acceptWorkProject`. There is no exclusive reservation.

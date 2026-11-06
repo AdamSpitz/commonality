@@ -89,6 +89,40 @@ export interface CurrencyTotals {
   approved: bigint;
   contributed: bigint;
   refunded: bigint;
+  /** Exact chain match only. Never a relabeling of `contributed`. */
+  verifiedContributed: bigint;
+  /** Exact chain match only. Never a relabeling of `refunded`. */
+  verifiedRefunded: bigint;
+}
+
+/** Indexed buy or sell. Buyer is omitted: the offer author need not be the purchaser. */
+export interface PaymentEvidence {
+  kind: 'contribution' | 'refund';
+  chainId: number;
+  projectAddress: string;
+  token: string;
+  txHash: string;
+  amount: bigint;
+}
+
+/**
+ * Work beneficiary and registered work ids for one project on one chain.
+ * An unset work-beneficiary id is already resolved to `beneficiary()` by the loader.
+ * Absence of an entry means authority was not loaded.
+ */
+export interface ProjectWorkAuthority {
+  chainId: number;
+  projectAddress: string;
+  beneficiaryAddress: string;
+  workItemIds: readonly string[];
+}
+
+/** Chain-payment row from the existing contribution or refund query. */
+export interface ChainPaymentRecord {
+  projectAddress: string;
+  transactionHash: string;
+  amount: string;
+  tokenAddress: string | null;
 }
 
 export interface WorkRequestBoard {
@@ -99,6 +133,7 @@ export interface WorkRequestBoard {
   decisions: DecisionRecord[];
   contributionLinks: ContributionLinkRecord[];
   backing: BackingSlice[];
+  paymentEvidence: PaymentEvidence[];
 }
 
 interface Series {
@@ -243,6 +278,72 @@ function readKind<T>(document: DisplayableDocument, kind: string): T | null {
   return parsed.body as T;
 }
 
+function authorityKey(chainId: number, projectAddress: string): string {
+  return `${chainId}:${projectAddress.toLowerCase()}`;
+}
+
+function providerAuthorityMatches(
+  seriesOwner: string,
+  response: ResponseRecord | undefined,
+  acceptanceCid: string | undefined,
+  authorities: ReadonlyMap<string, ProjectWorkAuthority>,
+): boolean {
+  const current = response?.current;
+  if (!current || !acceptanceCid) return false;
+  const provider = current.body.providerAddress.toLowerCase();
+  if (seriesOwner !== provider || acceptanceCid !== current.cid) return false;
+  const authority = authorities.get(authorityKey(current.body.chainId, current.body.projectAddress));
+  if (!authority) return false;
+  if (authority.beneficiaryAddress.toLowerCase() !== provider) return false;
+  const registered = new Set(authority.workItemIds);
+  return current.body.workItemIds.every((id) => registered.has(id));
+}
+
+function paymentMatches(payments: readonly PaymentEvidence[], link: ContributionLinkBody, kind: PaymentEvidence['kind']): boolean {
+  const txHash = kind === 'contribution' ? link.txHash : link.refundTxHash;
+  if (!txHash) return false;
+  let amount: bigint;
+  try {
+    amount = BigInt(link.amount);
+  } catch {
+    return false;
+  }
+  const project = link.projectAddress.toLowerCase();
+  const token = link.token.toLowerCase();
+  const hash = txHash.toLowerCase();
+  return payments.some((payment) => payment.kind === kind
+    && payment.chainId === link.chainId
+    && payment.projectAddress.toLowerCase() === project
+    && payment.token.toLowerCase() === token
+    && payment.txHash.toLowerCase() === hash
+    && payment.amount === amount);
+}
+
+/** Drop rows that cannot identify a settlement token. Does not throw. */
+export function paymentEvidenceFromChainPayments(
+  chainId: number,
+  kind: PaymentEvidence['kind'],
+  payments: readonly ChainPaymentRecord[],
+): PaymentEvidence[] {
+  if (!Number.isSafeInteger(chainId) || chainId <= 0) return [];
+  const evidence: PaymentEvidence[] = [];
+  for (const payment of payments) {
+    if (!payment.tokenAddress || !/^0x[0-9a-fA-F]{40}$/.test(payment.tokenAddress)) continue;
+    if (!/^0x[0-9a-fA-F]{64}$/.test(payment.transactionHash)) continue;
+    if (!/^0x[0-9a-fA-F]{40}$/.test(payment.projectAddress)) continue;
+    if (!/^[0-9]+$/.test(payment.amount)) continue;
+    evidence.push({
+      kind,
+      chainId,
+      projectAddress: payment.projectAddress.toLowerCase(),
+      token: payment.tokenAddress.toLowerCase(),
+      txHash: payment.transactionHash.toLowerCase(),
+      amount: BigInt(payment.amount),
+    });
+  }
+  return evidence;
+}
+
 export function assembleWorkRequestBoard(input: {
   updates: readonly WorkRefUpdate[];
   documentsByCid: ReadonlyMap<string, { document: DisplayableDocument; retracted: boolean }>;
@@ -250,6 +351,8 @@ export function assembleWorkRequestBoard(input: {
   settlementTokens: readonly string[];
   nowMs: number;
   chainId?: number;
+  paymentEvidence?: readonly PaymentEvidence[];
+  projectAuthority?: readonly ProjectWorkAuthority[];
 }): WorkRequestBoard {
   const requests: RequestRecord[] = [];
   const offers: OfferRecord[] = [];
@@ -258,6 +361,10 @@ export function assembleWorkRequestBoard(input: {
   const decisions: DecisionRecord[] = [];
   const contributionLinks: ContributionLinkRecord[] = [];
   const acceptanceSeries: Series[] = [];
+  const authorities = new Map<string, ProjectWorkAuthority>();
+  for (const authority of input.projectAuthority ?? []) {
+    authorities.set(authorityKey(authority.chainId, authority.projectAddress), authority);
+  }
 
   for (const series of groupSeries(input.updates)) {
     if (series.kind === 'request') {
@@ -304,15 +411,18 @@ export function assembleWorkRequestBoard(input: {
     const matching = versions.filter((version) => version.body.responseOwner.toLowerCase() === responseOwner && version.body.responseSlug === responseSlug);
     const current = currentOf(matching, series);
     const response = responses.find((item) => item.actor === responseOwner && item.slug === responseSlug);
-    const provider = response?.current?.body.providerAddress.toLowerCase();
     acceptances.push({
       actor: series.owner,
       responseOwner,
       responseSlug,
       versions: matching,
       current,
-      authorityMatchesProvider: provider !== undefined && series.owner === provider
-        && current?.body.responseVersionCid === response?.current?.cid,
+      authorityMatchesProvider: providerAuthorityMatches(
+        series.owner,
+        response,
+        current?.body.responseVersionCid,
+        authorities,
+      ),
     });
   }
 
@@ -324,6 +434,7 @@ export function assembleWorkRequestBoard(input: {
     decisions,
     contributionLinks,
     backing: allocateBacking({ offers, notes: input.notes, settlementTokens: input.settlementTokens, nowMs: input.nowMs, chainId: input.chainId }),
+    paymentEvidence: [...(input.paymentEvidence ?? [])],
   };
 }
 
@@ -339,7 +450,17 @@ export function totalsForRequest(board: WorkRequestBoard, request: RequestRecord
     const key = `${chainId}:${token.toLowerCase()}`;
     const existing = buckets.get(key);
     if (existing) return existing;
-    const created: CurrencyTotals = { token: token.toLowerCase(), chainId, unfundedIntention: 0n, verifiedBacking: 0n, approved: 0n, contributed: 0n, refunded: 0n };
+    const created: CurrencyTotals = {
+      token: token.toLowerCase(),
+      chainId,
+      unfundedIntention: 0n,
+      verifiedBacking: 0n,
+      approved: 0n,
+      contributed: 0n,
+      refunded: 0n,
+      verifiedContributed: 0n,
+      verifiedRefunded: 0n,
+    };
     buckets.set(key, created);
     return created;
   };
@@ -392,8 +513,11 @@ export function totalsForRequest(board: WorkRequestBoard, request: RequestRecord
     if (seen.has(txKey)) continue;
     seen.add(txKey);
     const bucket = bucketFor(current.body.token, current.body.chainId);
-    if (current.body.refundTxHash) bucket.refunded += BigInt(current.body.amount);
-    else bucket.contributed += BigInt(current.body.amount);
+    const amount = BigInt(current.body.amount);
+    if (current.body.refundTxHash) bucket.refunded += amount;
+    else bucket.contributed += amount;
+    if (paymentMatches(board.paymentEvidence, current.body, 'contribution')) bucket.verifiedContributed += amount;
+    if (current.body.refundTxHash && paymentMatches(board.paymentEvidence, current.body, 'refund')) bucket.verifiedRefunded += amount;
   }
 
   return [...buckets.values()];

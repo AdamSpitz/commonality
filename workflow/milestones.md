@@ -44,6 +44,6 @@ Leftover: v2 step 14 (funding beyond the fixed purchase unit) is paused at 392/1
 - 2-of-3 Safe for the contract-admin role, and the governance work it unblocks ([security-recoverability.md](./security-recoverability.md)).
 - Scoped-down external tokens (Cloudflare, Render, Pinata) and an OpenRouter spend limit ([inbox.md](../inbox.md)).
 - Beat-memory compliance with X's restricted-use rules, if beat agents ship ([TODO.md](../TODO.md)).
-- Verify work-request contribution/refund links against chain events before showing them as verified ([TODO.md](../TODO.md)).
+- Done: work-request contribution/refund links and provider acceptance are checked against chain events and project authority before they are shown as verified.
 - Decide when to do the Hardhat 2→3 migration, as a standalone project rather than a dependency bump.
 - Archive-RPC availability risk from pointers-only storage ([inbox.md](../inbox.md), storage/chain follow-ons).
