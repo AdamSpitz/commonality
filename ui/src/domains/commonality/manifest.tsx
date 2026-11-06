@@ -23,7 +23,11 @@ const routes: ReactNode = (
     <Route path="/bridge/:owner/:slugPart" element={lazyRoute(() => import('../../commonality/pages/BridgeClusterPage'), 'BridgeClusterPage')} />
     <Route path="/bridge/:draftId" element={lazyRoute(() => import('../../commonality/pages/BridgeClusterPage'), 'BridgeClusterPage')} />
     <Route path="/causes" element={lazyRoute(() => import('../../commonality/pages/CausesPage'), 'CausesPage')} />
+    <Route path="/mediator/:address" element={lazyRoute(() => import('../../commonality/pages/MediatorPage'), 'MediatorPage')} />
     <Route path="/work" element={lazyRoute(() => import('../../commonality/pages/WorkPage'), 'WorkPage')} />
+    <Route path="/work/requests" element={lazyRoute(() => import('../../commonality/pages/WorkRequestsPage'), 'WorkRequestsPage')} />
+    <Route path="/work/requests/new" element={lazyRoute(() => import('../../commonality/pages/NewWorkRequestPage'), 'NewWorkRequestPage')} />
+    <Route path="/work/requests/:author/:slug" element={lazyRoute(() => import('../../commonality/pages/WorkRequestDetailPage'), 'WorkRequestDetailPage')} />
     <Route path="/statements" element={lazyRoute(() => import('../../commonality/pages/StatementsPage'), 'StatementsPage')} />
     <Route path="/delegation" element={<Navigate to="/delegation/notes" replace />} />
     <Route path="/delegation/notes" element={lazyRoute(() => import('../../delegation/pages/MyNotesPage'), 'MyNotesPage')} />
@@ -61,6 +65,8 @@ const routes: ReactNode = (
     <Route path="/content/:platform/:channelId/new" element={lazyRoute(() => import('../content-funding/ContentPages'), 'ContentFundingCreateContractPage')} />
     <Route path="/content/:platform/:channelId/prospective/:roundAddress/materialize" element={lazyRoute(() => import('../content-funding/ContentPages'), 'ContentFundingMaterializeFutureContentPage')} />
     <Route path="/explore" element={lazyRoute(() => import('../content-funding/ContentPages'), 'ContentFundingExploreKindsPage')} />
+    <Route path="/explore/:propertyId/fund" element={lazyRoute(() => import('../content-funding/ContentPages'), 'ContentFundingFundPropertyPage')} />
+    <Route path="/explore/:propertyId" element={lazyRoute(() => import('../content-funding/ContentPages'), 'ContentFundingPropertyBoardPage')} />
     <Route path="/founders" element={<CommonalityFounderPage />} />
     <Route path="/for-organizations" element={<CommonalityForOrganizationsPage />} />
     <Route path="/docs" element={lazyRoute(() => import('../../commonality/pages/DocsPage'), 'DocsPage')} />
@@ -69,6 +75,7 @@ const routes: ReactNode = (
     <Route path="/settings" element={lazyRoute(() => import('../../commonality/pages/SettingsPage'), 'SettingsPage')} />
     <Route path="/admin/test-data" element={lazyRoute(() => import('../../commonality/pages/TestDataAdminPage'), 'TestDataAdminPage')} />
     <Route path="/admin/test-data/:runId" element={lazyRoute(() => import('../../commonality/pages/TestDataRunPage'), 'TestDataRunPage')} />
+    <Route path="/admin/test-data/:runId/areas/:areaId" element={lazyRoute(() => import('../../commonality/pages/TestDataAreaPage'), 'TestDataAreaPage')} />
   </>
 )
 

@@ -92,6 +92,10 @@
       "types": "./dist/src/subsystems/published-data/index.d.ts",
       "default": "./dist/src/subsystems/published-data/index.js"
     },
+    "./suggested-names": {
+      "types": "./dist/src/subsystems/suggested-names/index.d.ts",
+      "default": "./dist/src/subsystems/suggested-names/index.js"
+    },
     "./signer-profiles": {
       "types": "./dist/src/subsystems/signer-profiles/index.d.ts",
       "default": "./dist/src/subsystems/signer-profiles/index.js"
@@ -99,6 +103,10 @@
     "./subjectiv": {
       "types": "./dist/src/subsystems/subjectiv/index.d.ts",
       "default": "./dist/src/subsystems/subjectiv/index.js"
+    },
+    "./work-requests": {
+      "types": "./dist/src/subsystems/work-requests/index.d.ts",
+      "default": "./dist/src/subsystems/work-requests/index.js"
     }
   },
   "dependencies": {
@@ -118,7 +126,8 @@
     "check-abis": "tsx scripts/sync-abis.ts --check",
     "docs": "typedoc",
     "policy-lists:resolve": "tsx scripts/policy-lists-resolve.ts",
-    "policy-lists:inspect": "tsx scripts/policy-lists-inspect.ts"
+    "policy-lists:inspect": "tsx scripts/policy-lists-inspect.ts",
+    "bench:cold-load": "tsx scripts/bench-cold-load.ts"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",

@@ -1,5 +1,8 @@
 import assert from 'assert';
-import { foldDonationActivityByRoot } from './queries.js';
+import { encodeAbiParameters, encodeEventTopics } from 'viem';
+import { DelegatableNotesAbi } from '../../../abis/DelegatableNotesAbi.js';
+import type { SDKMachinery } from '../../machinery.js';
+import { foldDonationActivityByRoot, getDonationActivityByRoot } from './queries.js';
 import type { DelegationEvent } from './folds.js';
 import type { NoteIntentAttestedEvent } from './events.js';
 import type { Project } from '../lazy-giving/types.js';
@@ -43,6 +46,45 @@ function purchaseEvents(): DelegationEvent[] {
 }
 
 describe('foldDonationActivityByRoot', () => {
+  it('loads delegated purchase receipt history for a root-scoped query', async () => {
+    const originalFetch = globalThis.fetch;
+    const events = purchaseEvents().map(({ event, type }) => {
+      const eventName = type[0]!.toUpperCase() + type.slice(1);
+      const name = type === 'erc1155Purchased' ? 'ERC1155Purchased' : eventName;
+      const abi = DelegatableNotesAbi.find(item => item.type === 'event' && item.name === name)!;
+      const args = event as unknown as Record<string, unknown>;
+      const inputs = 'inputs' in abi ? abi.inputs : [];
+      const topics = encodeEventTopics({ abi: [abi], eventName: name, args } as never);
+      const nonIndexed = inputs.filter(input => !('indexed' in input && input.indexed));
+      return {
+        ...event, blockNumber: event.blockNumber.toString(), blockTimestamp: event.blockTimestamp.toString(),
+        eventName: name, id: `${event.blockNumber}:${event.logIndex}`,
+        topic0: topics[0], topic1: topics[1], topic2: topics[2], topic3: topics[3],
+        data: encodeAbiParameters(nonIndexed as never, nonIndexed.map(input => args[input.name]) as never),
+      };
+    });
+    globalThis.fetch = (async input => {
+      const url = new URL(String(input));
+      if (url.pathname.includes('event-segments')) return new Response('', { status: 404 });
+      const items = events.filter(event => {
+        if (event.eventName !== url.searchParams.get('eventName')) return false;
+        return ['topic1', 'topic2', 'topic3'].every(topic => {
+          const expected = url.searchParams.get(topic);
+          const list = url.searchParams.get(`${topic}_in`);
+          const actual = (event as unknown as Record<string, unknown>)[topic];
+          return (!expected || actual === expected) && (!list || list.split(',').includes(String(actual)));
+        });
+      });
+      return new Response(JSON.stringify({ items }, (_, value) => typeof value === 'bigint' ? value.toString() : value));
+    }) as typeof fetch;
+    try {
+      const result = await getDonationActivityByRoot({ eventCacheUrl: 'http://donation.test' } as SDKMachinery, ROOT);
+      assert.equal(result.length, 1);
+      assert.deepEqual(result[0]!.receiptNoteIds, ['2']);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
   it('attributes a delegated purchase to its root donor and joins its project and intent', () => {
     const intent: NoteIntentAttestedEvent = {
       ...raw(2n, 1),

@@ -27,9 +27,9 @@ import {
 } from '@commonality/sdk/fundingportals'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import {
+  AccountAddress,
   useMachinery,
   useTrustedSet,
-  truncateAddress,
   TrustNetworkRefreshIndicator,
 } from '../../shared'
 import { DEFAULT_PAYMENT_CURRENCY, formatCurrencyAmount, formatCurrencyTotals, getConfiguredPaymentCurrency, MoneyText } from '../../shared/funding'
@@ -244,19 +244,10 @@ export function CauseLeaderboard({
               >
                 <TableCell>{i + 1}</TableCell>
                 <TableCell>
-                  <Tooltip title={entry.contributor} placement="top">
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        fontFamily: 'monospace',
-                        fontSize: '0.85rem',
-                        cursor: 'help',
-                      }}
-                    >
-                      {truncateAddress(entry.contributor)}
-                      {isUser && ' (you)'}
-                    </Typography>
-                  </Tooltip>
+                  <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
+                    <AccountAddress address={entry.contributor} />
+                    {isUser && ' (you)'}
+                  </Typography>
                 </TableCell>
                 <TableCell align="right">
                   <MoneyText text={formatCurrencyTotals(entry.totalContributed)} />
@@ -386,19 +377,10 @@ export function CauseLeaderboard({
                     >
                       <TableCell>{i + 1}</TableCell>
                       <TableCell>
-                        <Tooltip title={row.owner} placement="top">
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              fontFamily: 'monospace',
-                              fontSize: '0.85rem',
-                              cursor: 'help',
-                            }}
-                          >
-                            {truncateAddress(row.owner)}
-                            {isUser && ' (you)'}
-                          </Typography>
-                        </Tooltip>
+                        <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
+                          <AccountAddress address={row.owner} />
+                          {isUser && ' (you)'}
+                        </Typography>
                       </TableCell>
                       <TableCell align="right">
                         <MoneyText text={`${formatCurrencyAmount(

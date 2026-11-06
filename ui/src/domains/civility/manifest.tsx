@@ -11,6 +11,10 @@ const routes: ReactNode = (
   <>
     <Route path="/" element={<NoninflammatoryLandingPage />} />
     <Route path="/content" element={lazyRoute(() => import('./ContentPages'), 'NoninflammatoryCreatorsPage')} />
+    <Route path="/explore" element={lazyRoute(() => import('../content-funding/ContentPages'), 'ContentFundingExploreKindsPage')} />
+    <Route path="/explore/:propertyId/fund" element={lazyRoute(() => import('../content-funding/ContentPages'), 'ContentFundingFundPropertyPage')} />
+    <Route path="/explore/:propertyId" element={lazyRoute(() => import('../content-funding/ContentPages'), 'ContentFundingPropertyBoardPage')} />
+    <Route path="/fund" element={lazyRoute(() => import('./ContentPages'), 'NoninflammatoryFundPropertyPage')} />
     <Route path="/filters" element={lazyRoute(() => import('./ContentPages'), 'NoninflammatoryFiltersPage')} />
     <Route path="/popular-statements" element={lazyRoute(() => import('./ContentPages'), 'NoninflammatoryPopularStatementsPage')} />
     <Route path="/nominate" element={lazyRoute(() => import('./ContentPages'), 'NoninflammatoryNominatePage')} />
@@ -33,6 +37,8 @@ export const civilityManifest: DomainManifest = {
   },
   shell: {
     primaryNavigation: [
+      { label: 'Attested posts', path: '/explore/civility' },
+      { label: 'Fund the property', path: '/fund' },
       { label: 'Browse Content', path: '/content' },
       { label: 'Creator Dashboard', path: '/content/dashboard' },
       { label: 'Docs', path: '/docs' },

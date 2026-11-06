@@ -17,6 +17,22 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ## Main list
 
+- **Tell Report:** Base Sepolia content check for the raw-CID change. 246 of 254 chain digests already resolve through PublishedData calldata. Four well-known documents that did not (CSM mission, project-alignment topic, roster coherence claim and topic) were published as raw bytes by lab wallet `0x60ec8A30…` in tx `0xeb9dc6437805ef0cb053f5bbfa53dfa4417ad710c3e94fc29ec82fcdd4ccb5c3`. They will read once the indexer sees that tx. Four other digests have no recoverable bytes (one implication pair and two alignment statement ids). Public IPFS did not have either codec. Mainnet was not touched.
+
+- **Tell Report:** Testnet ops pager is in (`scripts/testnet-ops-pager.mjs`, every 15 minutes once this is on the default branch). It comments on an `ops-pager` issue only when a probe flips. Subscribe to repo issue notifications if you want the mail. `RENDER_API_KEY` is now a GitHub secret. Those three workers are not suspended now (checked the Render API). Optional later: set secret `OPS_PAGER_NTFY_TOPIC` if you also want ntfy.
+
+- **Tell Report:** Cold-start step 5 is done. The project registry and statement browse run in a Web Worker. Smaller global folds stay on the calling thread. The step 2 bench still describes request counts.
+
+- **Tell Report:** Cold-start step 4 is done. Global folds resume from a stored accumulator (`runResumableFold`). A reorg in the unfinalized tail is not saved. The local chain is shorter than the finality lag, so the step 2 bench still describes repeat-visit bytes. Workers are step 5.
+
+- **Tell Report:** Cold-start step 3 is done. Finalized history for one event name can be served as immutable segments (`GET /api/event-segments/...`), and global SDK fetches verify the hash and then download only the tail. The local chain is too short for a segment, so the step 2 bench still describes that stack. Resumable folds are step 4.
+
+- **Tell Report:** Cold-start step 2 is done. My Notes, a single note, notes by owner or root, and a note's intents no longer download every note. Purchase, refund, and reimbursement events are still downloaded whole, because those note ids are not indexed. Statement browse, implications, content funding, standing pledges, and the project registry stay global for later steps. The first bench is in the fold-performance plan: on the existing local chain, `getAllProjects` was 223 requests and 401 ms for 55 projects. Testnet `NoteIntent` still needs a redeploy (already on `TODO.md`).
+
+- **Tell Report:** Structured fundable work is implemented. Ordinary projects and content contracts reserve work ids in `ContentRegistry` (`specs/tech/subsystems/work-items.md`). Creation still works with no ids. The project page lists current items; failed-attempt history is the registry events, not a separate timeline yet. Sequence attestations and domain templates were not built. Testnet needs a redeploy of `ContentRegistry`, `ProjectFactory`, and `CreatorAssuranceContractFactory` before this bytecode is live there.
+
+- **Tell Report:** Civility and content-funding boards. `/explore` lists configured properties (Civility's noninflammatory check only). `/explore/civility` lists registry posts a trusted attester marked with the baked topic statement, capped at 40, with hide, one-channel, and followed-channel scopes. Posts never registered cannot appear, because the attestation stores a hash. `/fund` sends a pledge to the Aligning portal for that statement and a delegation deposit with the statement preselected. No new payment contract.
+
 - Think through the further delegation-narrowing ideas in [delegation-narrowing.md](specs/product/legal/delegation-narrowing.md). The three TODO.md items (one hop, one voice, optional delay) are the baseline. Still open: risk tiers based on vouches for payout addresses rather than "new project" or "address has been paid before"; signed spend rules; refunds and reimbursement returning to the donor; expiring authority; an optional watcher who can cancel but not spend; and whether the delegate should ever hold a balance. Not legal advice, and not a decision yet.
 
 ### Security/recoverability human actions
@@ -30,6 +46,10 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 - Decide whether to act on the fresh landing-copy positioning findings. The Civility grievance-first hero was reviewed and is fine; the verifier rubric was corrected so CSM’s recognition-register rule is not imposed on every vertical. Remaining findings: CSM front-loads the mediator toggle and uses “the other side’s bullshit,” Aligning repeats its main tradeoff several times, and Tally’s “Sign once, counted forever” headline presents a future goal as current capability. The umbrella Commonality landing that recruited generic end users was removed in the CauseStarter→Commonality cutover; [`specs/product/ui-domains.md`](specs/product/ui-domains.md) still describes that old site — rewrite is in [`TODO.md`](TODO.md).
 
 ### Features that I'm realizing would make a big difference
+
+- Rethink the gas-sponsorship thingy we used. Privy is removed in code (ADR 0021). Remaining: redeploy v0.6 tank faces to Base Sepolia; confirm Onramp + the same Base Account on a vertical. [wallet-without-privy-plan.md](./specs/tech/wallet-without-privy-plan.md).
+
+- Maybe try making this "statement putter-togetherer" as a more-general UI widget on the Commonality site?
 
 - Fund-now / claim-later is now the [focus](focus.md) (replaced testnet-usable + Commonality UI). Product [fund-now-claim-later.md](specs/product/fund-now-claim-later.md), tech [claimable-beneficiaries.md](specs/tech/subsystems/claimable-beneficiaries.md).
 
@@ -83,6 +103,8 @@ Standing index: [`workflow/testnet-working-plan.md`](workflow/testnet-working-pl
 - What's the difference between seed data and example data for testing? I think I may have been using the seed data mechanism for test data, which is probably not what I want.
 
 - Ultimately we want vertical founders to host their own vertical-specific services like mediators, but can we have a middle ground where we can run it for them on our infrastructure (modulo blocklist concerns) until/unless they decide to host it themselves?
+
+- Go to various groups, ask them "does this actually look useful to you? what would the real version look like?" etc. Try to model that group's actual world, not just vague/fake stuff. Point is, this is important: making that connection with real-world groups doing real stuff would be a big jump from "here's this theoretical machinery for doing public goods better."
 
 - How to eliminate Commonality’s reliance on browser `localStorage` for cause drafts / founder progress (`ui/src/commonality/lib/causeStore.ts`). Today drafts are origin-scoped (so Vite `:5174` vs Docker `:8090` don’t share them) and vanish across devices/clears. Worth thinking through durable alternatives (on-chain draft, IPFS + pointer, account-linked backend, etc.) without re-centralizing or making launch heavier.
 

@@ -3,7 +3,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { estimateGroupGas, groupCampaignWrites } from './campaignBatching.js';
-import { type CampaignActionType, type CampaignManifestV1, type CampaignRole, validateCampaignManifest } from './campaignSchema.js';
+import { type CampaignActionType, type CampaignImplicationEvidence, type CampaignManifestV1, type CampaignRole, validateCampaignManifest } from './campaignSchema.js';
 import { FAKE_DATA_NOTE, bridgeMediatorNote, causeBoardSummary, projectOutcome } from './campaignCopy.js';
 import { CAMPAIGN_PROJECT_STORIES, SPOTLIGHT_PROJECTS } from './campaignProjectStories.js';
 import { flattenSeedStatements, loadSeedCollections, validateSeedCollection, type SeedCollection } from './seed-content-format.js';
@@ -15,6 +15,8 @@ type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string
 export interface PlannedStatement {
   id: string;
   causeId: string;
+  /** Other boards that reuse this catalog statement. One publication, many boards. */
+  alsoOnCauseIds?: string[];
   source: { collectionId: string; groupId: string; statementId: string; fingerprint: string };
   text: string;
   role: string | null;
@@ -60,9 +62,11 @@ export interface PlannedAction {
   belief?: 'believe' | 'disbelieve';
   amount?: number;
   funding?: { kind: 'early' | 'retroactive'; tokenId?: 1 | 3; tokenCount?: number; camp?: 'left' | 'right' };
+  /** Payment-token notes can be spent. ETH notes stay at 1 wei and are not spent. */
+  noteAsset?: 'erc20';
   alignment?: 'supports-described-outcome';
   delegationBasis?: { sharedCauseIds: string[]; reason: 'shared-cause-trusted-role' };
-  implication?: { fromStatementId: string; toStatementId: string; evidence: 'accepted-bridge-role-pair' };
+  implication?: { fromStatementId: string; toStatementId: string; evidence: CampaignImplicationEvidence };
   /** Binding key when one cause publishes more than one board. Defaults to causeId. */
   boardId?: string;
   board?: PlannedCauseBoard;
@@ -115,9 +119,10 @@ export interface CampaignPlan {
 }
 
 const GAS_UNITS: Record<CampaignActionType, number> = {
-  'publish-statement': 180_000, 'create-cause': 120_000, 'create-bridge-board': 120_000, 'create-bridge': 120_000, 'set-belief': 90_000,
-  'attest-implication': 130_000, 'create-project': 1_100_000, 'attest-alignment': 130_000,
-  'fund-project': 180_000, 'deposit-note': 150_000, 'delegate-note': 100_000, 'revoke-delegation': 90_000,
+  'publish-statement': 4_000_000, 'create-cause': 120_000, 'create-bridge-board': 120_000, 'create-bridge': 120_000, 'set-belief': 120_000,
+  'attest-implication': 130_000, 'create-project': 4_500_000, 'attest-alignment': 130_000,
+  'fund-project': 400_000, 'deposit-note': 350_000, 'delegate-note': 100_000, 'revoke-delegation': 90_000,
+  'spend-delegated-note': 400_000,
 };
 
 function stableJson(value: unknown): string {
@@ -198,10 +203,20 @@ function chooseDistinctCauses(manifest: CampaignManifestV1, count: number, rando
   return chosen;
 }
 
-function validateImplicationPair(from: PlannedStatement, to: PlannedStatement): void {
+function validateImplicationPair(from: PlannedStatement, to: PlannedStatement, evidence: string): void {
   const sameGroup = from.source.collectionId === to.source.collectionId && from.source.groupId === to.source.groupId;
-  const approved = (from.role === 'modified-left' || from.role === 'modified-right') && to.role === 'commonality';
-  if (!sameGroup || !approved) throw new Error(`unsuitable implication ${from.id} -> ${to.id}: pair lacks accepted bridge-role evidence`);
+  const bridgeRoles = (from.role === 'modified-left' || from.role === 'modified-right') && to.role === 'commonality';
+  // A plain board can still publish a blessed modified that is not one of the five bridge roles.
+  const liveModified = evidence === 'live-attester-modified-to-commonality'
+    && to.role === 'commonality'
+    && (from.role === 'modified-left' || from.role === 'modified-right' || from.source.statementId.startsWith('modified-'));
+  // A same-group pair with no bridge role. The allowance exists only after a stored bless of the current text.
+  const recordedBless = evidence === 'live-attester-recorded-bless';
+  if (!sameGroup || (!bridgeRoles && !liveModified && !recordedBless)) throw new Error(`unsuitable implication ${from.id} -> ${to.id}: pair lacks accepted bridge-role evidence`);
+}
+
+function statementsOnCause(statements: PlannedStatement[], causeId: string): PlannedStatement[] {
+  return statements.filter((statement) => statement.causeId === causeId || statement.alsoOnCauseIds?.includes(causeId));
 }
 
 function usersForCause(users: PlannedUser[], causeId: string): PlannedUser[] {
@@ -210,11 +225,14 @@ function usersForCause(users: PlannedUser[], causeId: string): PlannedUser[] {
 
 function chooseCauseAttester(users: PlannedUser[], causeId: string, random: Xoshiro128StarStar): PlannedUser {
   const members = usersForCause(users, causeId);
-  return random.weighted(members, (user) => user.activityWeight * (user.roles.includes('attester') || user.roles.includes('mediator') ? 8 : 1));
+  const active = members.filter((user) => user.activityWeight > 0);
+  const pool = active.length > 0 ? active : members;
+  if (pool.length === 0) throw new Error(`no member to attest an implication on ${causeId}`);
+  return random.weighted(pool, (user) => Math.max(user.activityWeight, 1) * (user.roles.includes('attester') || user.roles.includes('mediator') ? 8 : 1));
 }
 
 function preferredStatements(user: PlannedUser, statements: PlannedStatement[]): PlannedStatement[] {
-  const inCauses = statements.filter((statement) => user.causeIds.includes(statement.causeId));
+  const inCauses = statements.filter((statement) => user.causeIds.some((causeId) => statement.causeId === causeId || statement.alsoOnCauseIds?.includes(causeId)));
   if (!user.roles.includes('mediator')) return inCauses.filter((statement) => !statement.role?.startsWith('natural-'));
   return inCauses.filter((statement) => statement.role === null || statement.role === 'commonality' || statement.role.startsWith('modified-'));
 }
@@ -235,6 +253,44 @@ function projectCopy(causeTitle: string, selected: PlannedStatement[]): { title:
   };
 }
 
+async function loadCampaignStories(manifest: CampaignManifestV1): Promise<Record<string, { title: string; outcome: string; statementRefs: string[]; blocker: string }[]> | null> {
+  if (!manifest.projectStories) return null;
+  const sourcePath = path.join(path.dirname(fileURLToPath(import.meta.url)), 'campaigns', manifest.projectStories);
+  return JSON.parse(await readFile(sourcePath, 'utf8')) as Record<string, { title: string; outcome: string; statementRefs: string[]; blocker: string }[]>;
+}
+
+interface BeliefDecisionPerson {
+  userId: string;
+  name?: string;
+  signs?: string[];
+  rejects?: string[];
+  unsigned?: string[];
+  funds?: string[] | string;
+}
+
+async function loadBeliefDecisions(manifest: CampaignManifestV1): Promise<BeliefDecisionPerson[]> {
+  if (!manifest.beliefDecisions) return [];
+  const sourcePath = path.join(path.dirname(fileURLToPath(import.meta.url)), 'campaigns', manifest.beliefDecisions);
+  const parsed = JSON.parse(await readFile(sourcePath, 'utf8')) as { people?: BeliefDecisionPerson[] };
+  return parsed.people ?? [];
+}
+
+function causeForSigner(user: PlannedUser, statement: PlannedStatement): string {
+  if (user.causeIds.includes(statement.causeId)) return statement.causeId;
+  const also = user.causeIds.find((causeId) => statement.alsoOnCauseIds?.includes(causeId));
+  if (!also) throw new Error(`${user.id} is not on a board that lists ${statement.source.statementId}`);
+  return also;
+}
+
+function resolveDecisionStatement(user: PlannedUser, statements: PlannedStatement[], statementId: string): PlannedStatement {
+  const visible = statements.filter((statement) => user.causeIds.some((causeId) => statement.causeId === causeId || statement.alsoOnCauseIds?.includes(causeId)));
+  const matches = visible.filter((statement) => statement.source.statementId === statementId);
+  if (matches.length !== 1) {
+    throw new Error(`${user.displayName ?? user.id} decision ${statementId} matches ${matches.length} statements on their boards`);
+  }
+  return matches[0];
+}
+
 export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<CampaignPlan> {
   validateCampaignManifest(manifest);
   const random = new Xoshiro128StarStar(manifest.campaign.deterministicSeed);
@@ -248,11 +304,33 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
   }
   const records = flattenSeedStatements(collections);
   const recordByKey = new Map(records.map((record) => [statementKey({ collectionId: record.collection.id, groupId: record.group.id, statementId: record.statement.id }), record]));
-  const statements: PlannedStatement[] = manifest.causes.flatMap((cause) => cause.statementRefs.map((ref) => {
-    const record = recordByKey.get(statementKey(ref));
-    if (!record || manifest.sourcePolicy.excludeCollections.includes(ref.collectionId)) throw new Error(`missing or excluded statement reference ${statementKey(ref)}`);
-    return { id: `statement-${cause.id}-${ref.statementId}`, causeId: cause.id, source: { ...ref, fingerprint: sha256(stableJson(record.statement)) }, text: record.statement.text, role: record.statement.role ?? null };
-  }));
+  const statements: PlannedStatement[] = [];
+  const statementByKey = new Map<string, PlannedStatement>();
+  const allowReuse = manifest.scale?.allowRepeatedStatementRefs === true;
+  for (const cause of manifest.causes) {
+    for (const ref of cause.statementRefs) {
+      const key = statementKey(ref);
+      const existing = statementByKey.get(key);
+      if (existing) {
+        if (!allowReuse) throw new Error(`statement reference repeated without scale.allowRepeatedStatementRefs: ${key}`);
+        existing.alsoOnCauseIds = [...(existing.alsoOnCauseIds ?? []), cause.id];
+        continue;
+      }
+      const record = recordByKey.get(key);
+      if (!record || manifest.sourcePolicy.excludeCollections.includes(ref.collectionId)) throw new Error(`missing or excluded statement reference ${key}`);
+      const planned: PlannedStatement = {
+        id: allowReuse ? `statement-${ref.groupId}-${ref.statementId}` : `statement-${cause.id}-${ref.statementId}`,
+        causeId: cause.id,
+        source: { ...ref, fingerprint: sha256(stableJson(record.statement)) },
+        text: record.statement.text,
+        role: record.statement.role ?? null,
+      };
+      statementByKey.set(key, planned);
+      statements.push(planned);
+    }
+  }
+  const storyDriven = await loadCampaignStories(manifest);
+  const beliefDecisions = await loadBeliefDecisions(manifest);
 
   const users: PlannedUser[] = [];
   const profiles = new Map((manifest.userProfiles ?? []).map((profile) => [profile.userId, profile]));
@@ -276,26 +354,27 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
   if (projectFounders.length === 0 || attesters.length === 0 || delegates.length === 0) throw new Error('campaign lacks an active project founder, attester, or delegate');
 
   const useStories = manifest.campaign.id === 'medium-realistic-v2';
-  const scheduledStoryCauses = useStories
-    ? manifest.causes.flatMap((cause) => CAMPAIGN_PROJECT_STORIES[cause.id]?.map(() => cause.id) ?? [])
+  const projectStories = storyDriven ?? (useStories ? CAMPAIGN_PROJECT_STORIES : null);
+  const scheduledStoryCauses = projectStories
+    ? manifest.causes.flatMap((cause) => projectStories[cause.id]?.map(() => cause.id) ?? [])
     : [];
-  if (useStories && scheduledStoryCauses.length !== countByType['create-project']) {
-    throw new Error('v2 project target must match the curated story count');
+  if (projectStories && scheduledStoryCauses.length !== countByType['create-project']) {
+    throw new Error('project target must match the curated story count');
   }
   const storyCounts = new Map<string, number>();
   const projects: PlannedProject[] = Array.from({ length: countByType['create-project'] }, (_, index) => {
-    const scheduledCause = useStories ? scheduledStoryCauses[index] : undefined;
+    const scheduledCause = projectStories ? scheduledStoryCauses[index] : undefined;
     const eligibleFounders = scheduledCause ? projectFounders.filter((user) => user.causeIds.includes(scheduledCause)) : projectFounders;
-    const featuredFounders = useStories && scheduledCause
+    const featuredFounders = projectStories && scheduledCause
       ? eligibleFounders.filter((user) => user.favoriteCauseId === scheduledCause)
       : [];
     const founder = random.pick(featuredFounders.length ? featuredFounders : eligibleFounders.length ? eligibleFounders : projectFounders);
     const causeId = scheduledCause ?? random.pick(founder.causeIds);
-    const candidates = statements.filter((statement) => statement.causeId === causeId);
+    const candidates = statementsOnCause(statements, causeId);
     const storyIndex = storyCounts.get(causeId) ?? 0;
     storyCounts.set(causeId, storyIndex + 1);
-    const story = useStories ? CAMPAIGN_PROJECT_STORIES[causeId]?.[storyIndex % CAMPAIGN_PROJECT_STORIES[causeId].length] : undefined;
-    if (useStories && !story) throw new Error(`missing project story for ${causeId}`);
+    const story = projectStories ? projectStories[causeId]?.[storyIndex % projectStories[causeId].length] : undefined;
+    if (projectStories && !story) throw new Error(`missing project story for ${causeId}`);
     const selected = story
       ? story.statementRefs.map((ref) => {
         const match = candidates.find((statement) => statement.source.statementId === ref);
@@ -317,19 +396,21 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
   const causeFounders = activeUsers.filter((user) => user.roles.includes('cause-founder') || user.roles.includes('power-user'));
   const causes = new Map<string, PlannedAction>();
   for (const cause of manifest.causes) {
-    const group = statements.filter((statement) => statement.causeId === cause.id);
+    const group = statementsOnCause(statements, cause.id);
     const bridgeShaped = isBridgeCause(group);
     const byRole = new Map(group.map((statement) => [statement.role, statement]));
-    const interestedFounders = useStories ? causeFounders.filter((user) => user.favoriteCauseId === cause.id) : [];
+    const interestedFounders = projectStories ? causeFounders.filter((user) => user.favoriteCauseId === cause.id) : [];
     const actor = bridgeShaped ? random.pick(mediators) : random.pick(interestedFounders.length ? interestedFounders : causeFounders);
-    const included = bridgeShaped ? [byRole.get('commonality')!] : group;
+    // Role-less planks sit beside the shared sentence. Side boards stay one sentence each.
+    const bridgePlanks = bridgeShaped ? [byRole.get('commonality')!, ...group.filter((statement) => statement.role === null)] : [];
+    const included = bridgeShaped ? bridgePlanks : group;
     const clusterSlug = bridgeShaped ? boardSlug(manifest.campaign.id, cause.id, 'cluster') : undefined;
     const commonalityBoard: PlannedCauseBoard | undefined = bridgeShaped ? {
       role: 'commonality',
       slug: boardSlug(manifest.campaign.id, cause.id, 'bridge'),
-      title: `${cause.title} — common ground`,
+      title: cause.title,
       summary: causeBoardSummary(cause.title, 'commonality'),
-      statementIds: [byRole.get('commonality')!.id],
+      statementIds: bridgePlanks.map((statement) => statement.id),
       clusterSlug,
     } : undefined;
     const plainBoard: PlannedCauseBoard | undefined = bridgeShaped ? undefined : {
@@ -361,7 +442,7 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
       const board: PlannedCauseBoard = {
         role: side.role,
         slug: boardSlug(manifest.campaign.id, cause.id, side.suffix),
-        title: `${cause.title} — ${side.role}`,
+        title: cause.title,
         summary: causeBoardSummary(cause.title, side.role),
         statementIds: [byRole.get(side.role)!.id],
         clusterSlug,
@@ -387,7 +468,7 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
       bridge: {
         slug: clusterSlug!,
         mediatorName: 'Synthetic campaign mediator',
-        mediatorNote: bridgeMediatorNote(cause.title),
+        mediatorNote: bridgeMediatorNote(cause.title, cause.id),
         boardIds: {
           naturalLeft: `${cause.id}:natural-left`,
           naturalRight: `${cause.id}:natural-right`,
@@ -401,23 +482,82 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
   }
 
   const latestBelief = new Map<string, PlannedAction>();
-  for (let index = 0; index < countByType['set-belief']; index++) {
-    const actor = random.weighted(activeUsers, (user) => user.activityWeight);
-    const previous = index > Math.floor(countByType['set-belief'] * 0.92) && latestBelief.size > 0 ? random.pick([...latestBelief.values()]) : undefined;
-    const statement = previous ? statements.find((item) => item.id === previous.statementId)! : random.pick(preferredStatements(actor, statements));
+  const pinnedBeliefs = new Set<string>();
+  const usersById = new Map(users.map((user) => [user.id, user]));
+  for (const person of beliefDecisions) {
+    const user = usersById.get(person.userId);
+    if (!user) throw new Error(`belief decision names unknown user ${person.userId}`);
+    const chosen = [
+      ...(person.signs ?? []).map((statementId) => ({ statementId, belief: 'believe' as const })),
+      ...(person.rejects ?? []).map((statementId) => ({ statementId, belief: 'disbelieve' as const })),
+    ];
+    for (const choice of chosen) {
+      const statement = resolveDecisionStatement(user, statements, choice.statementId);
+      const key = `${user.id}/${statement.id}`;
+      if (pinnedBeliefs.has(key)) throw new Error(`${user.id} pins ${choice.statementId} more than once`);
+      const causeId = causeForSigner(user, statement);
+      const action = add({ type: 'set-belief', actorUserId: user.id, causeId, statementId: statement.id, belief: choice.belief, dependsOn: [publishes.get(statement.id)!.id] });
+      pinnedBeliefs.add(key);
+      latestBelief.set(key, action);
+    }
+  }
+  const reservedBeliefs = new Set(pinnedBeliefs);
+  for (const person of beliefDecisions) {
+    const user = usersById.get(person.userId);
+    if (!user) continue;
+    for (const statementId of person.unsigned ?? []) {
+      const visible = statements.filter((statement) => user.causeIds.some((causeId) => statement.causeId === causeId || statement.alsoOnCauseIds?.includes(causeId)));
+      const matches = visible.filter((statement) => statement.source.statementId === statementId);
+      if (matches.length !== 1) continue;
+      const key = `${user.id}/${matches[0].id}`;
+      if (pinnedBeliefs.has(key)) throw new Error(`${user.id} pins ${statementId} and also leaves it unsigned`);
+      reservedBeliefs.add(key);
+    }
+  }
+  if (pinnedBeliefs.size > countByType['set-belief']) {
+    throw new Error(`belief decisions pin ${pinnedBeliefs.size} writes, above the set-belief target ${countByType['set-belief']}`);
+  }
+  const randomBeliefCount = countByType['set-belief'] - pinnedBeliefs.size;
+  for (let index = 0; index < randomBeliefCount; index++) {
+    const flipPool = [...latestBelief.values()].filter((action) => !reservedBeliefs.has(`${action.actorUserId}/${action.statementId}`));
+    const previous = index > Math.floor(randomBeliefCount * 0.92) && flipPool.length > 0 ? random.pick(flipPool) : undefined;
+    let actor = previous ? usersById.get(previous.actorUserId!)! : random.weighted(activeUsers, (user) => user.activityWeight);
+    let openStatements = preferredStatements(actor, statements).filter((statement) => !reservedBeliefs.has(`${actor.id}/${statement.id}`));
+    if (!previous && openStatements.length === 0) {
+      const eligible = activeUsers.filter((user) => preferredStatements(user, statements).some((statement) => !reservedBeliefs.has(`${user.id}/${statement.id}`)));
+      if (eligible.length === 0) throw new Error('no user has an unpinned statement to sign');
+      actor = random.weighted(eligible, (user) => user.activityWeight);
+      openStatements = preferredStatements(actor, statements).filter((statement) => !reservedBeliefs.has(`${actor.id}/${statement.id}`));
+    }
+    const statement = previous ? statements.find((item) => item.id === previous.statementId)! : random.pick(openStatements);
+    const beliefActor = users.find((user) => user.id === (previous?.actorUserId ?? actor.id))!;
+    const causeId = beliefActor.causeIds.includes(statement.causeId)
+      ? statement.causeId
+      : beliefActor.causeIds.find((id) => statement.alsoOnCauseIds?.includes(id));
+    if (!causeId) throw new Error(`no board for ${beliefActor.id} to sign ${statement.id}`);
     const belief = previous ? (previous.belief === 'believe' ? 'disbelieve' : 'believe') : (random.next() < 0.94 ? 'believe' : 'disbelieve');
-    const action = add({ type: 'set-belief', actorUserId: previous?.actorUserId ?? actor.id, causeId: statement.causeId, statementId: statement.id, belief, dependsOn: previous ? [publishes.get(statement.id)!.id, previous.id] : [publishes.get(statement.id)!.id] });
+    const action = add({ type: 'set-belief', actorUserId: beliefActor.id, causeId, statementId: statement.id, belief, dependsOn: previous ? [publishes.get(statement.id)!.id, previous.id] : [publishes.get(statement.id)!.id] });
     latestBelief.set(`${action.actorUserId}/${statement.id}`, action);
   }
-  const implicationPairs = manifest.causes.flatMap((cause) => {
-    const groupStatements = statements.filter((statement) => statement.causeId === cause.id);
-    const commonality = groupStatements.find((statement) => statement.role === 'commonality');
-    return commonality ? groupStatements.filter((statement) => statement.role === 'modified-left' || statement.role === 'modified-right').map((from) => ({ from, to: commonality })) : [];
-  });
+  const implicationPairs = manifest.implicationAllowances
+    ? manifest.implicationAllowances.map((allowance) => {
+      const from = statementByKey.get(statementKey(allowance.from));
+      const to = statementByKey.get(statementKey(allowance.to));
+      if (!from || !to) throw new Error(`implication allowance is not on a board: ${statementKey(allowance.from)} -> ${statementKey(allowance.to)}`);
+      return { from, to, evidence: allowance.evidence };
+    })
+    : manifest.causes.flatMap((cause) => {
+      const groupStatements = statementsOnCause(statements, cause.id);
+      const commonality = groupStatements.find((statement) => statement.role === 'commonality');
+      return commonality ? groupStatements.filter((statement) => statement.role === 'modified-left' || statement.role === 'modified-right').map((from) => ({ from, to: commonality, evidence: 'accepted-bridge-role-pair' as const })) : [];
+    });
   if (countByType['attest-implication'] > 0 && implicationPairs.length === 0) throw new Error('no suitable accepted implication pairs are available');
+  if (manifest.implicationAllowances && countByType['attest-implication'] > implicationPairs.length) {
+    throw new Error(`attest-implication target ${countByType['attest-implication']} exceeds ${implicationPairs.length} allowed pairs`);
+  }
   for (let index = 0; index < countByType['attest-implication']; index++) {
-    const pair = implicationPairs[index % implicationPairs.length]; validateImplicationPair(pair.from, pair.to);
-    add({ type: 'attest-implication', actorUserId: chooseCauseAttester(activeUsers, pair.from.causeId, random).id, causeId: pair.from.causeId, implication: { fromStatementId: pair.from.id, toStatementId: pair.to.id, evidence: 'accepted-bridge-role-pair' }, dependsOn: [publishes.get(pair.from.id)!.id, publishes.get(pair.to.id)!.id] });
+    const pair = implicationPairs[index % implicationPairs.length]; validateImplicationPair(pair.from, pair.to, pair.evidence);
+    add({ type: 'attest-implication', actorUserId: chooseCauseAttester(users, pair.from.causeId, random).id, causeId: pair.from.causeId, implication: { fromStatementId: pair.from.id, toStatementId: pair.to.id, evidence: pair.evidence }, dependsOn: [publishes.get(pair.from.id)!.id, publishes.get(pair.to.id)!.id] });
   }
   const createProjects = new Map(projects.map((project) => [project.id, add({ type: 'create-project', actorUserId: project.founderUserId, causeId: project.causeId, projectId: project.id, dependsOn: [causes.get(project.causeId)!.id] })]));
   const alignments: PlannedAction[] = [];
@@ -427,11 +567,11 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
   }
   const fundableCount = Math.max(1, Math.floor(projects.length * 0.8));
   const firstByCause = new Map<string, PlannedProject>();
-  if (useStories) for (const project of projects) {
+  if (projectStories) for (const project of projects) {
     if (!firstByCause.has(project.causeId)) firstByCause.set(project.causeId, project);
   }
   const firstProjects = [...firstByCause.values()];
-  const fundableProjects = useStories
+  const fundableProjects = projectStories
     ? [...firstProjects, ...projects.filter((project) => !firstProjects.includes(project))].slice(0, fundableCount)
     : projects.slice(0, fundableCount);
   const hobbyCauses = ['music-learning', 'car-repair', 'gluten-free-cooking', 'game-commons'];
@@ -448,31 +588,66 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
     return { user, project };
   })) : [];
   let pinnedPledgeCursor = 0;
+  const decisionPledges = beliefDecisions.flatMap((person) => (person.funds == null ? [] : Array.isArray(person.funds) ? person.funds : [person.funds]).map((title) => {
+    const user = usersById.get(person.userId);
+    if (!user || user.inactive) throw new Error(`fund decision names an inactive user ${person.userId}`);
+    if (user.fundingWeight <= 0) throw new Error(`fund decision user cannot fund: ${person.userId}`);
+    const project = projects.find((item) => item.title === title);
+    if (!project) throw new Error(`fund decision project not planned: ${title}`);
+    if (!user.causeIds.includes(project.causeId)) throw new Error(`${user.id} is not on the board for ${title}`);
+    return { user, project };
+  }));
+  let decisionPledgeCursor = 0;
   const campBeliefs = bridgeBackers.map((user, index) => {
     const camp = index === 0 ? 'left' : 'right';
     const statement = statements.find((item) => item.causeId === bridgeProject!.causeId && item.role === `natural-${camp}`)!;
     return add({ type: 'set-belief', actorUserId: user.id, causeId: bridgeProject!.causeId, statementId: statement.id, belief: 'believe', dependsOn: [publishes.get(statement.id)!.id] });
   });
+  const reimbursement = manifest.reimbursement;
+  const retroactiveCount = reimbursement?.retroactiveDonations ?? 0;
+  const earlyFundCount = countByType['fund-project'] - retroactiveCount;
+  if (reimbursement && (earlyFundCount < reimbursement.earlyPurchases || earlyFundCount < 1)) {
+    throw new Error('reimbursement purchases do not fit in the fund-project action count');
+  }
+  const reimbursementProject = reimbursement ? projects.find((project) => project.title === reimbursement.projectTitle) : undefined;
+  if (reimbursement && !reimbursementProject) throw new Error(`reimbursement project not planned: ${reimbursement.projectTitle}`);
+  const reimbursementBackers = reimbursementProject
+    ? activeUsers.filter((user) => user.causeIds.includes(reimbursementProject.causeId) && user.fundingWeight > 0 && user.id !== reimbursementProject.founderUserId)
+    : [];
+  if (reimbursement && reimbursementBackers.length < 2) throw new Error('reimbursement project needs two funders who are not the founder');
   const thresholdPurchases: PlannedAction[] = [];
-  for (let index = 0; index < countByType['fund-project']; index++) {
+  const reimbursementPurchases: PlannedAction[] = [];
+  for (let index = 0; index < earlyFundCount; index++) {
     const featuredCause = useStories ? hobbyCauses[index] : undefined;
     const bridgePurchase = Boolean(bridgeProject && index >= hobbyCauses.length && index < hobbyCauses.length + 20);
-    const pinnedPledge = !featuredCause && !bridgePurchase && pinnedPledgeCursor < pinnedPledges.length ? pinnedPledges[pinnedPledgeCursor++] : undefined;
-    const project = pinnedPledge ? pinnedPledge.project : bridgePurchase ? bridgeProject! : featuredCause ? firstByCause.get(featuredCause)! : random.weighted(fundableProjects, (item) => Math.max(1, fundableProjects.length - (useStories ? fundableProjects.indexOf(item) : projects.indexOf(item))));
+    const reimbursementPurchase = Boolean(reimbursementProject && !useStories && index < reimbursement!.earlyPurchases);
+    const openDecisionPledges = decisionPledges.filter((pledge) => pledge.project.title !== reimbursement?.projectTitle);
+    const decisionPledge = !featuredCause && !bridgePurchase && !reimbursementPurchase && decisionPledgeCursor < openDecisionPledges.length ? openDecisionPledges[decisionPledgeCursor++] : undefined;
+    const pinnedPledge = !featuredCause && !bridgePurchase && !reimbursementPurchase && !decisionPledge && pinnedPledgeCursor < pinnedPledges.length ? pinnedPledges[pinnedPledgeCursor++] : undefined;
+    const project = decisionPledge ? decisionPledge.project : pinnedPledge ? pinnedPledge.project : bridgePurchase ? bridgeProject! : reimbursementPurchase ? reimbursementProject! : featuredCause ? firstByCause.get(featuredCause)! : random.weighted(fundableProjects, (item) => Math.max(1, fundableProjects.length - (useStories ? fundableProjects.indexOf(item) : projects.indexOf(item))));
     const supporters = activeUsers.filter((user) => user.causeIds.includes(project.causeId) && user.fundingWeight > 0 && (!useStories || user.id !== project.founderUserId));
     const interestedSupporters = featuredCause ? supporters.filter((user) => user.favoriteCauseId === featuredCause && user.id !== project.founderUserId) : [];
-    const actor = pinnedPledge ? pinnedPledge.user : bridgePurchase ? bridgeBackers[(index - hobbyCauses.length) % 2] : random.weighted(interestedSupporters.length ? interestedSupporters : supporters, (user) => user.fundingWeight);
+    const actor = decisionPledge ? decisionPledge.user : pinnedPledge ? pinnedPledge.user : bridgePurchase ? bridgeBackers[(index - hobbyCauses.length) % 2] : reimbursementPurchase ? reimbursementBackers[index % 2] : random.weighted(interestedSupporters.length ? interestedSupporters : supporters, (user) => user.fundingWeight);
     const alignment = alignments.find((item) => item.projectId === project.id);
     if (!alignment) throw new Error(`impossible fund-project: ${project.id} has no alignment action`);
     const tokenId = bridgePurchase ? 1 : 3;
     const tokenCount = bridgePurchase ? 1 : Math.max(1, Math.min(10, Math.round(fundingAmount(actor, projects.indexOf(project), random) / 100)));
     const action = add({ type: 'fund-project', actorUserId: actor.id, causeId: project.causeId, projectId: project.id,
-      amount: useStories ? tokenCount * (tokenId === 1 ? 10 : 1) : fundingAmount(actor, projects.indexOf(project), random),
-      ...(useStories ? { funding: { kind: 'early' as const, tokenId: tokenId as 1 | 3, tokenCount, ...(bridgePurchase ? { camp: ((index - hobbyCauses.length) % 2 === 0 ? 'left' : 'right') as 'left' | 'right' } : {}) } } : {}),
+      amount: reimbursementPurchase ? 10 : useStories ? tokenCount * (tokenId === 1 ? 10 : 1) : fundingAmount(actor, projects.indexOf(project), random),
+      ...(useStories || reimbursementPurchase ? { funding: { kind: 'early' as const, tokenId: (reimbursementPurchase ? 1 : tokenId) as 1 | 3, tokenCount: reimbursementPurchase ? 1 : tokenCount, ...(bridgePurchase ? { camp: ((index - hobbyCauses.length) % 2 === 0 ? 'left' : 'right') as 'left' | 'right' } : {}) } } : {}),
       dependsOn: [createProjects.get(project.id)!.id, alignment.id, ...(bridgePurchase ? [campBeliefs[(index - hobbyCauses.length) % 2].id] : [])] });
     if (bridgePurchase) thresholdPurchases.push(action);
+    if (reimbursementPurchase) reimbursementPurchases.push(action);
+  }
+  if (decisionPledgeCursor !== decisionPledges.filter((pledge) => pledge.project.title !== reimbursement?.projectTitle).length) {
+    throw new Error('persona fund decisions were not all planned');
   }
   if (pinnedPledgeCursor !== pinnedPledges.length) throw new Error('v2 spotlight profiles did not each pledge on every joined cause');
+  if (reimbursement && reimbursementProject) for (let index = 0; index < reimbursement.retroactiveDonations; index++) {
+    add({ type: 'fund-project', actorUserId: reimbursementBackers[index % 2].id, causeId: reimbursementProject.causeId, projectId: reimbursementProject.id,
+      amount: 25, funding: { kind: 'retroactive' },
+      dependsOn: [createProjects.get(reimbursementProject.id)!.id, alignments.find((item) => item.projectId === reimbursementProject.id)!.id, ...reimbursementPurchases.map((purchase) => purchase.id)] });
+  }
   if (bridgeProject) for (let index = 0; index < 4; index++) {
     add({ type: 'fund-project', actorUserId: bridgeBackers[index % 2].id, causeId: bridgeProject.causeId, projectId: bridgeProject.id,
       amount: 25, funding: { kind: 'retroactive', camp: index % 2 === 0 ? 'left' : 'right' },
@@ -496,7 +671,44 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
     const sharedCauseIds = delegate.causeIds.filter((causeId) => owner.causeIds.includes(causeId)).sort();
     delegations.push(add({ type: 'delegate-note', actorUserId: owner.id, noteId: deposit.noteId, delegateUserId: delegate.id, amount: deposit.amount, delegationBasis: { sharedCauseIds, reason: 'shared-cause-trusted-role' }, dependsOn: [deposit.id] }));
   }
-  for (let index = 0; index < countByType['revoke-delegation']; index++) { const delegation = delegations[index % delegations.length]; add({ type: 'revoke-delegation', actorUserId: delegation.actorUserId, noteId: delegation.noteId, dependsOn: [delegation.id] }); }
+  const spend = manifest.delegatedSpend;
+  if (spend) {
+    const owner = users.find((user) => user.id === spend.ownerUserId);
+    const delegate = delegates.find((user) => user.id === spend.delegateUserId);
+    const project = projects.find((item) => item.title === spend.projectTitle);
+    if (!owner || owner.inactive) throw new Error(`delegatedSpend owner is not an active user: ${spend.ownerUserId}`);
+    if (!delegate) throw new Error(`delegatedSpend delegate is not an active delegate: ${spend.delegateUserId}`);
+    if (!project) throw new Error(`delegatedSpend project not planned: ${spend.projectTitle}`);
+    const sharedCauseIds = delegate.causeIds.filter((causeId) => owner.causeIds.includes(causeId)).sort();
+    if (sharedCauseIds.length === 0) throw new Error('delegatedSpend pair shares no cause');
+    if (project.founderUserId === delegate.id) throw new Error('delegatedSpend delegate must not be the project founder');
+    const deposit = deposits[countByType['delegate-note'] - 1];
+    if (!deposit) throw new Error('delegatedSpend needs a delegated deposit');
+    deposit.actorUserId = owner.id;
+    deposit.noteAsset = 'erc20';
+    deposit.amount = 1;
+    deposit.funding = { kind: 'early', tokenId: 3, tokenCount: 1 };
+    const delegation = delegations[delegations.length - 1];
+    if (!delegation || delegation.noteId !== deposit.noteId) throw new Error('delegatedSpend note is not the last delegation');
+    delegation.actorUserId = owner.id;
+    delegation.delegateUserId = delegate.id;
+    delegation.amount = deposit.amount;
+    delegation.delegationBasis = { sharedCauseIds, reason: 'shared-cause-trusted-role' };
+    const alignment = alignments.find((item) => item.projectId === project.id);
+    if (!alignment) throw new Error(`delegatedSpend project has no alignment: ${project.id}`);
+    add({
+      type: 'spend-delegated-note', actorUserId: delegate.id, causeId: project.causeId, projectId: project.id, noteId: deposit.noteId,
+      amount: 1, funding: { kind: 'early', tokenId: 3, tokenCount: 1 },
+      dependsOn: [delegation.id, createProjects.get(project.id)!.id, alignment.id],
+    });
+  }
+  for (let index = 0; index < countByType['revoke-delegation']; index++) {
+    const delegation = delegations[index % delegations.length];
+    if (spend && delegation.noteId === deposits[countByType['delegate-note'] - 1]?.noteId) {
+      throw new Error('delegatedSpend note would also be revoked');
+    }
+    add({ type: 'revoke-delegation', actorUserId: delegation.actorUserId, noteId: delegation.noteId, dependsOn: [delegation.id] });
+  }
 
   validatePlannedActions(manifest, statements, users, projects, actions);
   const writesByType = Object.fromEntries(manifest.actionRules.map((rule) => [rule.type, actions.filter((action) => action.type === rule.type).length])) as Record<CampaignActionType, number>;
@@ -509,6 +721,7 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
 export function validatePlannedActions(manifest: CampaignManifestV1, statements: PlannedStatement[], users: PlannedUser[], projects: PlannedProject[], actions: PlannedAction[]): void {
   const actionById = new Map(actions.map((action) => [action.id, action]));
   const statementIds = new Set(statements.map((item) => item.id)); const userIds = new Set(users.map((item) => item.id)); const projectIds = new Set(projects.map((item) => item.id));
+  if (statementIds.size !== statements.length) throw new Error('planned statement IDs must be unique');
   if (actionById.size !== actions.length) throw new Error('planned action IDs must be unique');
   for (const action of actions) {
     if (action.actorUserId !== null && !userIds.has(action.actorUserId)) throw new Error(`${action.id} has missing actor ${action.actorUserId}`);

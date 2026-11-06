@@ -316,14 +316,14 @@ Protocol reads (SDK / IPFS / attesters), not the browser: [`mcp/README.md`](../m
 
 ### Signing in (local vs testnet)
 
-Most tests should use **ordinary Ethereum keypairs**, not Privy emails.
+Most tests should use **ordinary Ethereum keypairs**, not passkey popups.
 
 - Local UI: Hardhat picker (`wallet-hardhat-0` … `9`). Two browsers pick `#0` and `#1`.
 - Scripts / verifier / protocol MCP: a funded Base Sepolia key (`COMMONALITY_TESTNET_VERIFIER_PRIVATE_KEY`, `MCP_PRIVATE_KEY`). Generate with `cast wallet new` (or viem); fund; never commit the key.
 - Two-person lab wallets: `COMMONALITY_TESTNET_LAB_A_*` / `_B_*` from `node scripts/generate-wallets.mjs` (same as the other operational roles). Fund with `node scripts/fund-base-sepolia-wallets.mjs --only COMMONALITY_TESTNET_LAB_A_ADDRESS,COMMONALITY_TESTNET_LAB_B_ADDRESS --yes`. Live UI still has no injected MetaMask in headless Chromium — signed writes use those keys via SDK / `testnet.two-person-browser`. `./scripts/verifier-testnet.sh --browser` runs that check; add `--mutation` for the signed write.
 - Live UI without Sign In: two observer browsers + those keypair writes still prove a shared on-chain world.
 
-**Privy** is only the *product* login on deployed UIs (`VITE_PRIVY_APP_ID` set). One or two throwaway email users are enough to cover that path. Privy’s modal also lists MetaMask / WalletConnect (`detected_wallets`), so a human can import a testnet keypair into a real browser wallet and connect — that is still a normal account, just presented through Privy. Headless Chromium has no MetaMask; do not build a farm of email OTP users for ordinary journeys.
+Product login is ConnectKit (Base Account passkey or an injected wallet). Headless Chromium has no MetaMask; do not farm Coinbase passkey users for ordinary journeys.
 
 The local “injected wallet harness” (`ui/e2e/fixtures/wallet.ts`, `window._setupTestWallet`) is wagmi’s mock connector pretending a private key is MetaMask. Localhost only. Do not point the well-known Hardhat keys at Sepolia.
 
@@ -381,5 +381,5 @@ COMMONALITY_UI_BASE_URL=http://localhost:5174 COMMONALITY_UI_HASH_ROUTING=0 \
 > click “Start a cause board”, describe the cause, click Continue, then add and publish
 > issues on the cause page.
 
-This package stays thinner than `ui/` (no multi-domain matrix, no Privy). Product posture:
+This package stays thinner than `ui/` (no multi-domain matrix). Product posture:
 [`specs/product/founder-first.md`](../specs/product/founder-first.md).

@@ -50,7 +50,7 @@ Visit Tally, find or write a statement that expresses what you believe, and sign
 ## What was deliberately deferred
 
 - **Fiat bridges** — Credit card / Apple Pay / Google Pay onramp. See [specs/tech/bridges.md](../tech/bridges.md) for the design.
-- **Embedded wallet provisioning / no-custody contribution completion** — The full mainstream path is deferred from the validated MVP: Privy embedded-wallet scaffolding exists behind `VITE_PRIVY_APP_ID` (see [`ui/README.md`](../../ui/README.md)), but the end-to-end on-ramp, sponsored-gas, and contribution sequencing path still needs verification and polish.
+- **No-custody contribution completion** — The full mainstream path is deferred from the validated MVP: Base Account + ERC-7677 sponsorship exist in code (see [`ui/README.md`](../../ui/README.md)), but on-ramp, sponsored-gas, and contribution sequencing still need live verification.
 - [Unique-human verification](/specs/tech/shared/unique-human-id.md).
 - Thought that I'd like to explore for Tally: some notion of [private beliefs](privacy-slider.md)?
 - **Per-contract token choice** — Contracts are token-general but the UI constrains to one token (USDC). Post-MVP each project can choose its own token.

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState, type HTMLAttributes, type MouseEvent } from 'react'
+import { useState, type HTMLAttributes, type MouseEvent } from 'react'
 import {
   Button,
   CircularProgress,
@@ -17,10 +17,8 @@ import {
   isLocalDevHost,
   shortAddress,
 } from '../wallet/hardhatAccounts'
-import { isPrivyEnabled } from '../../wagmi'
 import { useTestDataSession } from '../wallet/testDataSession'
-
-const PrivyWalletButton = lazy(() => import('./PrivyWalletButtonImpl'))
+import { ConnectedAccountFrame } from './AccountName'
 
 interface WalletButtonProps {
   dense?: boolean
@@ -220,45 +218,58 @@ function TestDataWalletButton({ dense = false, testId = 'wallet-connect-button' 
   }
 
   return (
-    <Button
-      color="inherit"
-      variant={isConnected ? 'outlined' : 'contained'}
-      size="small"
-      onClick={() => void handleClick()}
-      disabled={busy || !connector}
-      data-testid={testId}
-      sx={buttonSx(isConnected, dense)}
-    >
-      {busy ? 'Connecting…' : label}
-    </Button>
+    <ConnectedAccountFrame address={isConnected ? address : undefined} label={label}>
+      {(name) => (
+        <Button
+          color="inherit"
+          variant={isConnected ? 'outlined' : 'contained'}
+          size="small"
+          onClick={() => void handleClick()}
+          disabled={busy || !connector}
+          data-testid={testId}
+          sx={buttonSx(isConnected, dense)}
+        >
+          {busy ? 'Connecting…' : name}
+        </Button>
+      )}
+    </ConnectedAccountFrame>
   )
 }
 
 function BrowserWalletButton({ dense = false, testId = 'wallet-connect-button' }: WalletButtonProps) {
   const { setOpen, open } = useModal()
+  const { address } = useAccount()
 
   return (
     <ConnectKitButton.Custom>
-      {({ isConnected, isConnecting, show, truncatedAddress, ensName }) => (
-        <Button
-          color="inherit"
-          variant={isConnected ? 'outlined' : 'contained'}
-          size="small"
-          onClick={() => {
-            if (typeof show === 'function') {
-              show()
-              return
-            }
-            setOpen(true)
-          }}
-          disabled={isConnecting}
-          aria-expanded={open}
-          data-testid={testId}
-          sx={buttonSx(isConnected, dense)}
-        >
-          {isConnecting ? 'Connecting…' : isConnected ? (ensName ?? truncatedAddress) : 'Connect'}
-        </Button>
-      )}
+      {({ isConnected, isConnecting, show, truncatedAddress, ensName }) => {
+        const fallback = ensName ?? truncatedAddress ?? 'Connected'
+        const buttonLabel = isConnecting ? 'Connecting…' : isConnected ? fallback : 'Create an account'
+        return (
+          <ConnectedAccountFrame address={isConnected ? address : undefined} label={buttonLabel} detail={ensName}>
+            {(name) => (
+              <Button
+                color="inherit"
+                variant={isConnected ? 'outlined' : 'contained'}
+                size="small"
+                onClick={() => {
+                  if (typeof show === 'function') {
+                    show()
+                    return
+                  }
+                  setOpen(true)
+                }}
+                disabled={isConnecting}
+                aria-expanded={open}
+                data-testid={testId}
+                sx={buttonSx(isConnected, dense)}
+              >
+                {name}
+              </Button>
+            )}
+          </ConnectedAccountFrame>
+        )
+      }}
     </ConnectKitButton.Custom>
   )
 }
@@ -267,13 +278,6 @@ function WalletButtonInner(props: WalletButtonProps) {
   const testDataSession = useTestDataSession()
   if (testDataSession) {
     return <TestDataWalletButton {...props} />
-  }
-  if (isPrivyEnabled) {
-    return (
-      <Suspense fallback={<WalletButtonLoadingFallback />}>
-        <PrivyWalletButton />
-      </Suspense>
-    )
   }
   if (props.localHardhatAccounts && isLocalDevHost()) {
     return <LocalHardhatWalletButton {...props} />

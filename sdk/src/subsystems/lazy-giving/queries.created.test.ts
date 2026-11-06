@@ -4,7 +4,7 @@ import { ProjectFactoryAbi } from '../../abis.js';
 import { createSDKMachinery } from '../../machinery.js';
 import type { RawEventFromCache } from '../../utils/eventCacheClient.js';
 import { padAddressAsTopic } from '../../utils/eventCacheClient.js';
-import { getUserCreatedProjects } from './queries.js';
+import { getAllProjectAddresses, getUserCreatedProjects } from './queries.js';
 
 const FACTORY = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as const;
 const CREATOR = '0x1111111111111111111111111111111111111111' as const;
@@ -46,6 +46,18 @@ describe('getUserCreatedProjects', () => {
 
   afterEach(() => {
     globalThis.fetch = originalFetch;
+  });
+
+  it('discovers direct and beneficiary projects from ProjectCreated without depending on a particular assurance deployer', async () => {
+    globalThis.fetch = (async (input: string | URL | Request) => {
+      const url = new URL(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url);
+      const items = url.searchParams.get('eventName') === 'ProjectCreated'
+        ? [makeProjectCreatedEvent(CREATOR, PROJECT_A, 0), makeProjectCreatedEvent(OTHER, PROJECT_B, 1)]
+        : [];
+      return new Response(JSON.stringify({ items }), { status: 200 });
+    }) as typeof fetch;
+    const machinery = createSDKMachinery({ ipfsConfig: { shouldUseMock: true }, eventCacheUrl: 'http://localhost:42069' });
+    assert.deepEqual(await getAllProjectAddresses(machinery), [PROJECT_A, PROJECT_B]);
   });
 
   it('filters ProjectCreated by creator topic and returns unique assurance contracts', async () => {

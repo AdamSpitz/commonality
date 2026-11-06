@@ -11,6 +11,7 @@ import {
   ContributionPreviewPanel,
   RefundSection,
   BeneficiaryProceedsSection,
+  WorkProposalSection,
   ReimbursementSection,
   Leaderboard,
   WebsiteClaimSection,
@@ -450,6 +451,10 @@ export function ProjectDetailPage({
         />
       )}
 
+      {!isContentProject && projectContractAddress && (
+        <WorkProposalSection projectAddress={projectContractAddress as `0x${string}`} address={address} onRefresh={handleRefresh} />
+      )}
+
       {beneficiaryBinding.status !== 'mismatch' && projectContractAddress && (
         <BeneficiaryProceedsSection
           projectAddress={projectContractAddress as `0x${string}`}
@@ -486,6 +491,25 @@ export function ProjectDetailPage({
         <>
           <AlignmentAttestationsSection projectAddress={projectContractAddress} initialStatementCid={causeCid} statementRoutePrefix={statementRoutePrefix} />
           <ContentFundingProjectSection projectAddress={projectContractAddress} />
+          <Paper sx={{ p: 2, mb: 2 }}>
+            <Typography variant="h6" component="h2" gutterBottom>Work items</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+              A project can fund several items. Each item can have one active request for its beneficiary in this registry, and a successful request is not funded again. Different beneficiaries can use the same local id. Failed attempts stay in the history.
+            </Typography>
+            <Box component="ul" sx={{ m: 0, pl: 2 }}>
+              {(metadata?.workItems && metadata.workItems.length > 0
+                ? metadata.workItems
+                : [{ id: `project:${projectContractAddress.toLowerCase()}` }]
+              ).map((item) => (
+                <li key={item.id}>
+                  <Typography variant="body2">{item.description || item.id}</Typography>
+                  {item.description ? (
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>{item.id}</Typography>
+                  ) : null}
+                </li>
+              ))}
+            </Box>
+          </Paper>
         </>
       )}
     </Box>

@@ -1,0 +1,114 @@
+{
+  "format": "commonality-seed-content-v1",
+  "id": "network-societies-v1",
+  "title": "Synthetic network-societies pilot statements",
+  "description": "Campaign-local synthetic statements for the four-family network-societies pilot. They are not accepted real Conceptspace seed content.",
+  "notes": [
+    "Synthetic campaign only. Do not copy these into seed-content/."
+  ],
+  "groups": [
+    {
+      "id": "crypto-merchants",
+      "title": "Crypto-friendly merchant trials in Owen Sound",
+      "statements": [
+        {
+          "id": "refundable-checkout",
+          "text": "I want a business in Grey County, Ontario, to be able to take a blockchain payment from a customer who asks to pay that way."
+        },
+        {
+          "id": "refuse-crypto-payments",
+          "text": "I want shops in Grey County to refuse customer payments in crypto."
+        },
+        {
+          "id": "bank-blocking",
+          "text": "I want a willing shop and a willing customer in Grey County to be able to complete a payment when a bank has blocked that customer."
+        }
+      ]
+    },
+    {
+      "id": "civic-assimilation",
+      "title": "Shared civic life in Grey County",
+      "notes": [
+        "Same board sentences as network-societies-v1-b2-statements.json."
+      ],
+      "statements": [
+        {
+          "id": "assimilate",
+          "text": "If people from other cultures and other languages live in Grey County, Ontario, I want them to assimilate."
+        },
+        {
+          "id": "some-immigration",
+          "text": "I want Grey County to keep welcoming some people from other cultures and other languages, and I want those people to assimilate."
+        },
+        {
+          "id": "fewer-newcomers",
+          "text": "I would rather fewer people from other cultures and other languages moved to Grey County. If people like that live here, I want them to assimilate."
+        },
+        {
+          "id": "english-around-here",
+          "text": "I don't have a strong view on how many newcomers Grey County should take. People around here speak English, and I want people who live here to get along in English."
+        },
+        {
+          "id": "keep-own-ways",
+          "text": "I want people in Grey County who come from other cultures and languages to be able to keep those cultures and languages, and I do not want them expected to assimilate."
+        }
+      ]
+    },
+    {
+      "id": "christian-teaching",
+      "title": "Christian teaching resources in Grey County",
+      "notes": [
+        "Same sentences as network-societies-v1-b2-statements.json."
+      ],
+      "statements": [
+        {
+          "id": "shared-teaching-notes",
+          "text": "I want more freely available teaching notes that people from many English-speaking churches can use. I want those notes to name the confession and the other assumptions they rely on, and I do not want the churches that use them to have to publish a joint statement of doctrine."
+        },
+        {
+          "id": "independent-church-help",
+          "text": "I want independent churches in the Grey County area to be able to get ordinary help, including a substitute preacher, without joining a larger denomination. I want the person offering that help to state their qualifications and doctrine, so a church can decide whether that person is acceptable."
+        },
+        {
+          "id": "keep-notes-inside",
+          "text": "I want a church's teaching notes to stay inside that church."
+        },
+        {
+          "id": "civic-transcription-only",
+          "text": "I want to help transcribe public civic materials, and I do not want that work to include church teaching."
+        }
+      ]
+    },
+    {
+      "id": "home-learning",
+      "title": "Home learning",
+      "notes": [
+        "Reusable materials are not a Grey County good. The method and school-family use sit inside that want. A materials sentence with no religious claims is a real further want. The staffed-schools sentence is the local refusal. Adam called this good enough on 2026-10-21."
+      ],
+      "statements": [
+        {
+          "id": "reusable-home-materials",
+          "text": "I want families who teach their children at home to have teaching materials they can reuse. I want those materials to name the teaching method they use, and I want families whose children attend school to be able to use them too."
+        },
+        {
+          "id": "materials-without-religion",
+          "text": "I want home-teaching materials that contain no religious claims, so a family that does not share those claims can use them."
+        },
+        {
+          "id": "taught-in-staffed-schools",
+          "text": "I want children in Grey County taught in staffed schools, and I do not want public rooms booked for home-school programs."
+        }
+      ]
+    },
+    {
+      "id": "shared-goods",
+      "title": "Goods reused across Grey County boards",
+      "statements": [
+        {
+          "id": "class-host-directory",
+          "text": "I want a person in Grey County, Ontario, who will host a small class to be findable, and I want that person's affiliation written down."
+        }
+      ]
+    }
+  ]
+}

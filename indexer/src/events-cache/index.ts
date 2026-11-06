@@ -109,6 +109,7 @@ register("AlignmentAttestations:SuccessRevoked");
 
 // SUBJECTIV IDENTITY: AccountAssertions + TrustRegistry
 register("AccountAssertions:AccountAssertionSet");
+register("SuggestedNames:NameSuggested");
 register("TrustRegistry:TrustSet");
 
 // MUTABLE REFS
@@ -128,6 +129,8 @@ register("BeneficiaryIdentity:BeneficiaryProofAnchored");
 // CONTENT FUNDING
 register("ContentRegistry:ContentItemRegistered");
 register("ContentRegistry:ContentItemReleased");
+register("ContentRegistry:WorkItemRegistered");
+register("ContentRegistry:WorkItemReleased");
 register("BeneficiaryRegistry:BeneficiaryVerified");
 register("BeneficiaryRegistry:BeneficiaryControlTaken");
 register("BeneficiaryRegistry:BeneficiaryControlReleased");

@@ -3,7 +3,7 @@ import path from 'node:path';
 import { parseEther, type Address, type Hex } from 'viem';
 import type { CampaignContracts, CampaignEnvironment, CampaignWalletBinding } from './campaignEnvironment.js';
 import type { CampaignPlan, PlannedAction } from './campaignPlanner.js';
-import { estimateGroupGas, groupCampaignWrites } from './campaignBatching.js';
+import { ERC20_APPROVAL_GAS_UNITS, estimateGroupGas, groupCampaignWrites } from './campaignBatching.js';
 import { campaignActionFundingCost } from './paymentTokenUnits.js';
 import { createSeedClients } from './seedRpc.js';
 
@@ -90,6 +90,7 @@ export function computeCampaignFundingNeeds(plan: CampaignPlan, wallets: readonl
   const users = new Map(plan.users.map((user) => [user.id, user]));
   const bySlot = new Map<string, CampaignWalletNeed>();
   const gasBySlot = new Map<string, bigint>();
+  const approvedProjects = new Set<string>();
   for (const wallet of wallets) {
     bySlot.set(wallet.walletSlot, { walletSlot: wallet.walletSlot, address: wallet.address, nativeWei: 0n, paymentTokenUnits: 0n });
   }
@@ -104,11 +105,26 @@ export function computeCampaignFundingNeeds(plan: CampaignPlan, wallets: readonl
     if (!need) continue;
     const gasWei = estimateGroupGas(group) * gasPrice;
     need.nativeWei += gasWei;
-    gasBySlot.set(walletSlot, (gasBySlot.get(walletSlot) ?? 0n) + gasWei);
+    let slotGas = (gasBySlot.get(walletSlot) ?? 0n) + gasWei;
     for (const action of group) {
-      if (action.type === 'deposit-note') need.nativeWei += campaignNoteWei(action);
-      if (action.type === 'fund-project') need.paymentTokenUnits += campaignActionFundingCost(action);
+      if (action.type === 'deposit-note' && action.noteAsset === 'erc20') {
+        need.paymentTokenUnits += campaignActionFundingCost(action);
+        const approvalWei = ERC20_APPROVAL_GAS_UNITS * gasPrice;
+        need.nativeWei += approvalWei;
+        slotGas += approvalWei;
+      } else if (action.type === 'deposit-note') need.nativeWei += campaignNoteWei(action);
+      if (action.type === 'fund-project') {
+        need.paymentTokenUnits += campaignActionFundingCost(action);
+        const approvalKey = `${walletSlot}:${action.projectId ?? action.id}`;
+        if (!approvedProjects.has(approvalKey)) {
+          approvedProjects.add(approvalKey);
+          const approvalWei = ERC20_APPROVAL_GAS_UNITS * gasPrice;
+          need.nativeWei += approvalWei;
+          slotGas += approvalWei;
+        }
+      }
     }
+    gasBySlot.set(walletSlot, slotGas);
   }
   return [...bySlot.values()].map((need) => {
     // Deposits are principal, not gas; apply the percentage only to estimated gas.

@@ -21,8 +21,7 @@ import { BeliefsAbi } from '@commonality/sdk/abis'
 import { getStatementWithContent, getUserBelief, getUserBeliefs, believeStatement, type Statement, type StatementWithContent, type BeliefsContract, BeliefStates } from '@commonality/sdk/conceptspace'
 import { getCuratedCollections, type CuratedCollectionEntry, type FoldedCuratedCollection } from '@commonality/sdk/nudger-publications'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
-import { useMachinery } from '../../shared'
-import { useWriteClients } from '../../shared'
+import { sponsoredBeliefOptions, useMachinery, useWriteClients } from '../../shared'
 import { useTrustedNudgers } from '../../shared'
 import { StatementRenderer } from '../../conceptspace'
 import { getDomainUrl } from '../../shared'
@@ -196,7 +195,7 @@ export function ExplorerPage() {
 
       const clients = writeClients!
 
-      await believeStatement(clients, beliefsContract, cid)
+      await believeStatement(clients, beliefsContract, cid, sponsoredBeliefOptions())
 
       setEnrichedEntries((prev) =>
         prev.map((entry) =>

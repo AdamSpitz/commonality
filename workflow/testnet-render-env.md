@@ -6,6 +6,8 @@ Copy these non-secret values into Render `sync: false` fields when the dashboard
 
 `PONDER_RPC_URL_84532` is `sync: false`. Paste the Alchemy (or other archive-capable) Base Sepolia URL from `.env` / `BASE_SEPOLIA_RPC_URL`. `scripts/generate-render-secrets.mjs` emits this block. Public `https://sepolia.base.org` prunes below ~45_000_000 and will crash the indexer while `START_BLOCK` is 42768673. After changing the URL, trigger a deploy (`deploy_only` is enough), not only a restart. See [deployment.md](./deployment.md#indexer-on-render).
 
+`commonality-alignment-trust-bootstrap`, `commonality-coherence-badge-worker`, and `commonality-published-data-ipfs-mirror` use the same Alchemy monthly fuse. On that 429 they log once, leave the cursor unmoved, and stay running while they back off from 1 minute to 6 hours. A short compute-unit burst waits 5 seconds. A wrong chain id or missing key still exits. Render only suspends them after repeated non-zero exits, so a process that is already suspended for crash-looping still needs a manual resume after this build is deployed.
+
 ## PublishedData IPFS mirror (`commonality-published-data-ipfs-mirror`)
 
 The blueprint supplies the Base Sepolia chain ID, PublishedData address/start block, cursor disk, polling settings, and a private Kubo service with a persistent 10 GB repository. Set this dashboard value before deploying:

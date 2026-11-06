@@ -5,6 +5,15 @@
  * surface so callers keep importing `@commonality/sdk/conceptspace`.
  */
 export { getStatement, getUserBelief } from './queries/statements.js';
+export {
+  readStatementSet,
+  statementSetSupportFromEvents,
+  type StatementSetRead,
+  type StatementSetReadStatus,
+  type StatementSetSupport,
+  type StatementSetViewer,
+  type StatementSetViewerRole,
+} from './queries/statement-set.js';
 export { getImplicationsFrom, getImplicationsTo, getImplication } from './queries/implications.js';
 export {
   getIndirectSupporters,

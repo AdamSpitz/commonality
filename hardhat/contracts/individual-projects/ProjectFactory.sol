@@ -11,6 +11,9 @@ import {IAssuranceCondition} from "./IAssuranceCondition.sol";
 import {ValueThresholdCondition} from "./ValueThresholdCondition.sol";
 import {BeneficiaryAssuranceContract} from "./BeneficiaryAssuranceContract.sol";
 import {FixedControllerFactory} from "./FixedControllerFactory.sol";
+import {ContentRegistry} from "../content-funding/ContentRegistry.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {WorkFundingCondition} from "./WorkFundingCondition.sol";
 
 interface IProjectBeneficiaryRegistry {
   function isVerified(bytes32 beneficiaryId) external view returns (bool);
@@ -33,7 +36,9 @@ error TokenArrayLengthMismatch();
 error ZeroPrice();
 error BeneficiaryPaymentTokenMismatch();
 error BeneficiaryEscrowRegistryMismatch();
+error UnknownProjectWork(address project);
 error OnlyPayoutAddressCanCreateForControlledBeneficiary();
+error ThirdPartyCustomConditionRequiresDeadline();
 
 /**
  * @title PremintingERC1155Factory
@@ -184,7 +189,11 @@ contract ProjectFactory {
   /// @notice Retained so existing deployment wiring still constructs this factory.
   ///         New projects do not deposit here.
   address public immutable beneficiaryEscrow;
+  ContentRegistry public immutable workRegistry;
   uint256 public constant UNCLAIMED_PROCEEDS_WINDOW = 90 days;
+  mapping(address project => string[] workIds) private _projectWorkIds;
+  mapping(address project => bytes32 beneficiaryId) public workBeneficiaryOf;
+  mapping(address project => address condition) public workConditionOf;
 
   /**
    * @notice Emitted once per createERC1155...() call, tying together the three
@@ -203,7 +212,8 @@ contract ProjectFactory {
     address conditionFactory,
     address _beneficiaryRegistry,
     address _beneficiaryEscrow,
-    address _fixedControllerFactory
+    address _fixedControllerFactory,
+    address _workRegistry
   ) {
     if (erc1155Factory == address(0)) revert InvalidFactoryAddress();
     if (assuranceFactory == address(0)) revert InvalidFactoryAddress();
@@ -211,12 +221,14 @@ contract ProjectFactory {
     if (_beneficiaryRegistry == address(0)) revert InvalidFactoryAddress();
     if (_beneficiaryEscrow == address(0)) revert InvalidFactoryAddress();
     if (_fixedControllerFactory == address(0)) revert InvalidFactoryAddress();
+    if (_workRegistry == address(0)) revert InvalidFactoryAddress();
     _premintingERC1155Factory = PremintingERC1155Factory(erc1155Factory);
     _assuranceFactory = AssuranceContractFactory(assuranceFactory);
     _conditionFactory = ValueThresholdConditionFactory(conditionFactory);
     beneficiaryRegistry = IProjectBeneficiaryRegistry(_beneficiaryRegistry);
     beneficiaryEscrow = _beneficiaryEscrow;
     fixedControllerFactory = FixedControllerFactory(_fixedControllerFactory);
+    workRegistry = ContentRegistry(_workRegistry);
     if (IProjectBeneficiaryEscrow(_beneficiaryEscrow).beneficiaryRegistry() != _beneficiaryRegistry) {
       revert BeneficiaryEscrowRegistryMismatch();
     }
@@ -232,6 +244,9 @@ contract ProjectFactory {
     uint256[] ids;
     uint256[] counts;
     uint256[] prices;
+    string[] workIds;
+    bytes32 beneficiaryId;
+    uint256 deadline;
   }
 
   /**
@@ -263,7 +278,10 @@ contract ProjectFactory {
       projectMetadataCid: projectMetadataCid,
       ids: ids,
       counts: counts,
-      prices: prices
+      prices: prices,
+      workIds: new string[](0),
+      beneficiaryId: bytes32(0),
+      deadline: deadline
     });
 
     (PremintingERC1155 t, MultiERC1155AssuranceContract ac) = _deployTokenAndAC(params);
@@ -276,7 +294,7 @@ contract ProjectFactory {
 
     _wireUpAndFinalize(t, ac, IAssuranceCondition(address(condition)), params);
 
-    emit ProjectCreated(msg.sender, address(t), address(ac), address(condition));
+    emit ProjectCreated(msg.sender, address(t), address(ac), workConditionOf[address(ac)]);
 
     return (t, ac);
   }
@@ -317,7 +335,10 @@ contract ProjectFactory {
       projectMetadataCid: projectMetadataCid,
       ids: ids,
       counts: counts,
-      prices: prices
+      prices: prices,
+      workIds: new string[](0),
+      beneficiaryId: beneficiaryId,
+      deadline: deadline
     });
 
     _validateProjectParams(params);
@@ -334,7 +355,62 @@ contract ProjectFactory {
     }
     ValueThresholdCondition condition = _conditionFactory.createCondition(address(ac), threshold, deadline);
     _wireUpAndFinalize(t, ac, IAssuranceCondition(address(condition)), params);
-    emit ProjectCreated(msg.sender, address(t), address(ac), address(condition));
+    emit ProjectCreated(msg.sender, address(t), address(ac), workConditionOf[address(ac)]);
+    return (t, ac);
+  }
+
+  /// @notice Beneficiary-project variant of createERC1155AndAssuranceContractWithWorkItems.
+  function createERC1155AndAssuranceContractForBeneficiaryWithWorkItems(
+    string memory metadataURI,
+    string memory contractURI,
+    address owner,
+    bytes32 beneficiaryId,
+    address paymentToken,
+    uint256 threshold,
+    uint256 deadline,
+    string memory projectMetadataCid,
+    uint256[] memory ids,
+    uint256[] memory counts,
+    uint256[] memory prices,
+    string[] memory workIds
+  ) public returns (IERC1155, AssuranceContract) {
+    if (beneficiaryId == bytes32(0)) revert InvalidRecipientAddress();
+    if (threshold == 0) revert InvalidThreshold();
+    if (deadline <= block.timestamp) revert InvalidDeadline();
+    address payout = beneficiaryRegistry.payoutAddress(beneficiaryId);
+    bool verified = beneficiaryRegistry.isVerified(beneficiaryId) && payout != address(0);
+    if (beneficiaryRegistry.isBeneficiaryControlled(beneficiaryId) && msg.sender != payout) {
+      revert OnlyPayoutAddressCanCreateForControlledBeneficiary();
+    }
+    CreateProjectParams memory params = CreateProjectParams({
+      metadataURI: metadataURI,
+      contractURI: contractURI,
+      owner: owner,
+      recipient: verified ? payout : address(this),
+      paymentToken: paymentToken,
+      projectMetadataCid: projectMetadataCid,
+      ids: ids,
+      counts: counts,
+      prices: prices,
+      workIds: workIds,
+      beneficiaryId: beneficiaryId,
+      deadline: deadline
+    });
+    _validateProjectParams(params);
+    PremintingERC1155 t = _deployToken(params);
+    MultiERC1155AssuranceContract ac;
+    if (verified) {
+      ac = fixedControllerFactory.create(
+        address(this), payout, paymentToken, address(t), projectMetadataCid, beneficiaryId, address(beneficiaryRegistry)
+      );
+    } else {
+      ac = _assuranceFactory.createBeneficiaryAssuranceContract(
+        address(this), paymentToken, address(t), projectMetadataCid, beneficiaryId, address(beneficiaryRegistry), UNCLAIMED_PROCEEDS_WINDOW
+      );
+    }
+    ValueThresholdCondition condition = _conditionFactory.createCondition(address(ac), threshold, deadline);
+    _wireUpAndFinalize(t, ac, IAssuranceCondition(address(condition)), params);
+    emit ProjectCreated(msg.sender, address(t), address(ac), workConditionOf[address(ac)]);
     return (t, ac);
   }
 
@@ -363,16 +439,87 @@ contract ProjectFactory {
       projectMetadataCid: projectMetadataCid,
       ids: ids,
       counts: counts,
-      prices: prices
+      prices: prices,
+      workIds: new string[](0),
+      beneficiaryId: bytes32(0),
+      deadline: 0
     });
 
     (PremintingERC1155 t, MultiERC1155AssuranceContract ac) = _deployTokenAndAC(params);
 
     _wireUpAndFinalize(t, ac, condition, params);
 
-    emit ProjectCreated(msg.sender, address(t), address(ac), address(condition));
+    emit ProjectCreated(msg.sender, address(t), address(ac), workConditionOf[address(ac)]);
 
     return (t, ac);
+  }
+
+  /// @notice Same project as createERC1155AndAssuranceContract, reserving these work ids.
+  ///         An empty list still reserves one generated id, `project:0x` plus the project address.
+  function createERC1155AndAssuranceContractWithWorkItems(
+    string memory metadataURI,
+    string memory contractURI,
+    address owner,
+    address recipient,
+    address paymentToken,
+    uint256 threshold,
+    uint256 deadline,
+    string memory projectMetadataCid,
+    uint256[] memory ids,
+    uint256[] memory counts,
+    uint256[] memory prices,
+    string[] memory workIds
+  ) public returns (IERC1155, AssuranceContract) {
+    if (threshold == 0) revert InvalidThreshold();
+    if (deadline <= block.timestamp) revert InvalidDeadline();
+    CreateProjectParams memory params = CreateProjectParams({
+      metadataURI: metadataURI,
+      contractURI: contractURI,
+      owner: owner,
+      recipient: recipient,
+      paymentToken: paymentToken,
+      projectMetadataCid: projectMetadataCid,
+      ids: ids,
+      counts: counts,
+      prices: prices,
+      workIds: workIds,
+      beneficiaryId: bytes32(0),
+      deadline: deadline
+    });
+    (PremintingERC1155 t, MultiERC1155AssuranceContract ac) = _deployTokenAndAC(params);
+    ValueThresholdCondition condition = _conditionFactory.createCondition(address(ac), threshold, deadline);
+    _wireUpAndFinalize(t, ac, IAssuranceCondition(address(condition)), params);
+    emit ProjectCreated(msg.sender, address(t), address(ac), workConditionOf[address(ac)]);
+    return (t, ac);
+  }
+
+  function workIdsOf(address project) external view returns (string[] memory) {
+    return _projectWorkIds[project];
+  }
+
+  /// @notice Release this factory's work reservations after the project's condition has failed.
+  function releaseWorkOnFailure(address project) external {
+    string[] memory ids = _projectWorkIds[project];
+    if (ids.length == 0) revert UnknownProjectWork(project);
+    workRegistry.releaseBeneficiaryWorks(ids, project, workBeneficiaryOf[project]);
+  }
+
+  /// @notice Accept a proposal about your work; this starts its seven-day veto window.
+  function acceptWorkProject(address project) external {
+    if (workConditionOf[project] == address(0)) revert UnknownProjectWork(project);
+    WorkFundingCondition(workConditionOf[project]).accept(msg.sender);
+  }
+
+  /// @notice Veto a third-party proposal and atomically release its work reservations.
+  function vetoWorkProject(address project) external {
+    if (workConditionOf[project] == address(0)) revert UnknownProjectWork(project);
+    WorkFundingCondition(workConditionOf[project]).veto(msg.sender);
+    workRegistry.releaseBeneficiaryWorks(_projectWorkIds[project], project, workBeneficiaryOf[project]);
+  }
+
+  /// @notice Stable wallet identity for work occupancy; unrelated to contract ownership.
+  function walletWorkBeneficiary(address wallet) public pure returns (bytes32) {
+    return keccak256(abi.encode("wallet", wallet));
   }
 
   function _deployTokenAndAC(CreateProjectParams memory params)
@@ -411,6 +558,22 @@ contract ProjectFactory {
     IAssuranceCondition condition,
     CreateProjectParams memory params
   ) private {
+    address beneficiary = params.beneficiaryId == bytes32(0)
+      ? params.recipient
+      : beneficiaryRegistry.payoutAddress(params.beneficiaryId);
+    bool thirdParty = msg.sender != beneficiary;
+    // Custom conditions have no known deadline. Restrict this path to the
+    // recipient so a third party cannot create an unbounded reservation.
+    if (params.deadline == 0 && thirdParty) revert ThirdPartyCustomConditionRequiresDeadline();
+    WorkFundingCondition workCondition = new WorkFundingCondition(
+      address(condition), address(beneficiaryRegistry), params.recipient,
+      params.beneficiaryId, params.deadline, thirdParty
+    );
+    condition = IAssuranceCondition(address(workCondition));
+    workConditionOf[address(ac)] = address(condition);
+    workBeneficiaryOf[address(ac)] = params.beneficiaryId == bytes32(0)
+      ? walletWorkBeneficiary(params.recipient)
+      : params.beneficiaryId;
     ac.setCondition(condition);
     ac.setPricesERC1155(params.ids, params.prices);
     ac.transferOwnership(params.owner);
@@ -418,6 +581,17 @@ contract ProjectFactory {
     t.mintBatch(address(ac), params.ids, params.counts);
     t.setReceiptTransferBridge(address(ac), true);
     t.renounceOwnership();
+    _registerProjectWork(address(ac), address(condition), params.workIds);
+  }
+
+  function _registerProjectWork(address project, address condition, string[] memory workIds) private {
+    string[] memory ids = workIds;
+    if (ids.length == 0) {
+      ids = new string[](1);
+      ids[0] = string.concat("project:", Strings.toHexString(uint160(project), 20));
+    }
+    workRegistry.registerBeneficiaryWorks(ids, project, condition, msg.sender, workBeneficiaryOf[project]);
+    _projectWorkIds[project] = ids;
   }
 
   function _validateTokenArrays(

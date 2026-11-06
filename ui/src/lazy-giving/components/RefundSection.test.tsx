@@ -12,15 +12,15 @@ vi.mock('wagmi', () => ({
   usePublicClient: vi.fn(),
 }))
 
-// Stubbed so the tests do not depend on whether the developer running them
-// happens to have VITE_PRIVY_SMART_WALLET_BUNDLER_URL set in ui/.env.
-const privySmartWallet = vi.hoisted(() => ({ enabled: false }))
+const walletCaps = vi.hoisted(() => ({ atomicBatches: false, paymasterService: false }))
 
-vi.mock('../../privy/config', () => ({
-  get isPrivySmartWalletEnabled() {
-    return privySmartWallet.enabled
-  },
-}))
+vi.mock('@commonality/sdk/utils', async () => {
+  const actual = await vi.importActual('@commonality/sdk/utils')
+  return {
+    ...actual,
+    getWriteClientCapabilities: async () => walletCaps,
+  }
+})
 
 vi.mock('@commonality/sdk/abis', async () => {
   const actual = await vi.importActual('@commonality/sdk/abis')
@@ -93,7 +93,8 @@ describe('RefundSection', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    privySmartWallet.enabled = false
+    walletCaps.atomicBatches = false
+    walletCaps.paymasterService = false
     vi.mocked(useWalletClient).mockReturnValue({
       data: { chain: { blockExplorers: { default: { url: 'https://explorer.example' } } } },
     } as any)
@@ -188,8 +189,8 @@ describe('RefundSection', () => {
     })
   })
 
-  it('batches the approval into the refund when the smart wallet is enabled', async () => {
-    privySmartWallet.enabled = true
+  it('batches the approval into the refund when the wallet supports atomic batches', async () => {
+    walletCaps.atomicBatches = true
     const user = userEvent.setup()
     const contributions = [makeContribution()]
     render(

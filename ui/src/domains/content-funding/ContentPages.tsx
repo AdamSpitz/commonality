@@ -177,31 +177,9 @@ export function ContentFundingStartContractPage() {
   )
 }
 
-export function ContentFundingExploreKindsPage() {
-  return (
-    <Box>
-      <Typography variant="h4" component="h1" gutterBottom>
-        Explore kinds of content
-      </Typography>
-      <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 760 }}>
-        Content contracts here are organized around creators and channels. If you want statement- or cause-centric browsing, use Aligning; these examples are just common kinds of content contributors may fund.
-      </Typography>
-      <Stack spacing={2}>
-        {['Funny', 'Educational', 'Investigative', 'Noninflammatory'].map((kind) => (
-          <Paper key={kind} sx={{ p: 2 }}>
-            <Typography variant="h6">{kind}</Typography>
-            <Typography variant="body2" color="text.secondary">
-              Fund creator/channel contracts for this kind of work here, or use Aligning when you want a fundable-projects board organized around a statement.
-            </Typography>
-          </Paper>
-        ))}
-        <Button component={RouterLink} to="/content/new" variant="contained" sx={{ alignSelf: 'flex-start' }}>
-          Create a content contract
-        </Button>
-      </Stack>
-    </Box>
-  )
-}
+export { PropertyIndexPage as ContentFundingExploreKindsPage } from '../../content-funding/pages/PropertyBoardPage'
+export { PropertyBoardRoute as ContentFundingPropertyBoardPage } from '../../content-funding/pages/PropertyBoardPage'
+export { FundPropertyRoute as ContentFundingFundPropertyPage } from '../../content-funding/pages/FundPropertyPage'
 
 export function ContentFundingAboutPage() {
   return (

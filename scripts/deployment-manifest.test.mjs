@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
   buildDeploymentManifest,
+  DEPLOY_NAME_START_BLOCK_ENV,
   FUNDING_ENV_KEYS,
   indexerDeploymentManifestJson,
   parseStartBlock,
@@ -64,6 +65,23 @@ test('conceptspace manifest omits funding contracts that are present in env', ()
   assert.ok(FUNDING_ENV_KEYS.includes('VITE_BENEFICIARY_ESCROW_ADDRESS'));
   assert.equal(FUNDING_ENV_KEYS.includes('BELIEFS_CONTRACT_ADDRESS'), false);
   assert.equal(FUNDING_ENV_KEYS.includes('TRUST_REGISTRY_ADDRESS'), false);
+});
+
+test('FixedControllerFactory publishes its own start block', () => {
+  assert.equal(
+    DEPLOY_NAME_START_BLOCK_ENV.FixedControllerFactory,
+    'FIXED_CONTROLLER_FACTORY_START_BLOCK',
+  );
+  const manifest = buildDeploymentManifest('base-sepolia', {
+    FIXED_CONTROLLER_FACTORY_ADDRESS: '0x582Ef20Ef10727932F70071d7d01D163cB9d9dA0',
+    FIXED_CONTROLLER_FACTORY_START_BLOCK: '47780572',
+    LAZYGIVING_START_BLOCK: '42768673',
+    START_BLOCK: '42768673',
+  });
+  assert.equal(
+    manifest.chains['base-sepolia'].FixedControllerFactory[0].startBlock,
+    47780572,
+  );
 });
 
 test('indexer JSON is compact chains-only', () => {

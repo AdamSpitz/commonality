@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 import { actionDetail, formatScalar, humanizeKey, KeyValueTable } from './prettyJson'
 
@@ -58,5 +59,14 @@ describe('prettyJson helpers', () => {
     const link = screen.getByRole('link', { name: 'IPFS' })
     expect(link.getAttribute('href')).toMatch(/\/bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi$/)
     expect(screen.queryByText(/bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi/)).toBeNull()
+  })
+
+  it('labels path links without showing the URL', () => {
+    render(<MemoryRouter><KeyValueTable record={{
+      projects: [{ title: 'A notice', path: '/projects/0xabc' }],
+    }} /></MemoryRouter>)
+    const link = screen.getByRole('link', { name: 'Link' })
+    expect(link).toHaveAttribute('href', '/projects/0xabc')
+    expect(screen.queryByText('/projects/0xabc')).toBeNull()
   })
 })

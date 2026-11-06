@@ -1,6 +1,6 @@
 # Statement families
 
-Status: proposed. Decision record: [ADR 0019](/specs/decisions/0019-statement-families.md). Part of the broader answer in [statement proliferation](/specs/product/statement-proliferation.md).
+Status: proposed. Decision record: [ADR 0022](/specs/decisions/0022-statement-families.md). Part of the broader answer in [statement proliferation](/specs/product/statement-proliferation.md).
 
 ## Problem
 
@@ -54,6 +54,6 @@ A family pairs well with this rule: **the statements the family implies are the 
 ## Not doing
 
 - **Gas sponsorship of publishing for family members.** It is tempting: the family is a closed list, so "sponsor anything in family F" looks bounded. It isn't, in practice. An attacker can force the sponsor to pay for publishing the entire list, and paying for the entire list is exactly what lazy publishing was supposed to avoid. This only becomes reasonable if the set of *users* is also closed. Not pursued for now.
-- **Gasless signatures for the long tail.** Enroll the small stable core. Do not enroll every combination, and do not add a family-membership proof to the tank so the long tail can be sponsored. The signer pays gas for those statements directly. The rejected alternatives, including a caller-built zero-knowledge proof of the generator, are in [ADR 0020](/specs/decisions/0020-no-gasless-family-long-tail.md).
+- **Gasless signatures for the long tail.** Enroll the small stable core. Do not enroll every combination, and do not add a family-membership proof to the tank so the long tail can be sponsored. The signer pays gas for those statements directly. The rejected alternatives, including a caller-built zero-knowledge proof of the generator, are in [ADR 0023](/specs/decisions/0023-no-gasless-family-long-tail.md).
 - **Family membership as an implication source.** The attester does not stamp arrows because the family says a member implies something. (Contrast [combinator statements](./combinator-statements.md), where the arrow follows from the operator.) The words inside a generated paragraph, such as connectives like "So I want…", can change its meaning. The attester has to read it.
 - **A required CID list.** See above.

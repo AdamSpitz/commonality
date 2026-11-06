@@ -14,7 +14,17 @@ import {
 } from './types.js';
 import type { NoteIntentAttestedEvent } from './events.js';
 import { SDKMachinery } from '../../machinery.js';
-import { fetchAllDelegationEvents, fetchAllDelegationEventsComplete, fetchAllNoteIntentEvents, fetchAllNoteIntentEventsComplete } from '../../utils/eventCacheClient.js';
+import { fetchAllDelegationEvents } from '../../utils/eventCacheClient.js';
+import {
+  attachPurchaseChainCopies,
+  fetchDelegationEventsForNoteIds,
+  fetchDelegationEventsForOwner,
+  fetchDelegationEventsForRoot,
+  fetchNoteIntentsForNoteIds,
+  fetchNoteIntentsForStatement,
+  fetchProjectsForPurchases,
+  fetchPurchaseLifecycleEvents,
+} from './scopedNotes.js';
 import {
   decodeNoteCreatedEvent,
   decodeNoteDelegatedEvent,
@@ -31,7 +41,7 @@ import {
   decodeNoteIntentAttestedEvent,
 } from '../../utils/eventDecoder.js';
 import { foldDelegationState, foldNote, foldNoteIntentAttestations, uniqueNotes, type DelegationEvent } from './folds.js';
-import { getAllProjects, type Project } from '../lazy-giving/index.js';
+import { type Project } from '../lazy-giving/index.js';
 import { getStandingPledges } from './recurring-pledges.js';
 
 export function decodeDelegationEvents(rawEvents: Awaited<ReturnType<typeof fetchAllDelegationEvents>>): DelegationEvent[] {
@@ -207,22 +217,48 @@ export async function getDonationActivityByRoot(
   machinery: SDKMachinery,
   rootAddress: string,
 ): Promise<DonationActivity[]> {
-  const [delegationRaw, intentRaw, projects, standingPledges] = await Promise.all([
-    fetchAllDelegationEvents(machinery),
-    fetchAllNoteIntentEvents(machinery),
-    getAllProjects(machinery),
+  const [{ events: delegationRaw, noteIds }, standingPledges] = await Promise.all([
+    fetchDelegationEventsForRoot(machinery, rootAddress),
     machinery.contractAddresses?.recurringPledges ? getStandingPledges(machinery) : Promise.resolve([]),
+  ]);
+  const completeRaw = noteIds.size === 0 ? delegationRaw : await attachPurchaseChainCopies(machinery, delegationRaw);
+  for (const raw of completeRaw) {
+    if (raw.eventName !== 'NoteCreated') continue;
+    const decoded = decodeNoteCreatedEvent(raw);
+    if (decoded) noteIds.add(decoded.noteId.toString());
+  }
+  const purchaseRaw = completeRaw;
+  const relevantPurchases = purchaseRaw.filter(raw => purchaseMentionsNotes(raw, noteIds));
+  const [intentRaw, projects] = await Promise.all([
+    fetchNoteIntentsForNoteIds(machinery, [...noteIds].map(id => BigInt(id))),
+    fetchProjectsForPurchases(machinery, relevantPurchases.filter(raw => raw.eventName === 'ERC1155Purchased')),
   ]);
   const intentEvents = intentRaw
     .map(decodeNoteIntentAttestedEvent)
     .filter((event): event is NoteIntentAttestedEvent => event !== null);
   return foldDonationActivityByRoot(
     rootAddress,
-    decodeDelegationEvents(delegationRaw),
+    decodeDelegationEvents(completeRaw),
     intentEvents,
     projects,
     standingPledges,
   );
+}
+
+function purchaseMentionsNotes(raw: { eventName: string }, noteIds: Set<string>): boolean {
+  if (raw.eventName === 'ERC1155Purchased') {
+    const decoded = decodeERC1155PurchasedEvent(raw as Parameters<typeof decodeERC1155PurchasedEvent>[0]);
+    return !!decoded && [...decoded.inputNoteIds, ...decoded.outputNoteIds].some(id => noteIds.has(id.toString()));
+  }
+  if (raw.eventName === 'RefundedIntoNote') {
+    const decoded = decodeRefundedIntoNoteEvent(raw as Parameters<typeof decodeRefundedIntoNoteEvent>[0]);
+    return !!decoded && (noteIds.has(decoded.inputNoteId.toString()) || noteIds.has(decoded.outputNoteId.toString()));
+  }
+  if (raw.eventName === 'ReimbursementClaimedIntoNote') {
+    const decoded = decodeReimbursementClaimedIntoNoteEvent(raw as Parameters<typeof decodeReimbursementClaimedIntoNoteEvent>[0]);
+    return !!decoded && noteIds.has(decoded.receiptNoteId.toString());
+  }
+  return false;
 }
 
 // ============================================================================
@@ -236,11 +272,19 @@ export async function getDonationActivityByRoot(
  * @param noteId - Unique identifier of the note
  * @returns The note, or null if not found
  */
+function bareNoteId(noteId: string): bigint {
+  const bare = noteId.includes(':') ? noteId.slice(noteId.lastIndexOf(':') + 1) : noteId;
+  return BigInt(bare);
+}
+
 export async function getNote(
   machinery: SDKMachinery,
   noteId: string
 ): Promise<Note | null> {
-  const rawEvents = await fetchAllDelegationEvents(machinery);
+  const rawEvents = await attachPurchaseChainCopies(
+    machinery,
+    await fetchDelegationEventsForNoteIds(machinery, [bareNoteId(noteId)]),
+  );
   const events = decodeDelegationEvents(rawEvents);
   const result = foldNote(noteId, events);
   return result?.note ?? null;
@@ -257,7 +301,10 @@ export async function getNotesByOwner(
   machinery: SDKMachinery,
   ownerAddress: string
 ): Promise<Note[]> {
-  const rawEvents = await fetchAllDelegationEvents(machinery);
+  const rawEvents = await attachPurchaseChainCopies(
+    machinery,
+    await fetchDelegationEventsForOwner(machinery, ownerAddress),
+  );
   const events = decodeDelegationEvents(rawEvents);
   const { notes } = foldDelegationState(events);
 
@@ -280,7 +327,8 @@ export async function getNotesByRoot(
   machinery: SDKMachinery,
   rootAddress: string
 ): Promise<Note[]> {
-  const rawEvents = await fetchAllDelegationEvents(machinery);
+  const { events: rootEvents } = await fetchDelegationEventsForRoot(machinery, rootAddress);
+  const rawEvents = await attachPurchaseChainCopies(machinery, rootEvents);
   const events = decodeDelegationEvents(rawEvents);
   const { notes } = foldDelegationState(events);
 
@@ -304,7 +352,10 @@ export async function getDelegationChain(
   machinery: SDKMachinery,
   noteId: string
 ): Promise<DelegationChainLink[]> {
-  const rawEvents = await fetchAllDelegationEvents(machinery);
+  const rawEvents = await attachPurchaseChainCopies(
+    machinery,
+    await fetchDelegationEventsForNoteIds(machinery, [bareNoteId(noteId)]),
+  );
   const events = decodeDelegationEvents(rawEvents);
   const result = foldNote(noteId, events);
   return result?.chain ?? [];
@@ -329,14 +380,16 @@ export async function getNoteIntentAttestation(
   noteContract: string,
   noteId: string
 ): Promise<NoteIntentAttestation | null> {
-  const rawEvents = (await fetchAllNoteIntentEventsComplete(machinery)).filter(raw => {
-    const decoded = decodeNoteIntentAttestedEvent(raw);
-    return decoded?.noteContract.toLowerCase() === noteContract.toLowerCase();
-  });
+  const rawEvents = await fetchNoteIntentsForNoteIds(machinery, [BigInt(noteId)]);
   const events: NoteIntentAttestedEvent[] = [];
   for (const raw of rawEvents) {
     const d = decodeNoteIntentAttestedEvent(raw);
-    if (d && d.noteId.toString() === noteId && d.attester.toLowerCase() === attester.toLowerCase()) {
+    if (
+      d
+      && d.noteId.toString() === noteId
+      && d.noteContract.toLowerCase() === noteContract.toLowerCase()
+      && d.attester.toLowerCase() === attester.toLowerCase()
+    ) {
       events.push(d);
     }
   }
@@ -362,14 +415,11 @@ export async function getNoteIntentAttestationsByNote(
   noteContract: string,
   noteId: string
 ): Promise<NoteIntentAttestation[]> {
-  const rawEvents = (await fetchAllNoteIntentEventsComplete(machinery)).filter(raw => {
-    const decoded = decodeNoteIntentAttestedEvent(raw);
-    return decoded?.noteContract.toLowerCase() === noteContract.toLowerCase();
-  });
+  const rawEvents = await fetchNoteIntentsForNoteIds(machinery, [BigInt(noteId)]);
   const events: NoteIntentAttestedEvent[] = [];
   for (const raw of rawEvents) {
     const d = decodeNoteIntentAttestedEvent(raw);
-    if (d && d.noteId.toString() === noteId) {
+    if (d && d.noteId.toString() === noteId && d.noteContract.toLowerCase() === noteContract.toLowerCase()) {
       events.push(d);
     }
   }
@@ -383,8 +433,7 @@ export async function getNoteIntentAttestationsByNote(
 /**
  * Get all note intent attestations targeting a specific statement.
  *
- * Since `intendedStatementId` is not indexed on-chain, this fetches all
- * NoteIntentAttested events and filters client-side.
+ * `intendedStatementId` is indexed, so this asks the event cache for that topic.
  *
  * @param machinery - SDK machinery with event cache configuration
  * @param intendedStatementId - CID of the intended statement
@@ -394,8 +443,7 @@ export async function getNoteIntentAttestationsByStatement(
   machinery: SDKMachinery,
   intendedStatementId: string
 ): Promise<NoteIntentAttestation[]> {
-  // intendedStatementId is non-indexed, so we fetch all and filter client-side
-  const rawEvents = await fetchAllNoteIntentEvents(machinery);
+  const rawEvents = await fetchNoteIntentsForStatement(machinery, intendedStatementId);
   const events: NoteIntentAttestedEvent[] = [];
   for (const raw of rawEvents) {
     const d = decodeNoteIntentAttestedEvent(raw);
@@ -408,31 +456,12 @@ export async function getNoteIntentAttestationsByStatement(
   return foldNoteIntentAttestations(events).filter(a => a.intendedStatementId === intendedStatementId);
 }
 
-type AggregateFetchCacheEntry = {
-  expiresAt: number;
-  delegation?: Promise<Awaited<ReturnType<typeof fetchAllDelegationEventsComplete>>>;
-  intents: Promise<Awaited<ReturnType<typeof fetchAllNoteIntentEventsComplete>>>;
-};
-const aggregateFetchCache = new WeakMap<SDKMachinery, AggregateFetchCacheEntry>();
-
-function getAggregateRawEvents(machinery: SDKMachinery) {
-  const cached = aggregateFetchCache.get(machinery);
-  if (cached && cached.expiresAt > Date.now()) return cached;
-  const next: AggregateFetchCacheEntry = {
-    expiresAt: Date.now() + 15_000,
-    intents: fetchAllNoteIntentEventsComplete(machinery),
-  };
-  aggregateFetchCache.set(machinery, next);
-  return next;
-}
-
-/** Fold every note and latest intent once, then apply the normative validity filters. */
+/** Fold the notes that intend this statement, then apply the normative validity filters. */
 export async function getNoteIntentAggregate(
   machinery: SDKMachinery,
   statementId: string,
 ): Promise<NoteIntentAggregate> {
-  const cached = getAggregateRawEvents(machinery);
-  const intentRaw = await cached.intents;
+  const intentRaw = await fetchNoteIntentsForStatement(machinery, statementId);
   const decodedIntents = intentRaw
     .map(decodeNoteIntentAttestedEvent)
     .filter((event): event is NoteIntentAttestedEvent => event !== null)
@@ -442,8 +471,15 @@ export async function getNoteIntentAggregate(
     return { statementId, currencies: [], contributorCount: 0, noteCount: 0 };
   }
 
-  cached.delegation ??= fetchAllDelegationEventsComplete(machinery);
-  const delegationRaw = await cached.delegation;
+  const noteIds = latest
+    .filter(attestation => attestation.intendedStatementId === statementId)
+    .map(attestation => BigInt(attestation.noteId));
+  const noteHistory = await fetchDelegationEventsForNoteIds(machinery, noteIds);
+  // Receipt and refund outputs are minted with a one-link chain. The purchase
+  // events restore the root, and the root is who may attest the note.
+  const delegationRaw = noteIds.length === 0
+    ? noteHistory
+    : await attachPurchaseChainCopies(machinery, noteHistory);
   const { notes } = foldDelegationState(decodeDelegationEvents(delegationRaw));
 
   const noteContract = machinery.contractAddresses?.delegatableNotes?.toLowerCase();
@@ -512,7 +548,7 @@ export async function getPurchasedNoteEventsByTxHashes(
 ): Promise<NoteEvent[]> {
   if (transactionHashes.length === 0) return [];
 
-  const rawEvents = await fetchAllDelegationEvents(machinery);
+  const rawEvents = await fetchPurchaseLifecycleEvents(machinery);
   const txHashSet = new Set(transactionHashes.map(h => h.toLowerCase()));
 
   const noteEvents: NoteEvent[] = [];
@@ -559,7 +595,10 @@ export async function getDelegationChainsForNotes(
 ): Promise<DelegationChainLinkWithNote[]> {
   if (noteIds.length === 0) return [];
 
-  const rawEvents = await fetchAllDelegationEvents(machinery);
+  const rawEvents = await attachPurchaseChainCopies(
+    machinery,
+    await fetchDelegationEventsForNoteIds(machinery, noteIds.map(bareNoteId)),
+  );
   const events = decodeDelegationEvents(rawEvents);
   const { notes, chains } = foldDelegationState(events);
 

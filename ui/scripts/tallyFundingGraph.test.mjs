@@ -31,6 +31,7 @@ const sdkEntries = {
   'nudger-publications': 'subsystems/nudger-publications/index.ts',
   'signer-profiles': 'subsystems/signer-profiles/index.ts',
   subjectiv: 'subsystems/subjectiv/index.ts',
+  'suggested-names': 'subsystems/suggested-names/index.ts',
 }
 
 const forbiddenFragments = [

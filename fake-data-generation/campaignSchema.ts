@@ -22,7 +22,8 @@ export type CampaignActionType =
   | 'fund-project'
   | 'deposit-note'
   | 'delegate-note'
-  | 'revoke-delegation';
+  | 'revoke-delegation'
+  | 'spend-delegated-note';
 
 export interface CampaignStatementRef {
   collectionId: string;
@@ -36,6 +37,13 @@ export interface CampaignCause {
   activityTier: 'large' | 'medium' | 'small';
   membershipWeight: number;
   statementRefs: CampaignStatementRef[];
+}
+
+/** Demo navigation. Several causes can share one area. A cause not listed here stays its own area. */
+export interface CampaignDemoArea {
+  id: string;
+  title: string;
+  causeIds: string[];
 }
 
 export interface CampaignPersona {
@@ -68,6 +76,16 @@ export interface CampaignActionRule {
   targetCount: { min: number; max: number };
 }
 
+/** Explicit size bounds. Omitted manifests keep the historical 8–18 causes and 30–70 statement refs. */
+export interface CampaignScale {
+  minCauses: number;
+  maxCauses: number;
+  /** Unique catalog statements. A statement reused on another board counts once. */
+  minStatements: number;
+  maxStatements: number;
+  allowRepeatedStatementRefs?: boolean;
+}
+
 export interface CampaignManifestV1 {
   schema: typeof CAMPAIGN_SCHEMA_VERSION;
   campaign: {
@@ -86,10 +104,57 @@ export interface CampaignManifestV1 {
     campaignCollection?: string;
   };
   causes: CampaignCause[];
+  /** Optional coarser grouping for the test-data admin "Demo by area" list. */
+  demoAreas?: CampaignDemoArea[];
   personas: CampaignPersona[];
   userProfiles?: CampaignUserProfile[];
   actionRules: CampaignActionRule[];
   artifactLayout: Record<string, string>;
+  /** When set, replaces the historical fixed cause and statement-ref caps. */
+  scale?: CampaignScale;
+  /** Curated project stories beside the manifest. Not a TypeScript story module. */
+  projectStories?: string;
+  /**
+   * When set, attest-implication uses only these pairs and their evidence labels.
+   * Absent manifests still plan every modified-to-commonality pair as accepted-bridge-role-pair.
+   */
+  implicationAllowances?: CampaignImplicationAllowance[];
+  /**
+   * Persona sign and reject choices. The planner pins those set-belief writes
+   * and does not let the random draw overwrite them. Unsigned entries stay unpinned.
+   */
+  beliefDecisions?: string;
+  /**
+   * One named project gets early 0.10-receipt purchases, then retroactive
+   * donations that depend on those purchases. Twenty early purchases match
+   * the 2 USDZZZ project threshold. Absent on historical manifests.
+   */
+  reimbursement?: {
+    projectTitle: string;
+    earlyPurchases: number;
+    retroactiveDonations: number;
+  };
+  /**
+   * One payment-token note stays delegated, and the delegate buys one cheap
+   * receipt on a named project. Absent on historical manifests. The Pat/Ned
+   * revoke pair is a different story and must not be this pair.
+   */
+  delegatedSpend?: {
+    ownerUserId: string;
+    delegateUserId: string;
+    projectTitle: string;
+  };
+}
+
+export type CampaignImplicationEvidence =
+  | 'accepted-bridge-role-pair'
+  | 'live-attester-modified-to-commonality'
+  | 'live-attester-recorded-bless';
+
+export interface CampaignImplicationAllowance {
+  from: CampaignStatementRef;
+  to: CampaignStatementRef;
+  evidence: CampaignImplicationEvidence;
 }
 
 function requireUnique(values: string[], label: string): void {
@@ -106,15 +171,61 @@ function validateCampaignIdentity(manifest: CampaignManifestV1): void {
   if (!campaign.deterministicSeed) throw new Error('campaign.deterministicSeed is required');
 }
 
+function campaignScale(manifest: CampaignManifestV1): CampaignScale {
+  return manifest.scale ?? { minCauses: 8, maxCauses: 18, minStatements: 30, maxStatements: 70, allowRepeatedStatementRefs: false };
+}
+
 function validateCauses(manifest: CampaignManifestV1): void {
-  if (manifest.causes.length < 8 || manifest.causes.length > 18) throw new Error('campaign must contain 8-18 causes');
+  const scale = campaignScale(manifest);
+  if (manifest.scale && (scale.minCauses < 1 || scale.maxCauses < scale.minCauses || scale.minStatements < 1 || scale.maxStatements < scale.minStatements)) {
+    throw new Error('campaign scale limits are invalid');
+  }
+  if (manifest.causes.length < scale.minCauses || manifest.causes.length > scale.maxCauses) {
+    throw new Error(manifest.scale ? `campaign must contain ${scale.minCauses}-${scale.maxCauses} causes` : 'campaign must contain 8-18 causes');
+  }
   requireUnique(manifest.causes.map((cause) => cause.id), 'cause IDs');
   const statementRefs = manifest.causes.flatMap((cause) => cause.statementRefs);
   const statementKeys = statementRefs.map((ref) => `${ref.collectionId}/${ref.groupId}/${ref.statementId}`);
-  requireUnique(statementKeys, 'statement references');
-  if (statementRefs.length < 30 || statementRefs.length > 70) throw new Error('campaign must contain 30-70 statements');
+  if (!scale.allowRepeatedStatementRefs) requireUnique(statementKeys, 'statement references');
+  const uniqueStatements = new Set(statementKeys).size;
+  if (uniqueStatements < scale.minStatements || uniqueStatements > scale.maxStatements) {
+    throw new Error(manifest.scale ? `campaign must contain ${scale.minStatements}-${scale.maxStatements} unique statements` : 'campaign must contain 30-70 statements');
+  }
   if (manifest.causes.some((cause) => cause.membershipWeight <= 0 || cause.statementRefs.length === 0)) {
     throw new Error('every cause needs a positive membership weight and at least one statement');
+  }
+  const allowances = manifest.implicationAllowances ?? [];
+  const allowanceKeys = allowances.map((item) => `${statementRefKey(item.from)}=>${statementRefKey(item.to)}`);
+  requireUnique(allowanceKeys, 'implication allowances');
+  for (const item of allowances) {
+    if (item.evidence !== 'accepted-bridge-role-pair' && item.evidence !== 'live-attester-modified-to-commonality' && item.evidence !== 'live-attester-recorded-bless') {
+      throw new Error(`invalid implication evidence for ${allowanceKeys[allowances.indexOf(item)]}`);
+    }
+    if (item.from.collectionId !== item.to.collectionId || item.from.groupId !== item.to.groupId) {
+      throw new Error(`implication allowance crosses groups: ${allowanceKeys[allowances.indexOf(item)]}`);
+    }
+  }
+}
+
+function statementRefKey(ref: CampaignStatementRef): string {
+  return `${ref.collectionId}/${ref.groupId}/${ref.statementId}`;
+}
+
+function validateDemoAreas(manifest: CampaignManifestV1): void {
+  const areas = manifest.demoAreas;
+  if (!areas) return;
+  if (areas.length === 0) throw new Error('demoAreas must list at least one area');
+  requireUnique(areas.map((area) => area.id), 'demo area IDs');
+  const known = new Set(manifest.causes.map((cause) => cause.id));
+  const membership = areas.flatMap((area) => area.causeIds);
+  requireUnique(membership, 'demo area cause IDs');
+  for (const area of areas) {
+    if (!/^[a-z0-9][a-z0-9-]+$/.test(area.id)) throw new Error(`demo area id must be kebab-case: ${area.id}`);
+    if (!area.title.trim()) throw new Error(`demo area ${area.id} needs a title`);
+    if (area.causeIds.length === 0) throw new Error(`demo area ${area.id} needs at least one cause`);
+    for (const causeId of area.causeIds) {
+      if (!known.has(causeId)) throw new Error(`demo area ${area.id} names unknown cause ${causeId}`);
+    }
   }
 }
 
@@ -185,7 +296,33 @@ export function validateCampaignManifest(manifest: CampaignManifestV1): void {
   if (manifest.sourcePolicy.campaignCollection && !/^[a-z0-9][a-z0-9-]*\.json$/.test(manifest.sourcePolicy.campaignCollection)) {
     throw new Error('sourcePolicy.campaignCollection must be a JSON filename in campaigns/');
   }
+  if (manifest.projectStories && !/^[a-z0-9][a-z0-9-]*\.json$/.test(manifest.projectStories)) {
+    throw new Error('projectStories must be a JSON filename in campaigns/');
+  }
+  if (manifest.beliefDecisions && !/^[a-z0-9][a-z0-9-]*\.json$/.test(manifest.beliefDecisions)) {
+    throw new Error('beliefDecisions must be a JSON filename in campaigns/');
+  }
+  if (manifest.reimbursement) {
+    const { projectTitle, earlyPurchases, retroactiveDonations } = manifest.reimbursement;
+    if (!projectTitle.trim()) throw new Error('reimbursement.projectTitle is required');
+    if (!Number.isInteger(earlyPurchases) || earlyPurchases < 1) throw new Error('reimbursement.earlyPurchases must be a positive integer');
+    if (!Number.isInteger(retroactiveDonations) || retroactiveDonations < 1) throw new Error('reimbursement.retroactiveDonations must be a positive integer');
+  }
+  if (manifest.delegatedSpend) {
+    const { ownerUserId, delegateUserId, projectTitle } = manifest.delegatedSpend;
+    if (!/^user-\d{3}$/.test(ownerUserId) || !/^user-\d{3}$/.test(delegateUserId) || ownerUserId === delegateUserId) {
+      throw new Error('delegatedSpend needs two different user ids');
+    }
+    if (!projectTitle.trim()) throw new Error('delegatedSpend.projectTitle is required');
+    const spendRule = manifest.actionRules.find((rule) => rule.type === 'spend-delegated-note');
+    if (!spendRule || spendRule.targetCount.min !== 1 || spendRule.targetCount.max !== 1) {
+      throw new Error('delegatedSpend requires exactly one spend-delegated-note action');
+    }
+  } else if (manifest.actionRules.some((rule) => rule.type === 'spend-delegated-note')) {
+    throw new Error('spend-delegated-note requires delegatedSpend');
+  }
   validateCauses(manifest);
+  validateDemoAreas(manifest);
   validatePersonas(manifest);
   validateActionRules(manifest);
   validateArtifactLayout(manifest);

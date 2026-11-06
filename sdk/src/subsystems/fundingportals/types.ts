@@ -66,6 +66,8 @@ export interface SuccessfulProjectForCause {
    */
   successConfidenceBasis: 'attester-count' | 'trust-weighted';
   successAttesters: string[];
+  /** Set when the vouch names a work item. It does not vouch the rest of a bundle. */
+  attestedWorkId?: string;
 }
 
 /** Aggregated funding metrics for a cause across all aligned projects. */

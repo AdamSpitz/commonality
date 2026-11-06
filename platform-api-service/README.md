@@ -80,6 +80,13 @@ All configuration is via environment variables.
 - `COINBASE_CDP_API_KEY_ID` and `COINBASE_CDP_API_KEY_SECRET` optional, required for `POST /onramp/coinbase/session`
 - `BASE_RPC_URL` optional Base mainnet RPC override for `GET /onramp/base-usdc-balance`; defaults to `https://mainnet.base.org`
 
+### Sponsored gas
+
+- `CREATOR_GAS_TANK_PAYMASTER_ADDRESS` (falls back to `CREATOR_GAS_TANK_ADDRESS`) is the v0.7 paymaster returned by `POST /sponsored-gas/paymaster`. `CREATOR_GAS_TANK_ADDRESS` is the vault funders enroll/fund.
+- `CREATOR_GAS_TANK_PAYMASTER_V06_ADDRESS` is used when the ERC-7677 request names EntryPoint v0.6.
+- `STATEMENT_GAS_TANK_PAYMASTER_ADDRESS` (falls back to `STATEMENT_GAS_TANK_ADDRESS`) plus `BELIEFS_CONTRACT_ADDRESS` enable statement-signature sponsorship. Only `believes` calls are eligible; the vault checks enrollment, shared sponsor, balance, and wallet limits. `STATEMENT_GAS_TANK_PAYMASTER_V06_ADDRESS` is the v0.6 face.
+- Either sponsorship route may be configured independently. The endpoint supports Kernel v3 single and batch executions and both ERC-7677 paymaster methods.
+
 ### Caching and rate limits
 
 - `CHALLENGE_TTL_SECONDS` default `1800`

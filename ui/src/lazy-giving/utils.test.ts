@@ -4,6 +4,11 @@ import type { Contribution, Refund } from '@commonality/sdk/lazy-giving'
 import { ETH_CURRENCY } from '@commonality/sdk/utils'
 
 describe('getProjectStatus', () => {
+  it('uses the actual condition for fully funded proposals awaiting acceptance or vetoed', () => {
+    const funded = { totalReceived: '100', threshold: '100', deadline: '9999999999' }
+    expect(getProjectStatus({ ...funded, conditionStatus: 'active' })).toBe('active')
+    expect(getProjectStatus({ ...funded, conditionStatus: 'refunding' })).toBe('refunding')
+  })
   it('returns succeeded when totalReceived >= threshold', () => {
     expect(getProjectStatus({ totalReceived: '100', threshold: '100', deadline: '9999999999' })).toBe('succeeded')
     expect(getProjectStatus({ totalReceived: '200', threshold: '100', deadline: '9999999999' })).toBe('succeeded')
@@ -59,8 +64,8 @@ describe('STATUS_LABELS', () => {
 
 describe('STATUS_TOOLTIPS', () => {
   it('explains each status', () => {
-    expect(STATUS_TOOLTIPS.active).toMatch(/minimum has not been met/i)
-    expect(STATUS_TOOLTIPS.succeeded).toMatch(/met its minimum/i)
+    expect(STATUS_TOOLTIPS.active).toMatch(/beneficiary acceptance/i)
+    expect(STATUS_TOOLTIPS.succeeded).toMatch(/funding condition succeeded/i)
     expect(STATUS_TOOLTIPS.refunding).toMatch(/reclaim/i)
   })
 })

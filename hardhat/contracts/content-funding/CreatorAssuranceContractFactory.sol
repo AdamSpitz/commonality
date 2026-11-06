@@ -226,6 +226,12 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
         emit ProspectiveRoundFactoryAuthorizationSet(factory, authorized);
     }
 
+    /// @notice Allow another factory (ordinary projects) to reserve work in this registry.
+    function setWorkRegistrar(address registrar, bool allowed) external onlyOwner {
+        if (registrar == address(0)) revert InvalidProspectiveRoundFactory();
+        contentRegistry.setRegistrar(registrar, allowed);
+    }
+
     function authorizeMaterializedRegistrar(address registrar) external {
         if (!isAuthorizedProspectiveRoundFactory[msg.sender]) revert OnlyProspectiveRoundFactory();
         contentRegistry.setRegistrar(registrar, true);
@@ -411,9 +417,7 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
         erc1155.setReceiptTransferBridge(address(ac), true);
         erc1155.renounceOwnership();
 
-        for (uint256 i = 0; i < content.ids.length; i++) {
-            contentRegistry.registerContent(content.ids[i], address(ac), content.canonicalIds[i]);
-        }
+        contentRegistry.registerWorks(content.canonicalIds, address(ac), conditionAddress, msg.sender);
 
         channelIdByContract[address(ac)] = params.channelId;
         isThirdPartyCreated[address(ac)] = isThirdParty;

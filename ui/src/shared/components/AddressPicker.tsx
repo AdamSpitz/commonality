@@ -14,7 +14,7 @@ import {
   Button,
   CircularProgress,
 } from '@mui/material'
-import { truncateAddress } from '../utils/address'
+import { AccountAddress, AccountName } from './AccountName'
 import { getContacts, addContact, type ContactKind, type SavedContact } from '../stores/contactStore'
 import { useResolvedAddress, type ResolvedAddress } from '../hooks/useResolvedAddress'
 
@@ -97,7 +97,7 @@ function ContactChooser({
         renderValue={(value) => {
           if (!value) return <Typography color="text.secondary">Select a contact…</Typography>
           const contact = contacts.find((c) => c.address === value)
-          return contact ? `${contact.label} (${truncateAddress(contact.address)})` : value
+          return contact ? <>{contact.label} (<AccountAddress address={contact.address} />)</> : value
         }}
       >
         {contacts.map((contact) => (
@@ -105,7 +105,7 @@ function ContactChooser({
             <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
               <Typography variant="body2">{contact.label}</Typography>
               <Typography variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace', ml: 2 }}>
-                {truncateAddress(contact.address)}
+                <AccountAddress address={contact.address} />
               </Typography>
             </Box>
           </MenuItem>
@@ -176,7 +176,7 @@ function ManualEntry({
           }
         >
           <Typography variant="body2">
-            <strong>{resolution.ensName}</strong> resolves to{' '}
+            <AccountName address={resolved} label={resolution.ensName} detail={resolution.ensName} /> resolves to{' '}
             <code style={{ fontSize: '0.85em' }}>{resolved}</code>
           </Typography>
           <Typography variant="caption">
@@ -202,7 +202,7 @@ function ManualEntry({
           }
         >
           <Typography variant="body2">
-            Using address: <code style={{ fontSize: '0.85em' }}>{truncateAddress(resolved)}</code>
+            Using address: <code style={{ fontSize: '0.85em' }}><AccountAddress address={resolved} /></code>
           </Typography>
           <Typography variant="caption">{confirmWarning}</Typography>
         </Alert>
@@ -322,7 +322,7 @@ export function AddressPicker({
                 <Typography variant="body2">{selfOptionLabel}</Typography>
                 {selfAddress && (
                   <Typography variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace' }}>
-                    ({truncateAddress(selfAddress)})
+                    (<AccountAddress address={selfAddress} />)
                   </Typography>
                 )}
               </Box>
@@ -365,7 +365,7 @@ export function AddressPicker({
       {selected && mode !== 'manual' && (
         <Box sx={{ mt: 1 }}>
           <Typography variant="caption" color="text.secondary">
-            {legend}: <code style={{ fontFamily: 'monospace' }}>{truncateAddress(selected)}</code>
+            {legend}: <code style={{ fontFamily: 'monospace' }}><AccountAddress address={selected} /></code>
           </Typography>
         </Box>
       )}

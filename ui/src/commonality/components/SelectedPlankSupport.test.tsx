@@ -1,8 +1,7 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { SelectedPlankSupport } from './SelectedPlankSupport'
-import { sendCallsPreferAtomic } from '../lib/causeRoster'
-import { getUserBelief } from '@commonality/sdk/conceptspace'
+import { getUserBelief, setBeliefsBatch } from '@commonality/sdk/conceptspace'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 
 vi.mock('wagmi', () => ({
@@ -16,10 +15,10 @@ vi.mock('../../shared', async (importOriginal) => {
     getRuntimeConfigValue: vi.fn(() => '0x2222222222222222222222222222222222222222'),
   }
 })
-vi.mock('../lib/causeRoster', () => ({ sendCallsPreferAtomic: vi.fn() }))
 vi.mock('@commonality/sdk/conceptspace', () => ({
   BeliefStates: { NO_OPINION: 0, BELIEVES: 1, DISBELIEVES: 2 },
   getUserBelief: vi.fn(),
+  setBeliefsBatch: vi.fn(),
 }))
 vi.mock('./ConnectWalletHint', () => ({ ConnectWalletHint: () => <button>Connect</button> }))
 
@@ -37,7 +36,7 @@ describe('SelectedPlankSupport', () => {
   })
 
   beforeEach(() => {
-    vi.mocked(sendCallsPreferAtomic).mockReset().mockResolvedValue({ hashes: ['0xabc'], batched: true })
+    vi.mocked(setBeliefsBatch).mockReset().mockResolvedValue('0xabc')
     vi.mocked(getUserBelief).mockReset().mockImplementation(async (_machinery, _user, cid) => ({
       statementCid: cid,
       beliefState: NO_OPINION,
@@ -55,10 +54,10 @@ describe('SelectedPlankSupport', () => {
     const button = await screen.findByTestId('support-selected-planks')
     await waitFor(() => expect(button).toBeEnabled())
     fireEvent.click(button)
-    await waitFor(() => expect(sendCallsPreferAtomic).toHaveBeenCalledOnce())
-    const calls = vi.mocked(sendCallsPreferAtomic).mock.calls[0]![1]
-    expect(calls).toHaveLength(1)
-    expect(calls[0]!.functionName).toBe('setBelief')
+    await waitFor(() => expect(setBeliefsBatch).toHaveBeenCalledOnce())
+    const updates = vi.mocked(setBeliefsBatch).mock.calls[0]![2]
+    expect(updates).toHaveLength(1)
+    expect(updates[0]!.beliefState).toBe(BELIEVES)
     expect(onSupported).toHaveBeenCalledOnce()
   })
 
@@ -70,7 +69,7 @@ describe('SelectedPlankSupport', () => {
     const { container } = render(<SelectedPlankSupport machinery={{} as never} planks={planks} onSupported={vi.fn()} />)
     await waitFor(() => expect(container).toBeEmptyDOMElement())
     expect(screen.queryByTestId('support-selected-planks')).not.toBeInTheDocument()
-    expect(sendCallsPreferAtomic).not.toHaveBeenCalled()
+    expect(setBeliefsBatch).not.toHaveBeenCalled()
   })
 
   it('stays hidden when no statements are selected', () => {

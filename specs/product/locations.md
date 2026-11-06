@@ -1,12 +1,14 @@
 # Location self-attestations
 
-The idea here is to give the owner of an Ethereum account a way to self-declare his location, fuzzily (not street address, just neighbourhood or city or whatever).
+The idea here is to give the owner of an Ethereum account a way to self-declare his location.
+  - Probably better if this is done fuzzily (not street address, just neighbourhood or city or whatever).
+  - Unverified is fine for some purposes; if someone comes up with a way to verify, that's even better.
 
-It won't be verified, but that's fine for some purposes.
-
-In particular, what I want to do with it is give the Tally app some way of showing you how many people *in a particular area* support a particular statement. It's fine if the UI shows "2 verified, 73 unverified" (if we can come up with some way of verifying the locations at all - if not, that's fine too, we'll just make it clear that they're all unverified).
+In particular, what I want to do with it is give the app some way of showing you how many people *in a particular area* support a particular statement. It's fine if the UI shows "2 verified, 73 unverified" (if we can come up with some way of verifying the locations at all - if not, that's fine too, we'll just make it clear that they're all unverified).
 
 The point is that this would be *really* nice information to know if you're trying to build a movement in some area, or even just find some like-minded friends.
+
+The attestations themselves can be done using EAS or not, I don't really care.
 
 
 ## I asked an AI
@@ -16,7 +18,7 @@ The point is that this would be *really* nice information to know if you're tryi
 > If not, how could such a thing be implemented? Is there a natural/standard way of representing fuzzy locations, so that it would be possible to (for example) show a map of how many accounts have declared themselves to be in which areas, or do a search to find accounts that have declared themselves to be in some particular area?
 
 
-Good, I have enough to give a solid answer. Let me also check H3 resolution table for the city/neighbourhood sizes.Great, I have everything I need. Here's a comprehensive answer:
+Good, I have enough to give a solid answer. Let me also check H3 resolution table for the city/neighbourhood sizes. Great, I have everything I need. Here's a comprehensive answer:
 
 ### Existing ecosystem: not really
 

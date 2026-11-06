@@ -141,3 +141,39 @@ test('SDK provider exposes a derived mismatch instead of hiding it', async () =>
   const belief = plan.actions.find((item) => item.type === 'set-belief')!;
   assert.notEqual((await provider.getDerivedChecks(belief))[0].expected, (await provider.getDerivedChecks(belief))[0].actual);
 });
+
+test('a fully spent delegated note is no longer active', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../campaigns/network-societies-v1-b2-note-spend.json', import.meta.url), 'utf8')) as CampaignManifestV1;
+  const plan = await buildCampaignPlan(manifest);
+  const spent = plan.actions.find((item) => item.type === 'spend-delegated-note')!;
+  const deposit = plan.actions.find((item) => item.type === 'deposit-note' && item.noteId === spent.noteId)!;
+  const bindings: CampaignRuntimeBindings = {
+    version: CAMPAIGN_RUNTIME_BINDINGS_VERSION,
+    campaignId: plan.campaignId,
+    manifestFingerprint: plan.manifestFingerprint,
+    updatedAt: new Date(0).toISOString(),
+    users: Object.fromEntries(plan.users.map((item, index) => [item.id, address(index + 1)])),
+    statements: Object.fromEntries(plan.statements.map((item) => [item.id, fakeIpfsCidV1(item.id)])),
+    ...publicationBindings(plan),
+    projects: Object.fromEntries(plan.projects.map((item, index) => [item.id, address(index + 301)])),
+    notes: Object.fromEntries([...new Set(plan.actions.flatMap((item) => item.noteId ? [item.noteId] : []))].map((id, index) => [id, { contractAddress: address(401), noteId: String(index + 1) }])),
+  };
+  const queries = {
+    getUserBelief: async () => 1,
+    hasImplication: async () => true,
+    getRefsByName: async () => [],
+    getProject: async () => null,
+    hasAlignment: async () => true,
+    getNote: async () => ({
+      id: '8', contractAddress: address(401), chainHash: '0x', amount: '1', token: address(996), tokenType: 0, tokenId: '0',
+      owner: bindings.users[spent.actorUserId!], rootOwner: bindings.users[deposit.actorUserId!], active: false,
+      createdAt: '0', createdAtBlock: '1', updatedAt: '0',
+    }),
+  } satisfies CampaignSdkQueries;
+  const provider = createCampaignSdkDerivedCheckProvider({ machinery: { ipfsConfig: {}, twitterApiConfig: {}, testConfig: {} }, plan, bindings, queries });
+  const checks = await provider.getDerivedChecks(deposit);
+  const active = checks.find((item) => item.name === 'SDK note remains active');
+  assert.equal(active?.expected, false);
+  assert.equal(active?.actual, false);
+  assert.equal(checks.find((item) => item.name === 'SDK final note owner')?.expected, bindings.users[spent.actorUserId!]);
+});

@@ -1,7 +1,4 @@
-import { IpfsCidV1, normalizeCidV1, buildCidV1FromDigest } from './cid-types.js';
-
-const DAG_PB_CODEC = 0x70;
-const RAW_CODEC = 0x55;
+import { IpfsCidV1, normalizeCidV1, buildCidV1FromDigest, RAW_CID_CODEC } from './cid-types.js';
 
 /**
  * In-memory mock IPFS storage for unit tests
@@ -33,7 +30,7 @@ export async function uploadToMockIPFS(content: object): Promise<IpfsCidV1> {
   const bytes = new TextEncoder().encode(JSON.stringify(content));
   const hashBuffer = await crypto.subtle.digest('SHA-256', bytes);
   const digest = new Uint8Array(hashBuffer);
-  const cid = buildCidV1FromDigest(DAG_PB_CODEC, digest);
+  const cid = buildCidV1FromDigest(RAW_CID_CODEC, digest);
   const cidString = normalizeCidV1(cid);
   mockIPFSStore.set(cidString, content);
   return cidString;
@@ -47,6 +44,6 @@ export async function uploadBlobToMockIPFS(blob: Blob): Promise<IpfsCidV1> {
   const bytes = await blob.arrayBuffer();
   const hashBuffer = await crypto.subtle.digest('SHA-256', bytes);
   const digest = new Uint8Array(hashBuffer);
-  const cid = buildCidV1FromDigest(RAW_CODEC, digest);
+  const cid = buildCidV1FromDigest(RAW_CID_CODEC, digest);
   return normalizeCidV1(cid);
 }

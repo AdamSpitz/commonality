@@ -1,6 +1,6 @@
 # 0001. Custom onchain paymaster with per-creator gas tanks
 
-- **Status:** Accepted
+- **Status:** Accepted. Wallet-provider portion superseded in part by [0021](./0021-portable-wallets-not-privy.md).
 - **Date:** 2026-06-18 (wallet provider ratified; paymaster direction set)
 - **Related specs:** [`specs/tech/sponsored-gas.md`](../tech/sponsored-gas.md),
   [`specs/tech/bridges.md`](../tech/bridges.md)

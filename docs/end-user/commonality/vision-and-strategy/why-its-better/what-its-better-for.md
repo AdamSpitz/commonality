@@ -1,16 +1,96 @@
 # What kinds of public goods is Commonality better for?
 
+The early uses we have in mind are people building something like a
+[network society](../credible-solution/network-societies.md), and people finding
+[specific bridges across divides](./organic-coalitions.md). Both need a way to
+discover shared preferences and fund work together without first agreeing to
+join one organization or endorse a whole platform.
+
+## Where we'd start
+
+### Shared infrastructure for an overlapping population
+
+Imagine people who want a particular kind of education, food environment, or
+community life. They need ways to find each other, meet locally, share knowledge,
+and get useful work done. Maintaining a chapter map, checking a provider
+directory, writing a host kit, or keeping a public record of experiments all
+benefit people beyond whoever pays for them. These are public goods for a
+particular population, even if most of the world has no interest in them.
+
+The network-society use case is funding those jobs separately. Someone can back
+a directory without endorsing every chapter, or fund shared software without
+accepting a founder's whole vision. Multiple front doors, statements, and
+organizers can serve overlapping populations. Each project has people responsible
+for delivering it; the population doesn't need a single treasury or leadership
+team before useful work can begin.
+
+Some activities in that picture already have a straightforward way to pay for
+themselves: tickets can fund an event, and fees can fund a private service.
+Commonality's strongest case is the shared infrastructure that those transactions
+leave underfunded. The [network-society page](../credible-solution/network-societies.md)
+describes the wider menu of jobs.
+
+### Many specific bridges, each with its own supporters
+
+Imagine two camps that disagree about education but might both support an
+independent test of a disputed school practice. An organizer proposes that
+specific shared undertaking, with wording each side could accept for its own
+reasons. People can support it while continuing to disagree about much else.
+
+That is the useful unit for early coalition-building: a particular bridge, with
+identifiable audiences, a concrete proposition, and work worth funding. A
+bridge need not attract a majority to be useful. Its supporters might form an
+intense minority, and the people who support the next bridge may be different.
+
+This changes how we'd approach the **Common Sense Majority** idea. A collection
+of possible bridges can help people discover the ones they agree with. Requiring
+agreement with a package of an organizer's preferred compromises would recreate
+the bundling problem. The invitation should be: "Here are many possible places
+to find common ground; which of them make sense to you?" Each bridge should
+stand on its own, with its own evidence of support and fundable projects.
+Supporting one does not imply supporting the others, and a count of everyone
+who supports at least one is not a constituency for the whole package.
+
+### Civility in service of a particular bridge
+
+A proposed bridge needs to reach people who might accept it. That gives
+[noninflammatory content funding](../../../shared/use-case-walkthroughs/noninflammatory-content.md)
+a specific job: help these audiences seriously consider this proposition.
+For the school-practice example, supporters could fund an explanation of each
+side's concerns, a discussion of what an independent test could establish, or
+responses to objections from prospective supporters. Writing, distribution,
+and learning from those readers' responses are all part of the work.
+
+This is the early **Civility** use case: content scoped to one bridge and its
+audiences. It can make a strong case while treating disagreement fairly.
+Different bridges can have different writers, evaluators, and funders; they
+don't need to share an editorial line on every other issue.
+
+The bridge starts as a hypothesis. Respectful content and favorable evaluations
+do not establish that people agree, and agreement does not establish willingness
+to pay. Useful evidence includes people from the intended audiences actually
+endorsing the proposition, contributing money, and completing shared work.
+Sometimes the result will be a narrower bridge or a clearer account of genuine
+disagreement. That is useful learning too.
+
+These uses reinforce each other: an overlapping population needs shared
+infrastructure, and it may discover opportunities to fund particular projects
+with people outside it. Bridge-building and communication can themselves be
+among the public goods that population wants to fund.
+
+## Why these uses fit
+
 We already have governments and charities funding public goods. The world is not devoid of clean water, research, or parks. So the honest question isn't "could a public good exist without Commonality?" — obviously many do. But our existing institutions fail in characteristic ways, and Commonality has mechanisms with different strengths and weaknesses. Which kinds of public goods are *underproduced* today, why, and which of those might Commonality be good for?
 
 The primary case is not wealth redistribution. You pay because you want the thing. A pair of jeans is a private purchase: you pay, and you wear them. A park, a research result, a software release, or a blogger's next month of writing is a different shape. A whole bunch of people pay, and once it exists the people who paid and everyone else get to use it. That is a public good in the economist's sense — non-excludable, and usually non-rival — and it is where an assurance contract earns its keep. You cannot (or it would be awkward to) keep the result to the payers, and partial funding often buys nothing: the release, the study, or the month of work happens only if the total is reached.
 
 Ordinary charity is often the other shape. "We want people who can't afford them to have more food and clothing" benefits from every extra dollar, so a normal donation already does the job. Nothing stops someone from running that through Commonality. It just is not what the mechanism is for.
 
-Building a vertical and need concrete examples rather than categories? These seven
-are the *gate*; `specs/product/cause-taxonomy.md` is the
-generator that turns them into a populated fundable-projects board.
+The seven categories below explain the broader fit; they are not seven equally
+important launch priorities. For founders turning them into concrete projects,
+the cause taxonomy (`specs/product/cause-taxonomy.md`) provides a generation framework.
 
-The gate applies to a **deliverable**, not merely a cause title. "Education" or
+The test of fit applies to a **deliverable**, not merely a cause title. "Education" or
 "open science" might describe work an existing institution already funds well.
 For a proposed project, ask: *What will be delivered, who wants to pay, who
 benefits without paying, and who would have to say yes today?* If willing payers
@@ -34,7 +114,7 @@ The real distinction is between *rent-seeking* and *self-financing*. The minorit
 
 So the honest framing isn't "passion can't outvote a majority." It's: the political system rewards minorities who can extract from the majority, and there is no good mechanism for a minority to fund its own genuinely public good out of its own pockets. The lobbying crowd wants *other people's* money; these minorities are willing to spend *their own* but are blocked by the [free-rider](../credible-solution/assurance-contracts.md) and [discovery](../credible-solution/discovery.md) problems — exactly the two problems Commonality's assurance contracts and discovery are built to solve. There's a legitimacy dividend, too: the rent-seeking version is coercive and often zero-sum (the majority pays for a minority's pet thing), while this is voluntary and self-financed. That's *why* it's underproduced — the voluntary version eats a free-rider problem the coercive version sidesteps with state power.
 
-**2. Polarization-trapped goods (hidden majorities).** Broadly wanted, but trapped inside a culture-war bundle so the political system can't deliver them. Two mechanisms matter here, and the second is the stronger one. First, [organic-coalition discovery](./organic-coalitions.md) surfaces the concrete outcome people agree on without forcing them to share a framing. But discovery isn't enough on its own: even once a hidden majority can *see* itself, every large funder that might champion the good is itself polarized — a government is left or right, a big charity is coded one way or the other. What's missing in legacy-land is **institution-less aggregation**: a way to pool moderately-left and moderately-right money without a single unifying organization that both sides distrust. Assurance contracts are exactly that — they can take some money from left-leaning donors and some from right-leaning donors, and no one org has to own the whole thing. Retroactive funding works the same way: later donations from people on the left and right can jointly reimburse early contributors, with no need for a single big backer to cover it all.
+**2. Polarization-trapped goods (specific organic coalitions).** People across a divide want a concrete outcome, but its association with a broader political package makes cooperation difficult. [Organic-coalition discovery](./organic-coalitions.md) can surface that overlap without requiring a shared framing. A hidden majority is one possible result; a smaller coalition with enough willing funders can also get useful work done. Where potential funders distrust each other's institutions, assurance contracts let them contribute to a particular undertaking without first establishing an organization to represent them all. They still need confidence in the project and its delivery. Retroactive funding can similarly let later supporters from different camps jointly reimburse early contributors, without requiring one large backer.
 
 **3. Scale-mismatched goods.** Goods that don't line up with any one jurisdiction — two faces of the same problem. The first: things *too small or specific* for government to bother with — this block's park, this town's trail. The second, its mirror image: things whose beneficiaries don't map onto any *one* jurisdiction at all — inter-town infrastructure, open-source software, internet commons, global health — so no single authority internalizes the full benefit and none has the incentive to fund the whole thing.
 
@@ -48,7 +128,7 @@ The clean analogy: **Commonality is to public goods what startups are to private
 
 **6. Politically-disfavored / suppressible goods.** Advocacy, legal defense, contested speech — things a hostile authority actively wants to *defund*. [Censorship-resistance](../hard-to-stop/censorship-resistance.md) turns "can't" into "can."
 
-**7. Bridging / communication goods.** Funding the spread of depolarizing, noninflammatory content across a divide. Government and charity essentially don't — and couldn't credibly — do this. This is a close cousin of #2, but distinct: #2 funds a concrete *outcome* both sides already agree on, while #7 funds the *communication that reveals or creates* that agreement. It's an input to #2 — the thing that manufactures a hidden majority where the blocker is misunderstanding rather than genuine disagreement.
+**7. Bridging / communication goods.** Funding the creation and distribution of noninflammatory content that helps particular audiences consider a particular bridge. Existing organizations can do this work, but may struggle to earn trust across the divide or fund communication whose benefits extend beyond their own audience. Commonality lets interested supporters fund that work through creators and evaluators they trust. This is a close cousin of #2: #2 funds an outcome people agree on, while #7 funds communication that may reveal, develop, or test that agreement. It can also expose genuine disagreement; a hidden majority is a possibility to investigate, not an outcome the mechanism guarantees.
 
 ## What these distinctions look like as projects
 
@@ -56,6 +136,7 @@ These are synthetic examples, not claims about existing organizations or demand:
 
 | Deliverable | Blocker | Why the mechanism matters |
 |---|---|---|
+| A maintained chapter map and independently checked provider directory for an overlapping network | Many people use them, but no chapter wants to carry the whole cost or submit to one central organization | Supporters can fund each shared resource separately, across chapter boundaries |
 | Maintained releases of a shared software dependency | Its many users each benefit, but none can justify paying the full maintainer cost | The users can assure one another that enough will contribute before work begins |
 | Open water-quality data for a watershed crossing three towns | No town owns the full benefit | Residents can pool money across the jurisdiction line |
 | Preregistered replication with public results even if it fails | A grant panel must choose before the result is known | Early supporters can back the attempt; later supporters can fund demonstrated value |

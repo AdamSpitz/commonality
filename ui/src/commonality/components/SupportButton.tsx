@@ -12,7 +12,7 @@ import {
 } from '@commonality/sdk/conceptspace'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import type { SDKMachinery } from '@commonality/sdk/machinery'
-import { getRuntimeConfigValue, useMachinery, useWriteClients } from '../../shared'
+import { getRuntimeConfigValue, sponsoredBeliefOptions, useMachinery, useWriteClients } from '../../shared'
 import { ConnectWalletHint } from './ConnectWalletHint'
 
 export type SupportAction = 'support' | 'retract'
@@ -184,7 +184,7 @@ export function SupportButton({
 
     setBusy(true)
     try {
-      const txHash = await believeStatement(writeClients, beliefsContract, statementCid)
+      const txHash = await believeStatement(writeClients, beliefsContract, statementCid, sponsoredBeliefOptions())
       const receipt = await writeClients.publicClient.waitForTransactionReceipt({ hash: txHash })
       if (receipt.status !== 'success') throw new Error('Support transaction reverted')
       if (!isCurrent()) return

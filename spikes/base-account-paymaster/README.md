@@ -1,0 +1,34 @@
+# Spike: Base Account + third-party paymaster (no Privy)
+
+Phase 1 leftover from [wallet-without-privy-plan.md](../../specs/tech/wallet-without-privy-plan.md):
+only a real Base Account answers whether Coinbase honors our ERC-7677 `paymasterService` URL and
+what `wallet_getCapabilities` returns.
+
+This is a localhost page. It is not the Commonality UI.
+
+## Run
+
+From the repository root (needs the existing `node_modules`; no extra install):
+
+```sh
+node spikes/base-account-paymaster/serve.mjs
+```
+
+Do **not** use Vite for this spike: this machine is already at inotify `EMFILE` (too many open files / watches). The Node server bundles once with esbuild and does not watch files.
+
+Open **http://127.0.0.1:4177**. Passkeys need localhost or HTTPS.
+
+1. **Connect Base Account** — Coinbase passkey popup (`keys.coinbase.com`), not the Coinbase Wallet extension and not Privy.
+2. **wallet_getCapabilities** — copy the JSON (especially chain `0x14a34` / Base Sepolia).
+3. **Probe paymasterService** — sends `wallet_sendCalls` with `paymasterService.url` pointing at this server.
+
+In the **terminal** running `serve.mjs`, look for a `PAYMASTER POST` log:
+
+- **Present** — the wallet called our URL (question 2 is yes, even if the echo returns an error).
+- **Absent** — inspect the wallet error; this alone does not show that Coinbase ignored the URL. The recorded run rejected the local HTTP URL because HTTPS is required, before any POST.
+
+You can reject the on-chain send. Hitting the URL is the signal.
+
+The localhost probe only demonstrates URL validation with the current wallet. To test a POST, serve the echo through HTTPS and point `paymasterUrl` in `main.js` at that endpoint. A POST still does not prove sponsorship: complete a real operation through our deployed paymaster and the wallet's bundler for that.
+
+Paste the capabilities JSON and whether `PAYMASTER` appeared into chat or [sponsored-gas.md](../../specs/tech/sponsored-gas.md).

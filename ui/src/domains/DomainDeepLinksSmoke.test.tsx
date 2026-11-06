@@ -24,6 +24,7 @@ const sampleParamValues: Record<string, string> = {
   slugPart: 'demo-cause',
   causeId: 'demo-cause-id',
   draftId: 'draft-1',
+  propertyId: 'civility',
 }
 
 const representativeDocsPath = '/docs/why-trust-it'

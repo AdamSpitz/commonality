@@ -35,22 +35,16 @@ deployer can always transact, the runner may not be able to.
 
 ## Decisions
 
-### 1. Account model — EIP-4337 with Privy (ratified)
+### 1. Account model — EIP-4337, wallet-chosen (ADR 0021)
 
-**Embedded-wallet provider: Privy — ratified 2026-06-18.** Best-in-class normie onboarding,
-provider-agnostic, and advertises key export (so we're not hard-locked — see lock-in note below).
-The provider choice is settled; the remaining Privy work is the hands-on feasibility spike (the
-`[confirm in spike]` items in [bridges.md](/specs/tech/bridges.md)) and the per-wallet economics
-sanity-check before mainnet — neither reopens *which* provider.
+**Wallet: the user brings one** (Base Account first for passkey signup; ConnectKit for everyone
+else). We do not pin an embedded-wallet vendor. Privy was the 2026-06-18 choice in ADR 0001; that
+provider decision is superseded by [ADR 0021](/specs/decisions/0021-portable-wallets-not-privy.md).
 
-**Account model: EIP-4337 smart accounts.** Universally supported and what the custom paymaster
-below already assumes. (EIP-7702 remains a possible future lighter-weight path; revisit only if
-there's a concrete reason and confirm Privy support first.)
-
-The **Privy** wallet provider is ratified (2026-06-18). The account model (EIP-4337) and bundler
-(Pimlico) remain working choices to unblock implementation, not irreversible commitments — the
-embedded-wallet UX is still worth a hands-on spike, and the per-wallet economics should be
-sanity-checked before mainnet.
+**Account model: EIP-4337 smart accounts**, of whatever family the wallet deploys. Sponsorship is
+ERC-7677 `paymasterService` on EIP-5792 `wallet_sendCalls`. Wallets without that capability pay
+their own gas. Base Account uses EntryPoint v0.6; our tanks expose a v0.6 paymaster face on the
+same pot as v0.7.
 
 ### 2. Bundler — Pimlico (working choice); paymaster — our own contract
 
@@ -63,18 +57,16 @@ balances on a dashboard; they don't do open onchain funding by arbitrary contrib
 
 #### Provider options — reference comparison
 
-These are the two *separate* vendor choices (embedded wallet + bundler) plus the cross-cutting
-account-model axis. **Choices: Privy (wallet) — ratified; Pimlico (bundler) + EIP-4337 — working.**
-This table records the alternatives we weighed and why, and is the input to revisit if we ever migrate.
+Historical comparison. **Current: portable wallet (Base Account + ConnectKit); our paymaster;**
+the wallet's bundler submits UserOps. Pimlico is no longer the product bundler.
 
-**Embedded-wallet provider** (the normie's invisible wallet):
+**Wallet (the user's account):**
 
 | Provider | Strengths | Trade-offs |
 | --- | --- | --- |
-| **Privy** | Best-in-class normie onboarding (email/social), provider-agnostic, huge consumer-crypto adoption, clean card-onramp story | Third-party dependency; pricing scales with MAUs |
-| **Coinbase CDP / Smart Wallet** | Tightest **Base** fit (we're on Base), Coinbase brand trust for normies, passkey-based smart wallet | More Coinbase-opinionated; smart-wallet model can be harder to swap out |
-| **Dynamic** | Similar to Privy, strong dashboards / multi-chain, good dev UX | Smaller ecosystem than Privy; another vendor lock-in |
-| **Turnkey** | Low-level key management, maximum control | We build most of the UX ourselves — more work, fewer batteries included |
+| **Base Account (Coinbase Smart Wallet)** | Passkey, portable across sites, ERC-7677, Base-native | Coinbase popup / key infra; EntryPoint v0.6 |
+| **Injected EOA (MetaMask, Rabby, …)** | Users already have it | Usually no paymasterService; user pays tiny gas |
+| **Privy (retired)** | Email login | Account not portable to separate-site verticals |
 
 **Bundler / AA infra** (mempool + UserOp bundling):
 
@@ -118,6 +110,10 @@ the UserOp's call target + selector:
 
 Sponsor only **embedded-wallet (card) contributors**; native crypto users already hold ETH.
 
+**Statement signatures are a separate tank.** `StatementGasTank` pays gas only for `Beliefs.setBelief` / `setBeliefsInBatch` where every stance is `believes` and every statement id is enrolled to the same sponsor as the anchor statement id carried in `paymasterData`. The SDK attaches the ERC-7677 URL only on that eligible path (`believeStatement` / `setBeliefsBatch`); disbelief, no-opinion, mixed batches, unenrolled statements, and roster publication stay unsponsored. Anyone may fund a sponsor's tank. The sponsor enrolls statement ids with `enroll` or `enrollMany(bytes32[])` (chunk large sets so one transaction stays under the block gas limit). Commonality does not fund these tanks either. Disbelief and no-opinion are not sponsored, so a tank cannot be drained by signing against the statement. The per-wallet wei cap is the spam backstop, because a signature does not move USDC. Contribution tanks and statement tanks do not share a balance.
+
+Statement tanks conservatively charge each operation's **full EntryPoint maximum cost during validation**, even if execution fails. This reserves the sponsor balance and wallet quota before another operation in the same bundle validates. EntryPoint v0.7 computes final post-operation gas and unused-gas penalties after the paymaster callback, so its callback's `actualGasCost` cannot safely reconcile the complete bill. Any unused prefund refunded by EntryPoint remains **unallocated surplus**, not spendable sponsor credit; exact-cost reconciliation is a follow-up in [TODO.md](/TODO.md). Enrollment is first-come and permanent: anyone can bind an unclaimed statement to their own tank, including an empty tank. Recovery/multiple-sponsor policy and account-implementation authentication also remain pre-production follow-ups there. Per-wallet caps do not prevent repeated support signatures or Sybil wallets from consuming a tank.
+
 **Which projects — per-creator gas tanks.** A creator has a persistent ETH tank usable across
 **all** their projects. A project is *enrolled* to a creator's tank; sponsorship for a `buyERC1155`
 against that project draws from the creator's tank. Because tanks are per-creator and persistent,
@@ -131,6 +127,13 @@ deter funding. We start strict because it's simpler and safer, and because per-t
 fraction of a cent — seeding a tank with a few cents at a time and letting the dust be lost when a
 project wraps is a perfectly acceptable model. Anyone may fund any creator's tank: the creator
 themselves, or supporters who believe in Commonality / a cause.
+
+**One pot per tank type across EntryPoint versions (Adam, 2026-11-02).** Base Account uses
+EntryPoint v0.6; Kernel / tests use v0.7. Funders call `fundTank` on the vault. Each EntryPoint
+version is a paymaster adapter on even footing. Accounting (`tankBalance`) stays on the vault.
+EntryPoint requires a paymaster deposit *before* validation, so `fundTank` (and `addPaymasterFace` /
+`replenishFaceDeposits`) tops each face up to `faceDepositFloor`. Validation does not move ETH.
+See [wallet-without-privy-plan.md](./wallet-without-privy-plan.md) Phase 3b.
 
 **Commonality (Adam) will NOT be the initial funder — intended posture, not a contract rule.** A
 creator who wants their project to be gasless for contributors funds their own tank; this holds even
@@ -197,6 +200,25 @@ Implications for sponsorship budgeting:
   change and after choosing the account-abstraction provider, because UserOp validation/execution
   overhead is provider/account-model dependent.
 
+### Base Account (Coinbase Smart Wallet) calldata spike, 2026-11-01
+
+Local-owner run of `hardhat/scripts/spike-base-account-calldata.mjs` using viem
+`toCoinbaseSmartAccount({ version: '1.1' })` against Base Sepolia RPC. Same account
+contract as Base Account; not a real passkey wallet, so this does **not** prove that
+the Coinbase popup honors a third-party `paymasterService` URL.
+
+| Question | Result |
+| --- | --- |
+| EntryPoint | **v0.6** (`0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789`). Factory `0xba5ed110efdba3d005bfc882d75358acbbb85842`. |
+| Single call | `execute(address,uint256,bytes)` selector `0xb61d27f6` (SimpleAccount-shaped). |
+| Atomic batch | `executeBatch((address target,uint256 value,bytes data)[])` selector `0x34fcd5be`. |
+| Pimlico for this path | Not required to *encode* UserOps. Production Base Account uses the wallet's bundler. Pimlico still used for Kernel/Privy tests until Privy is removed. |
+| `wallet_getCapabilities` (real Base Account, 2026-11-01, `spikes/base-account-paymaster`) | **Base Sepolia `0x14a34`:** `paymasterService.supported: true`, `atomicBatch.supported: true`, `atomic.status: "supported"`, plus `auxiliaryFunds` and `dataSuffix`. Same paymaster/atomic flags on Base mainnet `0x2105` and several other chains. Not yet captured for MetaMask/Rabby. |
+| Third-party paymaster URL | **HTTPS validation confirmed; successful sponsorship still unverified.** Real Base Account `wallet_sendCalls` with `paymasterService.url = http://127.0.0.1:4177/paymaster` failed in `keys.coinbase.com` with `Paymaster URL must be a valid HTTPS URL`. The local HTTP echo never received a POST. This proves URL validation, not that the wallet/bundler accepts our paymaster. Complete a sponsored operation through the HTTPS endpoint after redeployment. |
+
+Phase 3 therefore needs **v0.6 tank variants** (plan 3b) plus the batch decoder (3a).
+Ask Adam before choosing two contracts per tank type vs split funding.
+
 ### 5. Abuse monitoring — verifier check
 
 Add a verifier check (skill: using-verifier) covering: tank drain rate vs. expected, ratio of
@@ -222,7 +244,7 @@ Implemented and tested:
 - validation against enrolled project + tank balance + wallet cap;
 - configurable minimum contribution floor for sponsored `buyERC1155` calls;
 - `postOp` debiting by actual gas cost;
-- SimpleAccount and Kernel calldata decoding for `execute` and `executeBatch`;
+- SimpleAccount, Coinbase Smart Wallet / Base Account (`executeBatch((address,uint256,bytes)[])`), and Kernel calldata decoding for `execute` and `executeBatch`;
 - sponsorship allowlist for `buyERC1155`, `refundERC1155`, settlement-token `approve(project, amount)`,
   and ERC-1155 `setApprovalForAll(project, true)`;
 - incremental deployment-script wiring for `CreatorGasTank` and local mock EntryPoint deployment;

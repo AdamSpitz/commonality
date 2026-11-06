@@ -5,6 +5,8 @@ import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import {IEntryPoint} from "@account-abstraction/contracts/interfaces/IEntryPoint.sol";
 import {IPaymaster} from "@account-abstraction/contracts/interfaces/IPaymaster.sol";
 import {PackedUserOperation} from "@account-abstraction/contracts/interfaces/PackedUserOperation.sol";
+import {IPaymasterV06} from "../sponsored-gas/IPaymasterV06.sol";
+import {UserOperationV06} from "../sponsored-gas/UserOperationV06.sol";
 
 contract MockEntryPoint is IERC165 {
   mapping(address account => uint256 balance) public balances;
@@ -19,6 +21,12 @@ contract MockEntryPoint is IERC165 {
 
   function balanceOf(address account) external view returns (uint256) {
     return balances[account];
+  }
+
+  function withdrawTo(address payable withdrawAddress, uint256 withdrawAmount) external {
+    balances[msg.sender] -= withdrawAmount;
+    (bool ok,) = withdrawAddress.call{value: withdrawAmount}("");
+    require(ok, "withdraw failed");
   }
 
   function validatePaymasterUserOp(
@@ -36,5 +44,13 @@ contract MockEntryPoint is IERC165 {
     uint256 actualGasCost
   ) external {
     paymaster.postOp(mode, context, actualGasCost, 0);
+  }
+
+  function validatePaymasterUserOpV06(
+    IPaymasterV06 paymaster,
+    UserOperationV06 calldata userOp,
+    uint256 maxCost
+  ) external returns (bytes memory context, uint256 validationData) {
+    return paymaster.validatePaymasterUserOp(userOp, bytes32(0), maxCost);
   }
 }

@@ -210,7 +210,11 @@ describe('AlignmentAttestationsSection', () => {
         // ATTESTER_A = '0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB'
         // truncateAddress: first 6 chars + '...' + last 4 chars → '0xBBBB...BBBB'
         // The caption renders "Vouched by: 0xBBBB...BBBB" — use regex to match within element text
-        expect(screen.getByText(/Vouched by: 0xBBBB\.\.\.BBBB/)).toBeInTheDocument()
+        expect(screen.getByText((_, element) =>
+          element?.classList.contains('MuiTypography-caption') === true
+          && element.textContent?.includes('Vouched by:') === true
+          && element.textContent?.includes('0xBBBB...BBBB') === true,
+        )).toBeInTheDocument()
       })
     })
 
@@ -283,7 +287,11 @@ describe('AlignmentAttestationsSection', () => {
 
       await waitFor(() => {
         expect(screen.getByText('The project delivered')).toBeInTheDocument()
-        expect(screen.getByText(/Success vouched by: 0xCCCC\.\.\.CCCC/)).toBeInTheDocument()
+        expect(screen.getByText((_, element) =>
+          element?.classList.contains('MuiTypography-caption') === true
+          && element.textContent?.includes('Success vouched by:') === true
+          && element.textContent?.includes('0xCCCC...CCCC') === true,
+        )).toBeInTheDocument()
         expect(screen.getByText('Delivered')).toBeInTheDocument()
       })
     })

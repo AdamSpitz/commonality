@@ -73,7 +73,7 @@ emit(async () => {
   const rpcUrl = envValue(config.rpcUrlEnv);
   const env = await readEnvFile(config.contractsEnvFile);
 
-  const paymaster = env.CREATOR_GAS_TANK_ADDRESS;
+  const paymaster = env.CREATOR_GAS_TANK_PAYMASTER_ADDRESS || env.CREATOR_GAS_TANK_ADDRESS;
   const entryPoint = env.SPONSORED_GAS_ENTRY_POINT_ADDRESS;
   const paymasterUrl = env.BASE_SEPOLIA_PAYMASTER_URL;
   const configChecks = [

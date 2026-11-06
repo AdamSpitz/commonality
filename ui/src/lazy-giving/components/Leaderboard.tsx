@@ -18,7 +18,7 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import type { Contribution, Refund } from '@commonality/sdk/lazy-giving'
 import { computeContributorStats } from '../utils'
 import { formatCurrencyAmount, MoneyText } from '../../shared/funding'
-import { truncateAddress } from '../../shared'
+import { AccountAddress } from '../../shared'
 
 function SectionHeading({ title, info }: { title: string; info: string }) {
   return (
@@ -51,7 +51,7 @@ function ChainDisplay({ chain }: { chain: string[] }) {
               variant="caption"
               sx={{ fontFamily: 'monospace', cursor: 'help', textDecoration: 'underline dotted' }}
             >
-              {truncateAddress(addr)}
+              <AccountAddress address={addr} />
             </Typography>
           </Tooltip>
         </Box>
@@ -127,7 +127,7 @@ export function Leaderboard({
                   <TableCell>{i + 1}</TableCell>
                   <TableCell>
                     <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
-                      {truncateAddress(entry.address)}
+                      <AccountAddress address={entry.address} />
                     </Typography>
                     {chains && chains.length > 0 && (
                       <Box sx={{ mt: 0.5 }}>

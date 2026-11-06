@@ -12,6 +12,7 @@ const ADDRESS_KEYS = {
   Implications: ['IMPLICATIONS_CONTRACT_ADDRESS'],
   TrustRegistry: ['TRUST_REGISTRY_ADDRESS'],
   AccountAssertions: ['ACCOUNT_ASSERTIONS_ADDRESS'],
+  SuggestedNames: ['SUGGESTED_NAMES_ADDRESS'],
   AlignmentAttestations: ['ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS', 'ALIGNMENT_ATTESTATIONS_ADDRESS', 'PROJECT_ALIGNMENT_CONTRACT_ADDRESS'],
   NoteIntent: ['NOTE_INTENT_ADDRESS'],
   MutableRefUpdater: ['MUTABLE_REF_UPDATER_CONTRACT_ADDRESS', 'MUTABLE_REF_UPDATER_ADDRESS'],
@@ -38,6 +39,11 @@ const ADDRESS_KEYS = {
   ProjectFactory: ['PROJECT_FACTORY_ADDRESS'],
   SponsoredGasEntryPoint: ['SPONSORED_GAS_ENTRY_POINT_ADDRESS'],
   CreatorGasTank: ['CREATOR_GAS_TANK_ADDRESS'],
+  CreatorGasTankPaymaster: ['CREATOR_GAS_TANK_PAYMASTER_ADDRESS'],
+  CreatorGasTankPaymasterV06: ['CREATOR_GAS_TANK_PAYMASTER_V06_ADDRESS'],
+  StatementGasTank: ['STATEMENT_GAS_TANK_ADDRESS'],
+  StatementGasTankPaymaster: ['STATEMENT_GAS_TANK_PAYMASTER_ADDRESS'],
+  StatementGasTankPaymasterV06: ['STATEMENT_GAS_TANK_PAYMASTER_V06_ADDRESS'],
   GasTankFunder: ['GAS_TANK_FUNDER_ADDRESS'],
   SponsoredGasWeth: ['SPONSORED_GAS_WETH_ADDRESS'],
   SponsoredGasSwapRouter: ['SPONSORED_GAS_SWAP_ROUTER_ADDRESS'],
@@ -240,6 +246,7 @@ async function main() {
   await deployOrReuse('Implications', 'Implications');
   await deployOrReuse('TrustRegistry', 'TrustRegistry');
   await deployOrReuse('AccountAssertions', 'AccountAssertions');
+  await deployOrReuse('SuggestedNames', 'SuggestedNames');
   await deployOrReuse('AlignmentAttestations', 'AlignmentAttestations');
   await deployOrReuse('NoteIntent', 'NoteIntent');
   await deployOrReuse('MutableRefUpdater', 'MutableRefUpdater');
@@ -324,10 +331,15 @@ async function main() {
       }
     }
     if (addresses.CreatorAssuranceVeto) {
+      const freshFactory = freshlyDeployed.has('CreatorAssuranceContractFactory');
+      const factoryBlock = manifest.contracts.CreatorAssuranceContractFactory?.blockNumber;
       manifest.contracts.CreatorAssuranceVeto = {
         contractName: 'CreatorAssuranceVeto',
         address: addresses.CreatorAssuranceVeto,
-        reused: !freshlyDeployed.has('CreatorAssuranceContractFactory'),
+        reused: !freshFactory,
+        // The veto is created in the factory constructor, so a fresh factory's
+        // receipt block is the veto's deploy block.
+        ...(freshFactory && factoryBlock != null ? { blockNumber: factoryBlock } : {}),
       };
     }
   }
@@ -408,7 +420,14 @@ async function main() {
       await (await d.setPrimaryMarketFactoryAuthorization(addresses.FixedControllerFactory, true)).wait();
     }
   }
-  await deployOrReuse('ProjectFactory', 'ProjectFactory', [addresses.PremintingERC1155Factory, addresses.AssuranceContractFactory, addresses.ValueThresholdConditionFactory, addresses.BeneficiaryRegistry, addresses.BeneficiaryEscrow, addresses.FixedControllerFactory]);
+  await deployOrReuse('ProjectFactory', 'ProjectFactory', [addresses.PremintingERC1155Factory, addresses.AssuranceContractFactory, addresses.ValueThresholdConditionFactory, addresses.BeneficiaryRegistry, addresses.BeneficiaryEscrow, addresses.FixedControllerFactory, addresses.ContentRegistry]);
+  if (!planOnly && addresses.CreatorAssuranceContractFactory && addresses.ProjectFactory) {
+    const creatorFactory = await ownerCapable(await ethers.getContractAt('CreatorAssuranceContractFactory', addresses.CreatorAssuranceContractFactory));
+    const registry = await ethers.getContractAt('ContentRegistry', addresses.ContentRegistry);
+    if (!(await registry.isRegistrar(addresses.ProjectFactory))) {
+      await (await creatorFactory.setWorkRegistrar(addresses.ProjectFactory, true)).wait();
+    }
+  }
 
   if (isLocal) {
     await deployOrReuse('SponsoredGasEntryPoint', 'MockEntryPoint');
@@ -438,13 +457,57 @@ async function main() {
     'MIN_SPONSORED_CONTRIBUTION_AMOUNT',
     ethers.parseUnits('1', 6),
   );
+  const entryPointV06 = env.SPONSORED_GAS_ENTRY_POINT_V06_ADDRESS || ethers.ZeroAddress;
   await deployOrReuse('CreatorGasTank', 'CreatorGasTank', [
-    addresses.SponsoredGasEntryPoint,
     addresses.FreeERC20,
     sponsoredGasMaxWeiPerWalletPerWindow,
     sponsoredGasWalletWindowSeconds,
     minSponsoredContributionAmount,
   ]);
+  await deployOrReuse('StatementGasTank', 'StatementGasTank', [
+    addresses.Beliefs,
+    sponsoredGasMaxWeiPerWalletPerWindow,
+    sponsoredGasWalletWindowSeconds,
+  ]);
+  if (addresses.CreatorGasTank) {
+    await deployOrReuse('CreatorGasTankPaymaster', 'CreatorGasTankPaymaster', [
+      addresses.SponsoredGasEntryPoint,
+      addresses.CreatorGasTank,
+    ]);
+    if (entryPointV06 !== ethers.ZeroAddress) {
+      await deployOrReuse('CreatorGasTankPaymasterV06', 'CreatorGasTankPaymasterV06', [
+        entryPointV06,
+        addresses.CreatorGasTank,
+      ]);
+    }
+  }
+  if (addresses.StatementGasTank) {
+    await deployOrReuse('StatementGasTankPaymaster', 'StatementGasTankPaymaster', [
+      addresses.SponsoredGasEntryPoint,
+      addresses.StatementGasTank,
+    ]);
+    if (entryPointV06 !== ethers.ZeroAddress) {
+      await deployOrReuse('StatementGasTankPaymasterV06', 'StatementGasTankPaymasterV06', [
+        entryPointV06,
+        addresses.StatementGasTank,
+      ]);
+    }
+  }
+  async function attachPaymasterFaces(vaultName, faceNames) {
+    const vaultAddr = addresses[vaultName];
+    if (!vaultAddr || planOnly) return;
+    const vault = await ethers.getContractAt(vaultName, vaultAddr);
+    for (const faceName of faceNames) {
+      const face = addresses[faceName];
+      if (!face) continue;
+      if (await vault.isPaymaster(face)) continue;
+      const tx = await vault.addPaymasterFace(face);
+      await tx.wait();
+      console.log(`linked ${faceName} to ${vaultName}`);
+    }
+  }
+  await attachPaymasterFaces('CreatorGasTank', ['CreatorGasTankPaymaster', 'CreatorGasTankPaymasterV06']);
+  await attachPaymasterFaces('StatementGasTank', ['StatementGasTankPaymaster', 'StatementGasTankPaymasterV06']);
 
   const sponsoredGasSwapFee = envNumber(env, 'SPONSORED_GAS_SWAP_POOL_FEE', 500);
   if (isLocal) {
@@ -524,6 +587,7 @@ async function main() {
     IMPLICATIONS_CONTRACT_ADDRESS: addresses.Implications,
     TRUST_REGISTRY_ADDRESS: addresses.TrustRegistry,
     ACCOUNT_ASSERTIONS_ADDRESS: addresses.AccountAssertions,
+    SUGGESTED_NAMES_ADDRESS: addresses.SuggestedNames,
     ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS: addresses.AlignmentAttestations,
     ALIGNMENT_ATTESTATIONS_ADDRESS: addresses.AlignmentAttestations,
     PROJECT_ALIGNMENT_CONTRACT_ADDRESS: addresses.AlignmentAttestations,
@@ -548,6 +612,7 @@ async function main() {
     BENEFICIARY_IDENTITY_ADDRESS: addresses.BeneficiaryIdentity,
     BENEFICIARY_VERIFIER_TRUSTED_SIGNER_ADDRESS: trusted,
     CONTENT_REGISTRY_ADDRESS: addresses.ContentRegistry,
+    CREATOR_ASSURANCE_DEPLOYER_ADDRESS: addresses.CreatorAssuranceDeployer,
     BENEFICIARY_REGISTRY_ADDRESS: addresses.BeneficiaryRegistry,
     BENEFICIARY_ESCROW_ADDRESS: addresses.BeneficiaryEscrow,
     CREATOR_CONTRACT_FACTORY_ADDRESS: addresses.CreatorAssuranceContractFactory,
@@ -559,7 +624,13 @@ async function main() {
     PUBLISHED_DATA_CONTRACT_ADDRESS: addresses.PublishedData,
     ...startBlockEnvEntries(),
     SPONSORED_GAS_ENTRY_POINT_ADDRESS: addresses.SponsoredGasEntryPoint,
+    ...(entryPointV06 !== ethers.ZeroAddress ? { SPONSORED_GAS_ENTRY_POINT_V06_ADDRESS: entryPointV06 } : {}),
     CREATOR_GAS_TANK_ADDRESS: addresses.CreatorGasTank,
+    CREATOR_GAS_TANK_PAYMASTER_ADDRESS: addresses.CreatorGasTankPaymaster,
+    ...(addresses.CreatorGasTankPaymasterV06 ? { CREATOR_GAS_TANK_PAYMASTER_V06_ADDRESS: addresses.CreatorGasTankPaymasterV06 } : {}),
+    STATEMENT_GAS_TANK_ADDRESS: addresses.StatementGasTank,
+    STATEMENT_GAS_TANK_PAYMASTER_ADDRESS: addresses.StatementGasTankPaymaster,
+    ...(addresses.StatementGasTankPaymasterV06 ? { STATEMENT_GAS_TANK_PAYMASTER_V06_ADDRESS: addresses.StatementGasTankPaymasterV06 } : {}),
     SPONSORED_GAS_MAX_WEI_PER_WALLET_PER_WINDOW: sponsoredGasMaxWeiPerWalletPerWindow.toString(),
     SPONSORED_GAS_WALLET_WINDOW_SECONDS: String(sponsoredGasWalletWindowSeconds),
     MIN_SPONSORED_CONTRIBUTION_AMOUNT: minSponsoredContributionAmount.toString(),
@@ -590,10 +661,11 @@ async function main() {
     VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS: addresses.AlignmentAttestations, VITE_TRUST_REGISTRY_CONTRACT_ADDRESS: addresses.TrustRegistry, VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS: addresses.NudgePublications,
     VITE_PUBLISHED_DATA_CONTRACT_ADDRESS: addresses.PublishedData,
     VITE_ACCOUNT_ASSERTIONS_CONTRACT_ADDRESS: addresses.AccountAssertions,
+    VITE_SUGGESTED_NAMES_ADDRESS: addresses.SuggestedNames,
     VITE_CONTENT_REGISTRY_ADDRESS: addresses.ContentRegistry, VITE_BENEFICIARY_IDENTITY_ADDRESS: addresses.BeneficiaryIdentity, VITE_BENEFICIARY_REGISTRY_ADDRESS: addresses.BeneficiaryRegistry, VITE_BENEFICIARY_VERIFIER_ADDRESS: addresses.BeneficiaryVerifier,
     VITE_BENEFICIARY_ESCROW_ADDRESS: addresses.BeneficiaryEscrow, VITE_CREATOR_CONTRACT_FACTORY_ADDRESS: addresses.CreatorAssuranceContractFactory, ...(addresses.CreatorAssuranceVeto ? { VITE_CREATOR_ASSURANCE_VETO_ADDRESS: addresses.CreatorAssuranceVeto } : {}), VITE_PROJECT_FACTORY_CONTRACT_ADDRESS: addresses.ProjectFactory,
     VITE_PROSPECTIVE_CONTENT_ROUND_FACTORY_ADDRESS: addresses.ProspectiveContentRoundFactory,
-    VITE_CREATOR_GAS_TANK_ADDRESS: addresses.CreatorGasTank, VITE_SPONSORED_GAS_ENTRY_POINT_ADDRESS: addresses.SponsoredGasEntryPoint,
+    VITE_CREATOR_GAS_TANK_ADDRESS: addresses.CreatorGasTank, VITE_STATEMENT_GAS_TANK_ADDRESS: addresses.StatementGasTank, VITE_SPONSORED_GAS_ENTRY_POINT_ADDRESS: addresses.SponsoredGasEntryPoint,
     ...(addresses.GasTankFunder ? { VITE_GAS_TANK_FUNDER_ADDRESS: addresses.GasTankFunder } : {}),
     VITE_PAYMENT_TOKEN_ADDRESS: addresses.FreeERC20, VITE_PAYMENT_TOKEN_SYMBOL: 'USDZZZ', VITE_PAYMENT_TOKEN_DECIMALS: '6', ...(isLocal ? { VITE_IPFS_GATEWAY: 'http://localhost:8080/ipfs', VITE_DEFAULT_NUDGERS: LOCAL_SEED_NUDGER_ADDRESS } : {})
   };

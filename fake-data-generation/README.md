@@ -15,7 +15,9 @@ The medium realistic campaign has a separate planning-only command: `npm run gen
 
 V2 includes seven campaign-local causes (music learning, car repair, gluten-free cooking, video game commons, small trades, congregational music, and staying productive), 19 campaign-local statements, and 16 named user profiles whose assigned interests drive their cause memberships. The campaign-local statements live beside the v2 manifest, outside `seed-content/`, so they do not enter the accepted real-statement catalog or the ordinary seed pipeline. V2 plans 100 users, 65 statements, 17 causes, and 37 projects. Each hobby cause has at least one project with a funding action, and the project founders have matching interests. Kurt, Fred, and Sean each pledge on every cause they join. Fred's game notes go to Kurt; his trades and church-music pledges stay in his own name.
 
-V2 uses curated synthetic deliverables in `campaignProjectStories.ts`. Every cause gets a project; each project names the institutional blocker it illustrates. Bridge projects align only to the accepted commonality statement, so opposing natural positions are not spliced into a project outcome. V2 has been executed and reconciled locally; see [`campaigns/medium-realistic-v2-local-run.md`](./campaigns/medium-realistic-v2-local-run.md). Its funding actions still use a fixed on-chain purchase unit; they do not yet demonstrate cross-camp contributions or retroactive reimbursement.
+V2 uses curated synthetic deliverables in `campaignProjectStories.ts`. Every cause gets a project; each project names the institutional blocker it illustrates. Bridge projects align only to the accepted commonality statement, so opposing natural positions are not spliced into a project outcome. V2 has been executed and reconciled locally; see [`campaigns/medium-realistic-v2-local-run.md`](./campaigns/medium-realistic-v2-local-run.md).
+
+The network-societies pilot is a separate manifest, `campaigns/network-societies-v1-pilot.json`. Plan it into a fresh directory: `npm run gen:campaign:plan -- campaigns/network-societies-v1-pilot.json output/campaigns/network-societies-v1-pilot`. Do not overwrite `output/campaigns/medium-realistic-v2/`. Notes: [`campaigns/network-societies-v1-pilot.md`](./campaigns/network-societies-v1-pilot.md). Its funding actions still use a fixed on-chain purchase unit; they do not yet demonstrate cross-camp contributions or retroactive reimbursement.
 
 The three spotlight profiles have an explicit first pledge for each joined cause in `SPOTLIGHT_PROJECTS` (`campaignProjectStories.ts`). The planner fails if a named project is missing. To preview current source, plan to a fresh directory; the existing `output/campaigns/medium-realistic-v2/` contains an executed run and must not be overwritten by a preview. Its saved assignments may reflect an earlier manifest.
 
@@ -125,6 +127,26 @@ Every completed simulation appends an encrypted run to the test-data registry. L
 open `http://localhost:8088/admin` and follow **Browse generated test-data runs**. The
 run page provides the objective action/user summary and can connect Commonality as any
 disposable fake user from that run.
+
+The run page is a **Demo launcher**. Campaign runs offer an A–Z **Demo area**
+selector; selection is bookmarkable at `/admin/test-data/:runId?key=…&area=:areaId`.
+Old `/admin/test-data/:runId/areas/:areaId` links redirect there, preserving the key.
+The launcher links directly to public bridges, standalone boards/statements, and
+projects. Bridge constituents are left to the public bridge page. Beside those
+links are fake users with mined activity in the selected area, their bios, and
+**Connect as…** buttons. **Show all users** includes users outside that area.
+The connected account and its dashboard link stay visible when returning to the
+launcher. Shared statements and projects can appear in several areas. **All areas**
+and historical runs without area metadata show the whole run.
+Parameters, metrics, generated entities, and recorded activity live under collapsed
+**Run diagnostics**. A campaign's saved action log may contain only board and bridge
+creation, rather than all mined activity.
+
+To enrich an existing campaign run without rerunning transactions, use
+`npx tsx fake-data-generation/backfillCampaignAreas.ts <saved-campaign-directory> <run-id>`
+from the repository root. It reads the saved manifest, plan, runtime bindings, and
+mined execution state, verifies the run's wallet identities, and updates only the
+encrypted run document. The registry, run ID, saved plan, and chain stay unchanged.
 
 **Capability key and LLMs.** The AES key lives at
 `fake-data-generation/output/test-data/.admin-capability` (gitignored, never

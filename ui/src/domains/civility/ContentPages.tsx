@@ -9,9 +9,14 @@ import { ProjectDetailPage } from '../../lazy-giving/pages/ProjectDetailPage'
 import { getDomainUrl } from '../../shared'
 import { contentContractPathForAddress } from '../../shared'
 import { useContentFundingState } from '../../content-funding/hooks/useContentFundingState'
+import { FundPropertyPage } from '../../content-funding/pages/FundPropertyPage'
 
 function getNoninflammatoryContractPath(address: string): string {
   return contentContractPathForAddress(address)
+}
+
+export function NoninflammatoryFundPropertyPage() {
+  return <FundPropertyPage propertyId="civility" />
 }
 
 export function NoninflammatoryCreatorsPage() {
@@ -132,7 +137,7 @@ export function NoninflammatoryFiltersPage() {
             <Typography variant="body1">{filter}</Typography>
           </Paper>
         ))}
-        <Button component={RouterLink} to="/content" variant="contained" sx={{ alignSelf: 'flex-start' }}>
+        <Button component={RouterLink} to="/explore/civility" variant="contained" sx={{ alignSelf: 'flex-start' }}>
           Explore fundable content
         </Button>
       </Stack>

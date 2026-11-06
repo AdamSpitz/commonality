@@ -17,6 +17,8 @@ export interface ContentAttestationInfo {
   attested: boolean
   attester: string
   statementCid: string
+  topicStatementCid?: string
+  blockNumber?: bigint
 }
 
 interface ChannelMetadataLookupConfig {
@@ -242,6 +244,8 @@ export function useContentFundingState(): ContentFundingData {
                   attested: attestation.attested,
                   attester: attestation.attester,
                   statementCid: attestation.statementCid,
+                  topicStatementCid: attestation.topicStatementCid,
+                  blockNumber: attestation.blockNumber,
                 }))
                 return [
                   canonicalId,

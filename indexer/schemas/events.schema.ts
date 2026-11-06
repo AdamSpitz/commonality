@@ -8,8 +8,8 @@ import { onchainTable, index } from "ponder";
 // The SDK reads these events and folds them locally.
 //
 // Changing column types/names is a breaking Ponder schema change and requires
-// a new DATABASE_SCHEMA (full resync). Adding handlers or contract addresses
-// does not. Do not bump DATABASE_SCHEMA to work around Render schema locks.
+// a new DATABASE_SCHEMA (full resync). Adding handlers, contract addresses, or
+// indexes does not. Do not bump DATABASE_SCHEMA to work around Render schema locks.
 
 export const events = onchainTable(
   "events",
@@ -31,5 +31,16 @@ export const events = onchainTable(
   (table) => ({
     contractIdx: index().on(table.chainId, table.contractAddress, table.eventName),
     blockIdx: index().on(table.chainId, table.blockNumber),
+    // Statement ids live in topic2 (beliefs/signatures) or topic3 (incoming
+    // implications). Followers page those filters in chain order. Adding an
+    // index changes the Ponder build id but not the table shape. With
+    // PONDER_EXPERIMENTAL_DB=platform, startup reuses DATABASE_SCHEMA and
+    // creates missing indexes; it does not replay history. Index builds run
+    // inside a transaction (not CONCURRENTLY) while the indexer holds the
+    // schema lock, so the first deploy after this change can sit in CREATE
+    // INDEX before it serves traffic. Do not bump DATABASE_SCHEMA for this.
+    topic2OrderIdx: index().on(table.chainId, table.topic2, table.blockNumber, table.logIndex),
+    topic3OrderIdx: index().on(table.chainId, table.topic3, table.blockNumber, table.logIndex),
+    topic1OrderIdx: index().on(table.chainId, table.topic1, table.blockNumber, table.logIndex),
   })
 );

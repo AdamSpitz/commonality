@@ -11,7 +11,7 @@ Content "channels" currently mix:
 1. A stable external identifier
 2. A verifier for proving control of it
 3. Escrow keyed to that identifier
-4. **Content-only:** item occupancy (`ContentRegistry`), one-contract-per-item, creator veto, per-content token types
+4. **Funding-specific:** item occupancy (`ContentRegistry`), one-contract-per-item, beneficiary veto, and content's per-item token types
 
 (1)–(3) are the claimable-beneficiary primitive. (4) stays in the content-funding factory / `ContentRegistry`. A website beneficiary must not grow unused content fields, and a tweet channel must not keep a *second* escrow once this exists.
 
@@ -76,7 +76,9 @@ Platform API `/verify/challenge` + `/verify/confirm` grows a namespace switch (f
 
 Unclaimed → verified is `verifyClaim` (proof). Verified → controlled is a separate call. One-way, same as today.
 
-Content veto and occupancy: not in this contract.
+Veto and occupancy are not in this contract. Ordinary work uses beneficiary-scoped
+identity and per-project acceptance/veto, described in [work items](work-items.md).
+Content keeps its existing takeover-based veto policy.
 
 ## Policy hooks the registry should allow (even if unused for tweets)
 

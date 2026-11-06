@@ -71,8 +71,15 @@ function exposeUnambiguousBareContentIds(items: Map<string | bigint, ContentItem
  */
 export function foldContentRegistry(
   events: (ContentItemRegisteredEvent | ContentItemReleasedEvent)[],
+  initial?: ContentRegistryState,
 ): ContentRegistryState {
-  const items = new Map<string | bigint, ContentItem>();
+  const items = new Map<string | bigint, ContentItem>(
+    initial
+      ? [...initial.items.entries()]
+          .filter((entry): entry is [string, ContentItem] => typeof entry[0] === 'string')
+          .map(([key, item]) => [key, { ...item }])
+      : [],
+  );
 
   for (const event of events) {
     const key = contractScopedId(event.contractAddress, event.contentId);
@@ -134,9 +141,12 @@ export interface BeneficiaryRegistryState {
  */
 export function foldBeneficiaryState(
   events: (BeneficiaryVerifiedEvent | BeneficiaryControlTakenEvent | BeneficiaryControlReleasedEvent | PayoutAddressRotatedEvent | ProjectDisavowedEvent | ProjectDisavowalWithdrawnEvent)[],
+  initial?: BeneficiaryRegistryState,
 ): BeneficiaryRegistryState {
-  const channels = new Map<string, ChannelInfo>();
-  const disavowedProjects = new Set<string>();
+  const channels = new Map<string, ChannelInfo>(
+    initial ? [...initial.channels.entries()].map(([id, info]) => [id, { ...info }]) : [],
+  );
+  const disavowedProjects = new Set<string>(initial?.disavowedProjects);
 
   for (const event of events) {
     if (event.type === 'BeneficiaryVerified') {
@@ -185,6 +195,9 @@ export function isProjectDisavowed(
 /** @deprecated Use foldBeneficiaryState. */
 export const foldChannelState = foldBeneficiaryState;
 
+/** Bump when the content-funding accumulator shape or fold rules change. */
+export const CONTENT_FUNDING_FOLD_VERSION = 1;
+
 /** Folded state of the BeneficiaryEscrow contract. */
 export interface BeneficiaryEscrowState {
   /** Map from channelId (bytes32) to balance tracking. */
@@ -197,8 +210,15 @@ export interface BeneficiaryEscrowState {
  * Deposits increase balance; withdrawals decrease it. Both are tracked
  * cumulatively for reporting.
  */
-export function foldBeneficiaryEscrow(events: (DepositedEvent | WithdrawnEvent)[]): BeneficiaryEscrowState {
-  const balances = new Map<string, { balance: bigint; totalDeposited: bigint; totalWithdrawn: bigint }>();
+export function foldBeneficiaryEscrow(
+  events: (DepositedEvent | WithdrawnEvent)[],
+  initial?: BeneficiaryEscrowState,
+): BeneficiaryEscrowState {
+  const balances = new Map<string, { balance: bigint; totalDeposited: bigint; totalWithdrawn: bigint }>(
+    initial
+      ? [...initial.balances.entries()].map(([id, entry]) => [id, { ...entry }])
+      : [],
+  );
 
   for (const event of events) {
     const entry = balances.get(event.channelId) ?? { balance: 0n, totalDeposited: 0n, totalWithdrawn: 0n };
@@ -238,8 +258,13 @@ export interface CreatorContractsState {
 /**
  * Fold CreatorContractCreated events into a map of known contracts.
  */
-export function foldCreatorContracts(events: CreatorContractCreatedEvent[]): CreatorContractsState {
-  const contracts = new Map<string, CreatorContractInfo>();
+export function foldCreatorContracts(
+  events: CreatorContractCreatedEvent[],
+  initial?: CreatorContractsState,
+): CreatorContractsState {
+  const contracts = new Map<string, CreatorContractInfo>(
+    initial ? [...initial.contracts.entries()].map(([address, info]) => [address, { ...info }]) : [],
+  );
 
   for (const event of events) {
     const contractAddress = event.contractAddress.toLowerCase();
@@ -276,11 +301,12 @@ export function foldAllContentFundingEvents(
   beneficiaryRegistryEvents: (BeneficiaryVerifiedEvent | BeneficiaryControlTakenEvent | BeneficiaryControlReleasedEvent | PayoutAddressRotatedEvent | ProjectDisavowedEvent | ProjectDisavowalWithdrawnEvent)[],
   beneficiaryEscrowEvents: (DepositedEvent | WithdrawnEvent)[],
   creatorContractEvents: CreatorContractCreatedEvent[],
+  initial?: ContentFundingState,
 ): ContentFundingState {
   return {
-    contentRegistry: foldContentRegistry(contentRegistryEvents),
-    beneficiaryRegistry: foldBeneficiaryState(beneficiaryRegistryEvents),
-    beneficiaryEscrow: foldBeneficiaryEscrow(beneficiaryEscrowEvents),
-    creatorContracts: foldCreatorContracts(creatorContractEvents),
+    contentRegistry: foldContentRegistry(contentRegistryEvents, initial?.contentRegistry),
+    beneficiaryRegistry: foldBeneficiaryState(beneficiaryRegistryEvents, initial?.beneficiaryRegistry),
+    beneficiaryEscrow: foldBeneficiaryEscrow(beneficiaryEscrowEvents, initial?.beneficiaryEscrow),
+    creatorContracts: foldCreatorContracts(creatorContractEvents, initial?.creatorContracts),
   };
 }

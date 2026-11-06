@@ -7,7 +7,9 @@ name: review-gate
 #
 # It re-runs when the PR gains commits (synchronize) AND when a review is
 # submitted/dismissed, so the `review-received` status flips green the moment a
-# valid receipt lands and red again the moment new code is pushed.
+# valid receipt lands and red again the moment new code is pushed. A missing
+# receipt fails that status only — the job stays green so GitHub does not email
+# a failed run for the expected pre-review state.
 
 on:
   pull_request:

@@ -7,6 +7,8 @@ open **if they stay listed here**.
 
 ## Product / UX
 
+- **(Tell)** Make the published bridge convergence diagram preserve every implication target and its attestation status. It currently chooses one common-ground statement and draws shared support unconditionally, which can misrepresent multi-plank clusters or pairs the attester refused. Keep loose pairs visible and distinguish intended links from attested implications.
+
 - [x] `normalizeSlug` strips a trailing hyphen after the 64-char slice (same as bridge-creator `slugifyCluster`).
 
 - [x] **Cluster-page mediator opt-in** and **statement-level triples** (`/bridge/triple`) — [ADR 0012](/specs/decisions/0012-mediator-is-an-address.md).

@@ -13,6 +13,10 @@ vi.mock('@commonality/sdk/signer-profiles', async () => {
   }
 })
 
+vi.mock('../../shared/accountNames/loadSuggestedDisplayName', () => ({
+  getSuggestedDisplayName: vi.fn().mockResolvedValue(null),
+}))
+
 vi.mock('../../shared/hooks/useMachinery', () => ({
   useMachinery: () => ({ mock: true }),
 }))

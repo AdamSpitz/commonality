@@ -48,6 +48,7 @@ export interface ProjectFundingSnapshot {
   totalReceived: bigint;
   threshold: bigint;
   deadline: bigint;
+  conditionStatus?: 'active' | 'succeeded' | 'refunding';
 }
 
 export interface NoteOnChainInfo {
@@ -400,6 +401,7 @@ export async function readProjectFundingSnapshots(
       | { kind: 'totalReceived'; projectAddress: Address }
       | { kind: 'threshold'; projectAddress: Address }
       | { kind: 'deadline'; projectAddress: Address }
+      | { kind: 'hasSucceeded' | 'hasFailed'; projectAddress: Address }
     > = [];
 
     const contracts: Array<{
@@ -430,6 +432,10 @@ export async function readProjectFundingSnapshots(
           abi: ValueThresholdConditionAbi,
           functionName: 'deadline',
         });
+        for (const kind of ['hasSucceeded', 'hasFailed'] as const) {
+          requests.push({ kind, projectAddress: project.projectAddress });
+          contracts.push({ address: project.conditionAddress, abi: ValueThresholdConditionAbi, functionName: kind });
+        }
       }
     }
 
@@ -448,16 +454,31 @@ export async function readProjectFundingSnapshots(
       });
     }
 
+    const conditions = new Map<string, Partial<ConditionStatus>>();
     results.forEach((result, index) => {
       const request = requests[index];
       const snapshot = snapshots.get(request.projectAddress.toLowerCase());
       if (!snapshot || result.status !== 'success') return;
+
+      if (request.kind === 'hasSucceeded' || request.kind === 'hasFailed') {
+        if (typeof result.result !== 'boolean') return;
+        const status = conditions.get(request.projectAddress.toLowerCase()) ?? {};
+        status[request.kind] = result.result;
+        conditions.set(request.projectAddress.toLowerCase(), status);
+        return;
+      }
 
       const value = result.result as bigint;
       if (request.kind === 'totalReceived') snapshot.totalReceived = value;
       if (request.kind === 'threshold') snapshot.threshold = value;
       if (request.kind === 'deadline') snapshot.deadline = value;
     });
+
+    for (const [address, status] of conditions) {
+      if (typeof status.hasSucceeded === 'boolean' && typeof status.hasFailed === 'boolean') {
+        snapshots.get(address)!.conditionStatus = status.hasSucceeded ? 'succeeded' : status.hasFailed ? 'refunding' : 'active';
+      }
+    }
 
     return projects
       .map((project) => snapshots.get(project.projectAddress.toLowerCase()))
@@ -469,12 +490,14 @@ export async function readProjectFundingSnapshots(
         const params = project.conditionAddress
           ? await readConditionParams(machinery, project.conditionAddress)
           : { threshold: 0n, deadline: 0n };
+        const status = project.conditionAddress ? await readConditionStatus(machinery, project.conditionAddress) : null;
 
         return {
           projectAddress: project.projectAddress,
           totalReceived,
           threshold: params.threshold,
           deadline: params.deadline,
+          ...(status ? { conditionStatus: status.hasSucceeded ? 'succeeded' as const : status.hasFailed ? 'refunding' as const : 'active' as const } : {}),
         };
       }),
     );

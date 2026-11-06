@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { Alert, Box, Button, Paper, Stack, TextField, Typography } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import { useAccount } from 'wagmi'
-import { ClusterMediatorOptIn } from '../components/ClusterMediatorOptIn'
 import { ConnectWalletHint } from '../components/ConnectWalletHint'
 import {
   applyPublishedCids,
@@ -166,7 +165,6 @@ export function BridgeTriplePage() {
     }
   }
 
-  const canOptIn = Boolean(address && draft.mediatorName.trim())
 
   return (
     <Stack spacing={2.5} data-testid="bridge-triple-page">
@@ -269,15 +267,6 @@ export function BridgeTriplePage() {
 
       {status && <Alert severity="info" sx={{ borderRadius: 2, whiteSpace: 'pre-wrap' }}>{status}</Alert>}
 
-      {canOptIn && address && (
-        <ClusterMediatorOptIn
-          fields={{
-            mediatorAddress: address.toLowerCase() as `0x${string}`,
-            mediatorName: draft.mediatorName,
-            mediatorNote: draft.mediatorNote,
-          }}
-        />
-      )}
     </Stack>
   )
 }

@@ -28,6 +28,7 @@ Import subpaths of `@commonality/sdk` (no flat barrel). Construct machinery with
 | Implication graph | `@commonality/sdk/conceptspace` | `getImplicationsFrom`, `getImplicationsTo`, `getImplication`. On-chain attest is `attestImplication` (usually an attester service, not a donor). |
 | Cause board as a named ref | `@commonality/sdk/mutable-refs` | `getUserRef`, `getUserRefs`. Organizers publish a roster document and point a named ref at it. |
 | Projects / pledges | `@commonality/sdk/lazy-giving`, `@commonality/sdk/fundingportals`, `@commonality/sdk/delegation` | `getProject`; alignment/success vouches; notes and standing pledges. |
+| Requests for work | `@commonality/sdk/work-requests` | `publishWorkRequest`, `publishWorkOffer`, `publishWorkResponse`, `publishWorkAcceptance`, `publishWorkDecision`, `publishContributionLink`, `loadWorkRequestBoard`. Versions are PublishedData documents. Mutable-ref tips use the `wr:` names in `specs/tech/subsystems/work-requests/README.md`. Offers are not spends. |
 | Indexer | `@commonality/sdk/utils` event-cache client; `@commonality/sdk/indexer-sync` | Raw events only. Fold in the SDK. `GET {EVENT_CACHE_URL}/status`. |
 
 Local defaults after a stack start: `IPFS_API` → localhost:5001, `IPFS_GATEWAY` → localhost:8080/ipfs, `EVENT_CACHE_URL` → localhost:42069, plus the usual `*_CONTRACT_ADDRESS` env vars.

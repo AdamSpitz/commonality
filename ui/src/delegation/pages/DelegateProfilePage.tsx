@@ -6,7 +6,7 @@ import { getNotesByOwner, type Note } from '@commonality/sdk/delegation'
 import { getStatementWithContent, type StatementPickerSelection } from '@commonality/sdk/conceptspace'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { useAccount } from 'wagmi'
-import { StatementPicker, useMachinery, useWriteClients } from '../../shared'
+import { AccountAddress, StatementPicker, useMachinery, useWriteClients } from '../../shared'
 import { formatNoteAmount, isDelegate, noteDetailPath, truncateAddress } from '../utils'
 import {
   loadDelegateOffering,
@@ -35,7 +35,7 @@ function DelegateNoteCard({ note }: { note: Note }) {
               <Typography variant="h6">{formatNoteAmount(note)}</Typography>
             </Box>
             <Chip
-              label={isDelegatedFromSomeoneElse ? `Delegated from ${truncateAddress(note.rootOwner)}` : 'Own fund'}
+              label={isDelegatedFromSomeoneElse ? <span>Delegated from <AccountAddress address={note.rootOwner} /></span> : 'Own fund'}
               color={isDelegatedFromSomeoneElse ? 'info' : 'default'}
               size="small"
             />
@@ -189,7 +189,7 @@ export function DelegateProfilePage() {
             LazyGiving delegate profile
           </Typography>
           <Typography variant="h4" component="h1" gutterBottom>
-            Delegate {address && isAddress(address) ? truncateAddress(address) : 'profile'}
+            Delegate {address && isAddress(address) ? <AccountAddress address={address} /> : 'profile'}
           </Typography>
           <Typography variant="body1" color="text.secondary">
             This funding-specific page shows the immutable statement scopes this address has publicly offered to serve and the funds it currently controls. An offering is not an endorsement, identity profile, or promise that the delegate will accept funds.

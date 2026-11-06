@@ -1,86 +1,42 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Alert, Box, Button, Card, CardContent, Divider, MenuItem, Select, Stack, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material'
+import { useState } from 'react'
+import { Alert, Box, Button, Card, CardContent, Chip, FormControl, InputLabel, MenuItem, Select, Stack, Typography } from '@mui/material'
 import { Link as RouterLink, useParams, useSearchParams } from 'react-router-dom'
+import { useAccount } from 'wagmi'
 import { shortAddress } from '../../shared/wallet/hardhatAccounts'
-import {
-  boardRoleLabel,
-  fetchEncryptedTestData,
-  resolveRunUrl,
-  testDataEnvironment,
-  testDataPageGroups,
-  testDataRegistryUrl,
-  testDataRunProjects,
-  type TestDataRegistry,
-  type TestDataRun,
-} from '../testData/testDataDocuments'
-import { actionDetail, JsonValue, KeyValueTable } from '../testData/prettyJson'
-import type { TestDataUser } from '../testData/testDataDocuments'
+import { testDataPageGroups, testDataRunProjects, testDataRunAreas, type TestDataUser } from '../testData/testDataDocuments'
+import { useTestDataRun } from '../testData/useTestDataRun'
+import { KeyValueTable } from '../testData/prettyJson'
 
-function userListRank(user: TestDataUser): number {
-  const spotlightOrder = user.spotlightOrder
-  if (typeof spotlightOrder === 'number') return spotlightOrder
-  if (user.label.includes('★')) return 1_000 + user.id
-  return 10_000 + user.id
+function userRank(user: TestDataUser): number {
+  return typeof user.spotlightOrder === 'number' ? user.spotlightOrder : (user.label.includes('★') ? 1_000 : 10_000) + user.id
 }
 
 export function TestDataRunPage() {
   const { runId } = useParams()
-  const [search] = useSearchParams()
+  const [search, setSearch] = useSearchParams()
   const capability = search.get('key') ?? ''
-  const [run, setRun] = useState<TestDataRun | null>(null)
-  const [selected, setSelected] = useState('')
-  const [showCuratedOnly, setShowCuratedOnly] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const { run, error, environment, registryUrl } = useTestDataRun(runId, capability)
+  const { address, isConnected } = useAccount()
+  const [showAllUsers, setShowAllUsers] = useState(false)
   const [connectError, setConnectError] = useState<string | null>(null)
-  const registryUrl = testDataRegistryUrl()
-  const environment = testDataEnvironment()
-
-  useEffect(() => {
-    if (!registryUrl || !capability || !runId || environment === 'disabled') return
-    let cancelled = false
-    void fetchEncryptedTestData<TestDataRegistry>(registryUrl, capability)
-      .then(registry => {
-        const entry = registry.runs.find(candidate => candidate.runId === runId)
-        if (!entry) throw new Error('That run is not present in the current registry.')
-        return fetchEncryptedTestData<TestDataRun>(resolveRunUrl(registryUrl, entry.href), capability)
-      })
-      .then(value => { if (!cancelled) setRun(value) })
-      .catch(reason => { if (!cancelled) setError(reason instanceof Error ? reason.message : String(reason)) })
-    return () => { cancelled = true }
-  }, [capability, environment, registryUrl, runId])
-
-  const pageGroups = useMemo(() => testDataPageGroups(run?.entities ?? {}), [run])
-  const projects = useMemo(() => testDataRunProjects(run?.entities ?? {}), [run])
-
-  const orderedUsers = useMemo(() => {
-    return [...(run?.users ?? [])].sort((left, right) => userListRank(left) - userListRank(right) || left.id - right.id)
-  }, [run])
-
-  const curatedUsers = useMemo(() => {
-    return orderedUsers.filter(user => user.label.includes('★'))
-  }, [orderedUsers])
-
-  const displayedUsers = useMemo(() => {
-    return showCuratedOnly ? curatedUsers : orderedUsers
-  }, [showCuratedOnly, curatedUsers, orderedUsers])
-
-  const actionsByType = useMemo(() => {
-    const counts = new Map<string, number>()
-    for (const action of run?.actions ?? []) {
-      const type = String(action.type ?? action.action ?? 'unknown')
-      counts.set(type, (counts.get(type) ?? 0) + 1)
-    }
-    return [...counts].sort((a, b) => b[1] - a[1])
-  }, [run])
-
   if (environment === 'disabled') return <Alert severity="error">Test-data administration is disabled on mainnet.</Alert>
   if (!capability || !registryUrl) return <Alert severity="info">Open this run from the bookmarked test-data admin page.</Alert>
   if (error) return <Alert severity="error">{error}</Alert>
   if (!run) return <Typography>Loading run…</Typography>
 
-  const connect = () => {
-    const user = run.users.find(candidate => candidate.address === selected)
-    if (!user) return
+  const areas = [...testDataRunAreas(run.entities)].sort((a, b) => a.title.localeCompare(b.title))
+  const areaId = search.get('area') ?? ''
+  const area = areas.find(candidate => candidate.id === areaId)
+  const missingArea = Boolean(areaId && !area)
+  const groups = testDataPageGroups(run.entities)
+  const bridges = area ? area.bridges : groups.filter(group => group.kind === 'bridge')
+  const boards = area ? area.causeBoards.filter(board => !area.bridges.some(bridge => bridge.causeId && bridge.causeId === board.causeId))
+    : groups.filter(group => group.kind === 'cause')
+  const statements = area?.statements.filter(statement => !area.bridges.some(bridge => bridge.causeId && bridge.causeId === statement.causeId)) ?? []
+  const projects = [...(area ? area.projects : testDataRunProjects(run.entities))].sort((a, b) => a.title.localeCompare(b.title))
+  const users = [...run.users].filter(user => !area || showAllUsers || area.activeUserIds.includes(user.id)).sort((a, b) => userRank(a) - userRank(b))
+  const connectedUser = isConnected ? run.users.find(user => user.address.toLowerCase() === address?.toLowerCase()) : undefined
+  const connect = (user: TestDataUser) => {
     try {
       window._setupTestDataWallet(user.privateKey, { chainId: Number(run.chainId), label: user.label })
       setConnectError(null)
@@ -88,167 +44,84 @@ export function TestDataRunPage() {
       setConnectError(reason instanceof Error ? reason.message : String(reason))
     }
   }
+  const selectArea = (id: string) => {
+    setSearch(previous => {
+      const next = new URLSearchParams(previous)
+      if (id) next.set('area', id)
+      else next.delete('area')
+      return next
+    })
+    setShowAllUsers(false)
+    setConnectError(null)
+  }
 
-  return (
-    <Stack spacing={3} data-testid="test-data-run-page">
-      <Box>
-        <Button component={RouterLink} to={`/admin/test-data?key=${encodeURIComponent(capability)}`} sx={{ px: 0 }}>All runs</Button>
-        <Typography variant="h4" component="h1">Run {run.runId}</Typography>
-        <Typography color="text.secondary">{new Date(run.createdAt).toLocaleString()} · {run.network} · chain {run.chainId}</Typography>
-      </Box>
-
-      {(pageGroups.length > 0 || projects.length > 0) && (
-        <Card variant="outlined" data-testid="test-data-run-pages">
-          <CardContent>
-            <Typography variant="h6">Pages created in this run</Typography>
-            <Typography color="text.secondary" sx={{ mb: 2 }}>
-              Open each cause board, bridge, and project in the app.
-            </Typography>
-            <Stack spacing={2.5}>
-              {pageGroups.filter(group => group.kind === 'bridge').map(group => (
-                <Box key={group.path}>
-                  <Button component={RouterLink} to={group.path} variant="contained" sx={{ mb: 1 }}>
-                    Bridge · {group.title}
-                  </Button>
-                  <Stack spacing={0.5} sx={{ pl: 1 }}>
-                    {group.boards.map(board => (
-                      <Button key={board.path} component={RouterLink} to={board.path} sx={{ justifyContent: 'flex-start', px: 1 }}>
-                        {boardRoleLabel(board.detail)} · {board.title}
-                      </Button>
-                    ))}
-                  </Stack>
-                </Box>
-              ))}
-              {pageGroups.some(group => group.kind === 'cause') && (
-                <Box>
-                  <Typography variant="subtitle1" sx={{ mb: 0.5 }}>Cause boards</Typography>
-                  <Stack spacing={0.5}>
-                    {pageGroups.filter(group => group.kind === 'cause').map(group => (
-                      <Button key={group.path} component={RouterLink} to={group.path} sx={{ justifyContent: 'flex-start', px: 1 }}>
-                        {group.title}
-                      </Button>
-                    ))}
-                  </Stack>
-                </Box>
-              )}
-              {projects.length > 0 && (
-                <Box>
-                  <Typography variant="subtitle1" sx={{ mb: 0.5 }}>Projects ({projects.length})</Typography>
-                  <Stack spacing={0.5}>
-                    {projects.map(project => (
-                      <Button key={project.assuranceContract} component={RouterLink} to={project.path} sx={{ justifyContent: 'flex-start', px: 1 }}>
-                        {project.title}
-                      </Button>
-                    ))}
-                  </Stack>
-                </Box>
-              )}
-            </Stack>
-          </CardContent>
-        </Card>
-      )}
-
-      <Card variant="outlined">
-        <CardContent>
-          <Typography variant="h6">View as a fake user</Typography>
-          <Typography color="text.secondary" sx={{ mb: 2 }}>
-            The selected disposable key stays in memory. Never fund or use these accounts outside this run's test network.
-          </Typography>
-          <Stack spacing={2}>
-            <Stack direction="row" alignItems="center" gap={1}>
-              <Button
-                variant={showCuratedOnly ? 'contained' : 'outlined'}
-                size="small"
-                onClick={() => setShowCuratedOnly(!showCuratedOnly)}
-              >
-                {showCuratedOnly ? `Show all users (${run?.users.length ?? 0})` : `Show curated only (${curatedUsers.length}) ★`}
-              </Button>
-            </Stack>
-            <Stack direction={{ xs: 'column', sm: 'row' }} gap={2}>
-              <Select value={selected} onChange={event => setSelected(event.target.value)} displayEmpty sx={{ minWidth: 300 }}>
-                <MenuItem value="" disabled>Select a fake user</MenuItem>
-                {displayedUsers.map(user => <MenuItem key={user.address} value={user.address}>{user.label} · {shortAddress(user.address)}</MenuItem>)}
-              </Select>
-              <Button variant="contained" disabled={!selected} onClick={connect}>Connect as selected user</Button>
-            </Stack>
+  return <Stack spacing={3} data-testid="test-data-run-page">
+    <Box>
+      <Button component={RouterLink} to={`/admin/test-data?key=${encodeURIComponent(capability)}`} sx={{ px: 0 }}>All runs</Button>
+      <Typography variant="h4" component="h1">Demo launcher</Typography>
+      <Typography color="text.secondary">Synthetic demo · {run.network} · {new Date(run.createdAt).toLocaleString()}</Typography>
+    </Box>
+    {areas.length > 0 && <FormControl fullWidth>
+      <InputLabel id="demo-area-label" shrink>Demo area</InputLabel>
+      <Select labelId="demo-area-label" label="Demo area" displayEmpty value={area?.id ?? ''} onChange={event => selectArea(event.target.value)}>
+        <MenuItem value="">All areas</MenuItem>
+        {areas.map(item => <MenuItem key={item.id} value={item.id}>{item.title}</MenuItem>)}
+      </Select>
+    </FormControl>}
+    {missingArea ? <Alert severity="warning">This run has no recorded area with that name. <Button onClick={() => selectArea('')}>Show all areas</Button></Alert> : <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 3fr) minmax(0, 2fr)' }, gap: 3, alignItems: 'start' }}>
+      <Stack spacing={3}>
+        <Card variant="outlined"><CardContent>
+          <Typography variant="h6" component="h2">{area?.title ?? 'Pages in this run'}</Typography>
+          <Typography color="text.secondary" sx={{ mb: 2 }}>Open a page to continue the demo in the normal UI.</Typography>
+          <Stack spacing={2} alignItems="flex-start">
+            {bridges.map(bridge => <Box key={bridge.path}>
+              <Typography variant="overline" color="text.secondary">Bridge</Typography>
+              <Box><Button component={RouterLink} to={bridge.path} variant="contained">{groups.find(group => group.path === bridge.path)?.title ?? bridge.title.replace(/ bridge$/i, '')}</Button></Box>
+            </Box>)}
+            {boards.map(board => <Box key={board.path}>
+              <Typography variant="overline" color="text.secondary">Cause board</Typography>
+              <Box><Button component={RouterLink} to={board.path} sx={{ textAlign: 'left' }}>{board.title}</Button></Box>
+            </Box>)}
+            {statements.map(statement => <Box key={statement.id}>
+              <Typography>{statement.text}</Typography>
+              {statement.path && <Button component={RouterLink} to={statement.path} size="small">Open statement</Button>}
+            </Box>)}
+            {!bridges.length && !boards.length && !statements.length && <Typography color="text.secondary">No boards, bridges, or statements recorded here.</Typography>}
           </Stack>
-          {connectError ? <Alert severity="error" sx={{ mt: 2 }}>{connectError}</Alert> : null}
-        </CardContent>
-      </Card>
-
-      <Stack direction={{ xs: 'column', md: 'row' }} gap={2}>
-        <Card variant="outlined" sx={{ flex: 1 }}><CardContent><Typography variant="h5">{run.users.length}</Typography><Typography color="text.secondary">Fake users</Typography></CardContent></Card>
-        <Card variant="outlined" sx={{ flex: 1 }}><CardContent><Typography variant="h5">{run.actions.length}</Typography><Typography color="text.secondary">Recorded actions</Typography></CardContent></Card>
-        <Card variant="outlined" sx={{ flex: 1 }}><CardContent><Typography variant="h5">{String(run.metrics.errors instanceof Array ? run.metrics.errors.length : 0)}</Typography><Typography color="text.secondary">Errors</Typography></CardContent></Card>
+        </CardContent></Card>
+        <Card variant="outlined"><CardContent>
+          <Typography variant="h6" component="h2">Projects ({projects.length})</Typography>
+          <Stack alignItems="flex-start" spacing={1} sx={{ mt: 1 }}>{projects.map(project => <Button key={project.path} component={RouterLink} to={project.path} sx={{ textAlign: 'left' }}>{project.title}</Button>)}</Stack>
+          {!projects.length && <Typography color="text.secondary">No projects recorded here.</Typography>}
+        </CardContent></Card>
       </Stack>
-
-      <Card variant="outlined"><CardContent>
-        <Stack direction="row" justifyContent="space-between" alignItems="center">
-          <Typography variant="h6">Fake users {showCuratedOnly && <Typography component="span" color="primary">(curated only)</Typography>}</Typography>
-          <Typography color="text.secondary">{displayedUsers.length} of {run?.users.length ?? 0} total</Typography>
-        </Stack>
-        <Divider sx={{ my: 2 }} />
-        <Table size="small"><TableHead><TableRow><TableCell>User</TableCell><TableCell>Address</TableCell><TableCell>Engagement</TableCell><TableCell>Bio / Favorite</TableCell><TableCell>Interests</TableCell></TableRow></TableHead>
-          <TableBody>{displayedUsers.map(user => (
-            <TableRow key={user.address}>
-              <TableCell>{user.label}</TableCell>
-              <TableCell sx={{ fontFamily: 'monospace' }}>{shortAddress(user.address)}</TableCell>
-              <TableCell>{user.engagement}</TableCell>
-              <TableCell>
-                {user.bio || user.favoriteCauseId ? (
-                  <Box sx={{ maxWidth: 300 }}>
-                    {user.bio ? (
-                      <Typography variant="body2" noWrap title={String(user.bio)}>{String(user.bio)}</Typography>
-                    ) : null}
-                    {user.favoriteCauseId ? (
-                      <Typography variant="body2" color="text.secondary" noWrap title={String(user.favoriteCauseId)}>
-                        Favorite: {String(user.favoriteCauseId)}
-                      </Typography>
-                    ) : null}
-                  </Box>
-                ) : (
-                  <Typography variant="body2" color="text.disabled">—</Typography>
-                )}
-              </TableCell>
-              <TableCell>{Object.keys(user.interests).join(', ') || '—'}</TableCell>
-            </TableRow>
-          ))}</TableBody>
-        </Table>
+      <Card variant="outlined" sx={{ order: { xs: -1, md: 0 } }}><CardContent>
+        <Typography variant="h6" component="h2">View as a fake user</Typography>
+        <Typography color="text.secondary" sx={{ mb: 2 }}>{area ? 'People who acted in this area. Connect, then open a page or their dashboard.' : 'Connect as someone, then open a page or their dashboard.'}</Typography>
+        {connectedUser && <Alert severity="success" sx={{ mb: 2 }}>Connected as {connectedUser.label}. <RouterLink to="/dashboard">Open dashboard</RouterLink></Alert>}
+        {isConnected && !connectedUser && <Alert severity="info" sx={{ mb: 2 }}>Connected wallet: {shortAddress(address ?? '')}. Choose a fake user to switch.</Alert>}
+        {connectError && <Alert severity="error" sx={{ mb: 2 }}>{connectError}</Alert>}
+        {area && <Button size="small" onClick={() => setShowAllUsers(!showAllUsers)}>{showAllUsers ? 'Show active users only' : `Show all users (${run.users.length})`}</Button>}
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>{users.length} fake users · Disposable keys stay in memory.</Typography>
+        <Stack spacing={2} sx={{ maxHeight: 560, overflow: 'auto' }}>{users.map(user => <Box key={user.id}>
+          <Stack direction="row" gap={1} alignItems="center"><Typography fontWeight="bold">{user.label}</Typography>{connectedUser?.id === user.id && <Chip size="small" label="Connected" color="success" />}</Stack>
+          {typeof user.bio === 'string' && <Typography variant="body2">{user.bio}</Typography>}
+          {Array.isArray(user.roles) && <Typography variant="caption" color="text.secondary">{user.roles.filter(role => typeof role === 'string').join(' · ')}</Typography>}
+          <Box><Button size="small" onClick={() => connect(user)} disabled={connectedUser?.id === user.id}>Connect as {user.label}</Button></Box>
+        </Box>)}</Stack>
+        {!users.length && <Typography color="text.secondary">No active fake users recorded in this area.</Typography>}
       </CardContent></Card>
-
-      <Card variant="outlined"><CardContent>
-        <Typography variant="h6">Activity by type</Typography><Divider sx={{ my: 2 }} />
-        {actionsByType.map(([type, count]) => <Stack key={type} direction="row" justifyContent="space-between"><Typography>{type}</Typography><Typography>{count}</Typography></Stack>)}
-      </CardContent></Card>
-
-      <Card variant="outlined"><CardContent>
-        <Typography variant="h6">All recorded activity</Typography><Divider sx={{ my: 2 }} />
-        <Table size="small"><TableHead><TableRow><TableCell>#</TableCell><TableCell>Type</TableCell><TableCell>Actor</TableCell><TableCell>Transaction / details</TableCell></TableRow></TableHead>
-          <TableBody>{run.actions.map((action, index) => {
-            const type = String(action.type ?? action.action ?? 'unknown')
-            const actor = String(action.userAddress ?? action.address ?? action.user ?? '—')
-            const transaction = String(action.transactionHash ?? action.txHash ?? action.hash ?? '')
-            return <TableRow key={`${index}-${transaction}`}>
-              <TableCell>{index + 1}</TableCell><TableCell>{type}</TableCell><TableCell sx={{ fontFamily: 'monospace' }}>{actor.startsWith('0x') ? shortAddress(actor) : actor}</TableCell>
-              <TableCell>{transaction ? <Typography component="span" sx={{ fontFamily: 'monospace', fontSize: 12 }}>{shortAddress(transaction)}</Typography> : <JsonValue value={actionDetail(action)} />}</TableCell>
-            </TableRow>
-          })}</TableBody>
-        </Table>
-      </CardContent></Card>
-
-      <Card variant="outlined"><CardContent>
-        <Typography variant="h6">Run parameters</Typography>
-        <Divider sx={{ my: 2 }} />
-        <KeyValueTable record={run.parameters} />
-      </CardContent></Card>
-
-      <Card variant="outlined"><CardContent>
-        <Typography variant="h6">Generated entities</Typography>
-        <Typography color="text.secondary" sx={{ mb: 2 }}>Statements, projects, and contract bindings captured at the end of this run.</Typography>
-        <Box sx={{ overflowX: 'auto' }}>
-          <KeyValueTable record={run.entities} />
-        </Box>
-      </CardContent></Card>
-    </Stack>
-  )
+    </Box>}
+    <Card variant="outlined"><CardContent><Box component="details">
+      <Typography component="summary" variant="h6" sx={{ cursor: 'pointer' }}>Run diagnostics</Typography>
+      <Stack spacing={2} sx={{ mt: 2, overflowX: 'auto' }}>
+        <Typography>Run {run.runId} · chain {run.chainId} · {run.users.length} fake users · {run.actions.length} recorded actions · {Array.isArray(run.metrics.errors) ? run.metrics.errors.length : 0} errors</Typography>
+        <Typography color="text.secondary">Campaign action logs may contain only board and bridge setup, rather than every mined action.</Typography>
+        <Typography variant="subtitle1">Run parameters</Typography><KeyValueTable record={run.parameters} />
+        <Typography variant="subtitle1">Metrics</Typography><KeyValueTable record={run.metrics} />
+        <Box component="details"><Typography component="summary">Recorded activity</Typography><KeyValueTable record={Object.fromEntries(run.actions.map((action, index) => [String(index + 1), action]))} /></Box>
+        <Box component="details"><Typography component="summary">Generated entities</Typography><KeyValueTable record={run.entities} /></Box>
+      </Stack>
+    </Box></CardContent></Card>
+  </Stack>
 }

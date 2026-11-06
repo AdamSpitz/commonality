@@ -23,6 +23,10 @@ const SIGNER_KEY_VARS = [
   'IMPLICATION_ATTESTER_PRIVATE_KEY',
   'CONTENT_ATTESTER_PRIVATE_KEY',
   'BRIDGE_CREATOR_PRIVATE_KEY',
+  // Cause pages hide alignment vouches outside this wallet's direct trust.
+  // After a local wipe the generated key has no ETH, so the bootstrap cannot
+  // admit campaign attesters and every cause board looks empty.
+  'ALIGNMENT_TRUST_BOOTSTRAP_PRIVATE_KEY',
 ]
 
 const FLOOR = parseEther('1')

@@ -27,6 +27,8 @@ export interface Project {
   totalReceived: string;
   /** Address of the ValueThresholdCondition contract, if configured. */
   conditionAddress: string | null;
+  /** Live condition state, including beneficiary acceptance and veto gates. */
+  conditionStatus?: 'active' | 'succeeded' | 'refunding';
   /** IPFS CID of the project's metadata document. */
   metadataCid?: string;
   /** ISO 8601 timestamp when the project was created. */

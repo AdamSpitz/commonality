@@ -20,13 +20,28 @@ The SDK provides two main interfaces:
    - Reads current on-chain state via contract view functions (balances, thresholds, etc.)
    - Fetches IPFS content directly from a gateway
 
+### Content identifiers
+
+Chain-backed content identifiers use **CIDv1/base32 + raw codec + SHA-256**
+(`bafkrei…`). Contracts store only the 32-byte digest; `cidToBytes32` validates
+this convention and `bytes32ToCid` reconstructs it. PublishedData uses the same
+encoding. JSON IPFS uploads store raw blocks, including in mock mode.
+
+This intentionally breaks the old SDK behavior that reconstructed dag-pb CIDs
+(`bafybei…`) from chain digests. Raw PublishedData digests on chain are unchanged;
+old decoded-CID caches must be rebuilt. Genuine legacy dag-pb publications cannot
+be converted by changing their CID prefix: republish their content as raw bytes.
+Generic IPFS metadata and binary-file references remain codec-aware and may still
+use dag-pb/CIDv0; they must not be passed to chain-digest conversion helpers.
+
 ### Key concepts
 
 - **Event cache**: The indexer stores raw on-chain events in a single `events` table, served via `GET /api/events`. No business logic in the indexer.
 - **Fold functions**: Pure functions in each subsystem's `folds.ts` that reconstruct entity state from raw events (e.g., `foldProject()`, `foldStatementBeliefs()`, `foldDelegationState()`).
+- **Resumable folds**: `runResumableFold` in `@commonality/sdk/utils` stores a finalized accumulator (`FoldStore`) and refolds only later events. The unfinalized tail is not saved. Projects, standing pledges, content funding, statement browse, implication activity, and the global delegation, note-intent, and purchase-lifecycle downloads use it. Each has a `*_FOLD_VERSION` (or a string fold id for the raw-event downloads). The UI IndexedDB store is `createIndexedDbFoldStore` on the machinery. The UI also sets `offThreadGlobalFold` so the project registry and statement browse run in a Web Worker.
 - **Event decoder**: `eventDecoder.ts` re-exports per-subsystem decoders in `utils/event-decoders/`. Each decoder passes the contract ABI into viem's `decodeEventLog` (no name-only ABI scan).
 - **Chain reads**: `chain-reads.ts` provides functions for reading current on-chain state via contract view functions (generated ABIs from `src/abis.ts`, plus ERC-20 metadata from `utils/erc20.ts`).
-- **Conceptspace queries**: `subsystems/conceptspace/queries.ts` re-exports the split under `queries/`. Event-cache reads use `fetchEventsComplete` (page-split at the 10_000 cap) rather than treating a full page as a complete set.
+- **Conceptspace queries**: `subsystems/conceptspace/queries.ts` re-exports the split under `queries/`. Event-cache reads use `fetchEventsComplete` (page-split at the 10_000 cap) rather than treating a full page as a complete set. A global fetch that names an event and no topics also tries immutable archive segments, checks each `sha256`, and loads only the unarchived tail from `/api/events`. Topic-filtered and contract-filtered reads stay on `/api/events`. A missing manifest falls back to the page split.
 
 ## Usage
 
@@ -62,7 +77,7 @@ const statement = await getStatement(machinery, statementId);
 
 One subpath per subsystem: `conceptspace`, `content-funding`, `delegation`,
 `displayable-documents`, `fundingportals`, `identity`, `lazy-giving`, `mutable-refs`,
-`nudger-publications`, `published-data`, `signer-profiles`, `subjectiv`. Plus the shared
+`nudger-publications`, `published-data`, `signer-profiles`, `subjectiv`, `work-requests`. Plus the shared
 layers: `machinery` (SDK construction/config), `indexer-sync` (sync helpers), `policy-lists`
 (portable policy subject validation/canonicalization, strict root/list/resolved-bundle
 schemas, content-action extractors, and pure evaluation), `policy-lists/node` (the

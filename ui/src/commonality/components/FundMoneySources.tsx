@@ -5,7 +5,7 @@ import { Link as RouterLink } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import { getNotesByOwner, type Note } from '@commonality/sdk/delegation'
 import { formatNoteAmount, isDelegate, noteDetailPath, noteScopedKey } from '@ui/delegation'
-import { truncateAddress, useMachinery } from '@ui/shared'
+import { AccountAddress, useMachinery } from '@ui/shared'
 import { readPersonalFundingBoard, writePersonalFundingBoard } from '../lib/personalFundingBoard'
 
 export function FundMoneySources() {
@@ -95,7 +95,7 @@ export function FundMoneySources() {
               {notes.map((note) => (
                 <Stack key={noteScopedKey(note)} direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ sm: 'center' }} gap={1}>
                   <Typography variant="body2">
-                    Fund #{note.id} · {formatNoteAmount(note)}{isDelegate(note) ? ` · Entrusted by ${truncateAddress(note.rootOwner)}` : ' · Your fund'}
+                    Fund #{note.id} · {formatNoteAmount(note)}{isDelegate(note) ? <> · Entrusted by <AccountAddress address={note.rootOwner} /></> : ' · Your fund'}
                   </Typography>
                   <Stack direction="row" spacing={1}>
                     <Button

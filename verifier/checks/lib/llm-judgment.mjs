@@ -127,7 +127,7 @@ function loadLlmRouting() {
   } catch {
     return {
       allowedProviders: ["xai", "opencode-go"],
-      default: "xai/grok-4.6",
+      default: "xai/grok-4.7",
       byTaskKind: {}
     };
   }
@@ -144,7 +144,7 @@ function providerOf(model) {
 export function coerceSubscriptionModel(model, env = process.env) {
   const routing = loadLlmRouting();
   const allowed = new Set(routing.allowedProviders ?? ["xai", "opencode-go"]);
-  const fallback = routing.default ?? "xai/grok-4.6";
+  const fallback = routing.default ?? "xai/grok-4.7";
   const preferredProvider = (env.COMMONALITY_VERIFIER_LLM_PROVIDER ?? "").trim().toLowerCase();
 
   if (preferredProvider && allowed.has(preferredProvider)) {
@@ -185,7 +185,7 @@ export function resolveModel(params, { modelEnvVar, defaultTaskKind }) {
     const routed = execFileSync(router, [taskKind], { encoding: "utf8" }).trim() || null;
     return coerceSubscriptionModel(routed);
   } catch {
-    return coerceSubscriptionModel(routing.default ?? "xai/grok-4.6");
+    return coerceSubscriptionModel(routing.default ?? "xai/grok-4.7");
   }
 }
 

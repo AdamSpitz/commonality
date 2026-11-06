@@ -23,6 +23,8 @@ export type ProjectMetadata = {
   beneficiary?: ProjectBeneficiary
   /** Campaign publications set this so the page can say the project is test data. */
   synthetic?: boolean
+  /** Descriptions of work items. The chain registration is authoritative for which ids the project funds. */
+  workItems?: Array<{ id: string; description?: string; descriptionCid?: string }>
 }
 export type TokenMetadata = { name?: string; image?: string; description?: string }
 
@@ -53,6 +55,21 @@ function beneficiaryField(value: unknown): ProjectBeneficiary | undefined {
   return { namespace, canonicalIdentifier }
 }
 
+function workItemsField(value: unknown): ProjectMetadata['workItems'] {
+  if (!Array.isArray(value)) return undefined
+  const items = value.flatMap((entry) => {
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return []
+    const record = entry as Record<string, unknown>
+    if (typeof record.id !== 'string' || record.id.length === 0) return []
+    return [{
+      id: record.id,
+      ...(typeof record.description === 'string' ? { description: record.description } : {}),
+      ...(typeof record.descriptionCid === 'string' ? { descriptionCid: record.descriptionCid } : {}),
+    }]
+  })
+  return items.length > 0 ? items : undefined
+}
+
 function relevantAreasField(value: unknown): string[][] | undefined {
   if (!Array.isArray(value)) return undefined
   const paths = value.map((path) => Array.isArray(path)
@@ -76,6 +93,7 @@ export function projectMetadataFromDocument(document: DisplayableDocument): Proj
     relevantAreas: relevantAreasField(extras.relevantAreas),
     beneficiary: beneficiaryField(extras.beneficiary),
     synthetic: extras.synthetic === true,
+    workItems: workItemsField(extras.workItems),
   }
 }
 

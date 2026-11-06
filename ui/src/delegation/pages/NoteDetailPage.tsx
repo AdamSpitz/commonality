@@ -27,9 +27,9 @@ import { getNote, getDelegationChain, getNoteIntentAttestation, attestNoteIntent
 import { getStatement, type StatementListItem } from '@commonality/sdk/conceptspace'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { getProjectsFiltered, type ProjectWithMetrics, getProjectTokens, type ProjectToken } from '@commonality/sdk/lazy-giving'
-import { StatementPicker, useMachinery } from '../../shared'
+import { AccountAddress, StatementPicker, useMachinery } from '../../shared'
 import { useWriteClients } from '../../shared'
-import { formatNoteAmount, isDelegate, truncateAddress, isEthNote, parseNoteRouteId, noteDetailPathFor, parsePartialTakebackAmount } from '../utils'
+import { formatNoteAmount, isDelegate, isEthNote, parseNoteRouteId, noteDetailPathFor, parsePartialTakebackAmount } from '../utils'
 import { getCurrencyForNote } from '../../shared/funding'
 import { FineListPanel } from '../components/FineListPanel'
 import { PendingSpendCard } from '../components/PendingSpendCard'
@@ -100,7 +100,7 @@ function DelegationChainVisualization({ chain, note }: DelegationChainVisualizat
                   {isRoot(link) ? 'Root' : isLeaf(link) ? 'Leaf' : `Delegate ${link.position}`}
                 </Typography>
                 <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
-                  {truncateAddress(link.address)}
+                  <AccountAddress address={link.address} />
                 </Typography>
                 <Button
                   size="small"
@@ -776,13 +776,13 @@ export function NoteDetailPage() {
             <Box>
               <Typography variant="caption" color="text.secondary">Created by</Typography>
               <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
-                {truncateAddress(note.rootOwner)}
+                <AccountAddress address={note.rootOwner} />
               </Typography>
             </Box>
             <Box>
               <Typography variant="caption" color="text.secondary">Current Owner</Typography>
               <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
-                {truncateAddress(note.owner)}
+                <AccountAddress address={note.owner} />
               </Typography>
             </Box>
             <Box>

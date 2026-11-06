@@ -1,5 +1,6 @@
 import type { ProjectAccumulator } from '@commonality/sdk/lazy-giving';
 import type { ContractAddresses, SDKMachinery } from '@commonality/sdk/machinery';
+import type { FoldStore, StoredFold } from '@commonality/sdk/utils';
 
 const FOLD_CACHE_DB_NAME = 'commonality-fold-cache';
 const FOLD_CACHE_DB_VERSION = 1;
@@ -180,6 +181,34 @@ async function openFoldCacheDatabase(): Promise<IDBDatabase> {
   }
 
   return openDatabasePromise;
+}
+
+/** IndexedDB `FoldStore` for resumable SDK folds. One database shared with project accumulators. */
+export function createIndexedDbFoldStore(): FoldStore {
+  return {
+    async get(key: string): Promise<StoredFold | null> {
+      try {
+        const database = await openFoldCacheDatabase();
+        const transaction = database.transaction(FOLD_CACHE_STORE_NAME, 'readonly');
+        const store = transaction.objectStore(FOLD_CACHE_STORE_NAME);
+        const record = await waitForRequest(
+          store.get(key) as IDBRequest<(StoredFold & { cacheKey: string }) | undefined>,
+        );
+        await waitForTransaction(transaction);
+        if (!record || typeof record.version !== 'number') return null;
+        return { version: record.version, cursor: record.cursor ?? null, accumulator: record.accumulator };
+      } catch {
+        return null;
+      }
+    },
+    async put(key: string, value: StoredFold): Promise<void> {
+      const database = await openFoldCacheDatabase();
+      const transaction = database.transaction(FOLD_CACHE_STORE_NAME, 'readwrite');
+      const store = transaction.objectStore(FOLD_CACHE_STORE_NAME);
+      await waitForRequest(store.put({ cacheKey: key, ...value, updatedAt: Date.now() }));
+      await waitForTransaction(transaction);
+    },
+  };
 }
 
 export async function loadCachedProjectAccumulator(

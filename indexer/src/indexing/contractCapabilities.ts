@@ -14,6 +14,7 @@ export const conceptspaceContractNames = [
   "Implications",
   "AlignmentAttestations",
   "AccountAssertions",
+  "SuggestedNames",
   "TrustRegistry",
   "MutableRefUpdater",
   "NudgePublications",

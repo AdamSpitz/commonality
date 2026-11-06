@@ -49,7 +49,7 @@ For combinatorial statements, publish the pieces and rules that generate them, a
 - counts per piece;
 - other sites rebuilding the picker from the family.
 
-See [statement families](/specs/tech/subsystems/conceptspace/statement-families.md) and [ADR 0019](/specs/decisions/0019-statement-families.md).
+See [statement families](/specs/tech/subsystems/conceptspace/statement-families.md) and [ADR 0022](/specs/decisions/0022-statement-families.md).
 
 ### 7. Hints about intended implications (not yet specified)
 

@@ -1,11 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { Project, ProjectAccumulator } from '@commonality/sdk/lazy-giving';
+import type { Project } from '@commonality/sdk/lazy-giving';
 import type { SDKMachinery } from '@commonality/sdk/machinery';
-import {
-  loadCachedProjectAccumulator,
-  saveCachedProjectAccumulator,
-  type FoldCacheOptions,
-} from '../stores/foldCache';
+import { type FoldCacheOptions } from '../stores/foldCache';
 import { useMachinery } from './useMachinery';
 
 interface UseCachedProjectResult {
@@ -33,55 +29,15 @@ export function projectFoldCacheOptions(
   }
 }
 
-function resumeFromBlock(accumulator: ProjectAccumulator, fallbackBlock: string): string {
-  return accumulator.lastEventBlockNumber ?? accumulator.blockNumber ?? fallbackBlock
-}
-
+/** Load a project. Resume lives in the SDK fold store on the machinery. */
 export async function loadProjectWithCache(
   machinery: SDKMachinery,
   projectAddress: string,
-  cacheOptions: Omit<FoldCacheOptions, 'address'>
+  _cacheOptions: Omit<FoldCacheOptions, 'address'>
 ): Promise<Project | null> {
-  const { getProject, getProjectFold } = await import('@commonality/sdk/lazy-giving');
-
-  if (!projectAddress) {
-    return null;
-  }
-
-  if (
-    !machinery.eventCacheUrl ||
-    !machinery.contractAddresses ||
-    !cacheOptions.contractAddresses?.assuranceContractFactory
-  ) {
-    return getProject(machinery, projectAddress);
-  }
-
-  const cacheKeyOptions: FoldCacheOptions = {
-    ...cacheOptions,
-    address: projectAddress,
-  };
-  const cached = await loadCachedProjectAccumulator(cacheKeyOptions);
-
-  const folded = cached
-    ? await getProjectFold(machinery, projectAddress, {
-        initialAccumulator: cached.accumulator,
-        blockNumber_gte: resumeFromBlock(cached.accumulator, cached.blockNumber),
-      })
-    : await getProjectFold(machinery, projectAddress);
-
-  if (folded) {
-    await saveCachedProjectAccumulator(
-      cacheKeyOptions,
-      folded.accumulator,
-      folded.accumulator.lastEventBlockNumber
-        ?? folded.project.blockNumber
-        ?? cached?.blockNumber
-        ?? '0'
-    );
-    return folded.project;
-  }
-
-  return null;
+  const { getProject } = await import('@commonality/sdk/lazy-giving');
+  if (!projectAddress) return null;
+  return getProject(machinery, projectAddress);
 }
 
 export function useCachedProject({

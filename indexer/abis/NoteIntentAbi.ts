@@ -23,9 +23,9 @@ export const NoteIntentAbi = [
       },
       {
         "indexed": true,
-        "internalType": "address",
-        "name": "noteContract",
-        "type": "address"
+        "internalType": "bytes32",
+        "name": "intendedStatementId",
+        "type": "bytes32"
       },
       {
         "indexed": true,
@@ -35,9 +35,9 @@ export const NoteIntentAbi = [
       },
       {
         "indexed": false,
-        "internalType": "bytes32",
-        "name": "intendedStatementId",
-        "type": "bytes32"
+        "internalType": "address",
+        "name": "noteContract",
+        "type": "address"
       }
     ],
     "name": "NoteIntentAttested",

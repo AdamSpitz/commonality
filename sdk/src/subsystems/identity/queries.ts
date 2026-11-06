@@ -6,7 +6,7 @@
 
 import { type Address } from 'viem';
 import { SDKMachinery } from '../../machinery.js';
-import { fetchEvents, padAddressAsTopic } from '../../utils/eventCacheClient.js';
+import { fetchEvents, fetchEventsComplete, padAddressAsTopic } from '../../utils/eventCacheClient.js';
 import { decodeAccountAssertionSetEvent } from '../../utils/event-decoders/identity.js';
 import {
   computeAnonymizedId,
@@ -90,10 +90,7 @@ export async function getKnownProofTiers(
   config: UniqueHumanIdConfig = createUniqueHumanIdConfig(),
 ): Promise<Map<AnonymizedId, ProofStrength>> {
   const resolvedConfig = config;
-  const rawEvents = await fetchEvents(machinery, {
-    eventName: 'AccountAssertionSet',
-    limit: 10000,
-  });
+  const rawEvents = await fetchEventsComplete(machinery, { eventName: 'AccountAssertionSet' });
   const assertedAnchors = foldAssertedAnchors(decodeAssertionEvents(rawEvents));
 
   const tiers = new Map<AnonymizedId, ProofStrength>();

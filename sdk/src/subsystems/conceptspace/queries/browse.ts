@@ -1,17 +1,75 @@
 import { type Address } from 'viem';
-import { padAddressAsTopic } from '../../../utils/eventCacheClient.js';
+import { padAddressAsTopic, readFinalizedThrough } from '../../../utils/eventCacheClient.js';
+import { foldStoreKey, runResumableFold } from '../../../utils/resumableFold.js';
 import { IpfsCidV1 } from '../../../utils/cid-types.js';
 import { SDKMachinery } from '../../../machinery.js';
-import { foldAllStatements, foldUserBeliefs } from '../folds.js';
+import {
+  browseCountsFromState,
+  deserializeDirectSupportBrowse,
+  DIRECT_SUPPORT_BROWSE_FOLD_VERSION,
+  emptyDirectSupportBrowse,
+  foldUserBeliefs,
+  serializeDirectSupportBrowse,
+  stepDirectSupportBrowse,
+  type DirectSupportBrowseState,
+} from '../folds.js';
 import {
   type StatementListItem,
   type BrowseStatementsOptions,
   BeliefStates,
 } from '../types.js';
 import { fetchDecodedDirectSupportEvents } from './fetch.js';
-import { enrichWithActiveStatementContent, fetchStatementDocument, publisherCandidatesByStatement } from './documents.js';
+import { enrichWithActiveStatementContent, fetchStatementDocument } from './documents.js';
 import { getStatement } from './statements.js';
 import { getImplicationsFrom, getImplicationsTo } from './implications.js';
+
+async function loadDirectSupportBrowse(machinery: SDKMachinery): Promise<DirectSupportBrowseState> {
+  const beliefs = machinery.contractAddresses?.beliefs;
+  return runResumableFold({
+    id: 'direct-support-browse',
+    version: DIRECT_SUPPORT_BROWSE_FOLD_VERSION,
+    key: foldStoreKey({
+      chainId: machinery.defaultChainId ?? 0,
+      eventCacheUrl: machinery.eventCacheUrl ?? '',
+      contracts: beliefs ? [beliefs] : [],
+      id: 'direct-support-browse',
+      version: DIRECT_SUPPORT_BROWSE_FOLD_VERSION,
+    }),
+    store: machinery.foldStore,
+    empty: emptyDirectSupportBrowse,
+    fetch: async cursor => ({
+      events: await fetchDecodedDirectSupportEvents(machinery, {}, cursor ? BigInt(cursor.blockNumber) : 0n),
+      finalizedThrough: await readFinalizedThrough(machinery, 'DirectSupport'),
+    }),
+    position: event => ({ blockNumber: event.blockNumber.toString(), logIndex: event.logIndex }),
+    step: stepDirectSupportBrowse,
+    serialize: serializeDirectSupportBrowse,
+    deserialize: deserializeDirectSupportBrowse,
+    finish: state => state,
+  });
+}
+
+function statementItemsFromBrowse(state: DirectSupportBrowseState): StatementListItem[] {
+  const beliefCounts = browseCountsFromState(state);
+  return [...beliefCounts.keys()].map(cidV1 => {
+    const counts = beliefCounts.get(cidV1)!;
+    const seen = state.firstSeen.get(cidV1);
+    return {
+      id: cidV1,
+      cid: cidV1 as IpfsCidV1,
+      statementType: '',
+      title: '',
+      excerpt: '',
+      believerCount: counts.believerCount,
+      disbelieverCount: counts.disbelieverCount,
+      createdAt: seen ? new Date(Number(seen.blockTimestamp) * 1000).toISOString() : '',
+    };
+  });
+}
+
+function publisherMap(state: DirectSupportBrowseState): Map<string, Address[]> {
+  return new Map([...state.publishers].map(([id, users]) => [id, users as Address[]]));
+}
 
 /** A suggested related statement, with the reason for the suggestion. */
 export interface StatementSuggestion {
@@ -33,41 +91,20 @@ export async function browseStatementsByMostSupporters(
   machinery: SDKMachinery,
   options: BrowseStatementsOptions = {}
 ): Promise<StatementListItem[]> {
+  if (machinery.offThreadGlobalFold) {
+    return machinery.offThreadGlobalFold('browseStatementsByMostSupporters', [options]) as Promise<StatementListItem[]>;
+  }
   const { limit = 10, offset = 0, orderDirection = 'desc' } = options;
 
-  const decodedEvents = await fetchDecodedDirectSupportEvents(machinery);
-
-  const firstTimestamp = new Map<string, bigint>();
-  for (const e of decodedEvents) {
-    const existing = firstTimestamp.get(e.statementId);
-    if (!existing || e.blockTimestamp < existing) {
-      firstTimestamp.set(e.statementId, e.blockTimestamp);
-    }
-  }
-
-  const beliefCounts = foldAllStatements(decodedEvents);
-
-  const items: StatementListItem[] = [...beliefCounts.keys()].map(cidV1 => {
-    const counts = beliefCounts.get(cidV1)!;
-    const ts = firstTimestamp.get(cidV1);
-    return {
-      id: cidV1,
-      cid: cidV1 as IpfsCidV1,
-      statementType: '',
-      title: '',
-      excerpt: '',
-      believerCount: counts.believerCount,
-      disbelieverCount: counts.disbelieverCount,
-      createdAt: ts ? new Date(Number(ts) * 1000).toISOString() : '',
-    };
-  });
+  const browse = await loadDirectSupportBrowse(machinery);
+  const items = statementItemsFromBrowse(browse);
 
   items.sort((a, b) => {
     const diff = a.believerCount - b.believerCount;
     return orderDirection === 'asc' ? diff : -diff;
   });
 
-  const displayableItems = await enrichWithActiveStatementContent(machinery, items, publisherCandidatesByStatement(decodedEvents));
+  const displayableItems = await enrichWithActiveStatementContent(machinery, items, publisherMap(browse));
   return displayableItems.slice(offset, offset + limit);
 }
 
@@ -76,45 +113,22 @@ export async function browseStatementsByNewest(
   machinery: SDKMachinery,
   options: BrowseStatementsOptions = {}
 ): Promise<StatementListItem[]> {
+  if (machinery.offThreadGlobalFold) {
+    return machinery.offThreadGlobalFold('browseStatementsByNewest', [options]) as Promise<StatementListItem[]>;
+  }
   const { limit = 10, offset = 0, orderDirection = 'desc' } = options;
 
-  const decodedEvents = await fetchDecodedDirectSupportEvents(machinery);
-
-  const firstSeen = new Map<string, { blockTimestamp: bigint; blockNumber: bigint }>();
-  for (const e of decodedEvents) {
-    const existing = firstSeen.get(e.statementId);
-    if (!existing || e.blockTimestamp < existing.blockTimestamp
-      || (e.blockTimestamp === existing.blockTimestamp && e.blockNumber < existing.blockNumber)) {
-      firstSeen.set(e.statementId, { blockTimestamp: e.blockTimestamp, blockNumber: e.blockNumber });
-    }
-  }
-
-  const beliefCounts = foldAllStatements(decodedEvents);
-
-  const items: (StatementListItem & { _blockNumber: bigint })[] = [...beliefCounts.keys()].map(cidV1 => {
-    const counts = beliefCounts.get(cidV1)!;
-    const seen = firstSeen.get(cidV1);
-    return {
-      id: cidV1,
-      cid: cidV1 as IpfsCidV1,
-      statementType: '',
-      title: '',
-      excerpt: '',
-      believerCount: counts.believerCount,
-      disbelieverCount: counts.disbelieverCount,
-      createdAt: seen ? new Date(Number(seen.blockTimestamp) * 1000).toISOString() : '',
-      _blockNumber: seen?.blockNumber ?? 0n,
-    };
-  });
+  const browse = await loadDirectSupportBrowse(machinery);
+  const items = statementItemsFromBrowse(browse);
 
   items.sort((a, b) => {
-    const diff = a.createdAt.localeCompare(b.createdAt)
-      || Number(a._blockNumber - b._blockNumber);
+    const blockA = browse.firstSeen.get(a.id)?.blockNumber ?? 0n;
+    const blockB = browse.firstSeen.get(b.id)?.blockNumber ?? 0n;
+    const diff = a.createdAt.localeCompare(b.createdAt) || Number(blockA - blockB);
     return orderDirection === 'asc' ? diff : -diff;
   });
 
-  const withoutBlockNumber: StatementListItem[] = items.map(({ _blockNumber: _, ...item }) => item);
-  const displayableItems = await enrichWithActiveStatementContent(machinery, withoutBlockNumber, publisherCandidatesByStatement(decodedEvents));
+  const displayableItems = await enrichWithActiveStatementContent(machinery, items, publisherMap(browse));
   return displayableItems.slice(offset, offset + limit);
 }
 
@@ -128,6 +142,9 @@ export async function browseStatements(
   machinery: SDKMachinery,
   options: BrowseStatementsOptions = {}
 ): Promise<StatementListItem[]> {
+  if (machinery.offThreadGlobalFold) {
+    return machinery.offThreadGlobalFold('browseStatements', [options]) as Promise<StatementListItem[]>;
+  }
   const { orderBy = 'createdAt' } = options;
 
   if (orderBy === 'believerCount' || orderBy === 'disbelieverCount') {
@@ -141,36 +158,14 @@ export async function getAllStatements(
   machinery: SDKMachinery,
   options: BrowseStatementsOptions = {}
 ): Promise<StatementListItem[]> {
+  if (machinery.offThreadGlobalFold) {
+    return machinery.offThreadGlobalFold('getAllStatements', [options]) as Promise<StatementListItem[]>;
+  }
   const { limit = 100, offset = 0 } = options;
 
-  const decodedEvents = await fetchDecodedDirectSupportEvents(machinery);
-
-  const firstTimestamp = new Map<string, bigint>();
-  for (const e of decodedEvents) {
-    const existing = firstTimestamp.get(e.statementId);
-    if (!existing || e.blockTimestamp < existing) {
-      firstTimestamp.set(e.statementId, e.blockTimestamp);
-    }
-  }
-
-  const beliefCounts = foldAllStatements(decodedEvents);
-
-  const items: StatementListItem[] = [...beliefCounts.keys()].map(cidV1 => {
-    const counts = beliefCounts.get(cidV1)!;
-    const ts = firstTimestamp.get(cidV1);
-    return {
-      id: cidV1,
-      cid: cidV1 as IpfsCidV1,
-      statementType: '',
-      title: '',
-      excerpt: '',
-      believerCount: counts.believerCount,
-      disbelieverCount: counts.disbelieverCount,
-      createdAt: ts ? new Date(Number(ts) * 1000).toISOString() : '',
-    };
-  });
-
-  const displayableItems = await enrichWithActiveStatementContent(machinery, items, publisherCandidatesByStatement(decodedEvents));
+  const browse = await loadDirectSupportBrowse(machinery);
+  const items = statementItemsFromBrowse(browse);
+  const displayableItems = await enrichWithActiveStatementContent(machinery, items, publisherMap(browse));
   return displayableItems.slice(offset, offset + limit);
 }
 

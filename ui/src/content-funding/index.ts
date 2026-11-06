@@ -32,7 +32,7 @@ export {
   type AlignedContentContract,
   type AlignedContentItem,
 } from './selectAlignedContent'
-export { statementCidInSet, cidReferencesSameDigest } from './statementCidMatch'
+export { statementCidInSet } from './statementCidMatch'
 export {
   FAN_CREATED_TOOLTIP,
   CONTENT_FUNDING_BADGE_TOOLTIP,

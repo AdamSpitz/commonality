@@ -37,11 +37,15 @@ key; it only inspects the PR's existing reviews.
   Reviewed-commit: <current head sha>
   ```
 
-  If yes → `review-received` is green. If no → red, and branch protection blocks
-  the merge. Pushing new commits changes the sha, expiring the receipt. The
-  Actions job itself is named `review-gate-referee`, not `review-received`: the
-  latter name is reserved for the commit status so an obsolete pre-review
-  check run cannot keep the PR blocked after a receipt arrives.
+  If yes → `review-received` is green. If no → that status is red, and branch
+  protection blocks the merge. The Actions job still exits 0 in that case: a
+  missing receipt is the normal state of a just-opened PR, and a failed job is
+  what makes GitHub email "PR run failed: review-gate". Only a broken referee
+  (cannot read the PR, cannot post the status) fails the job. Pushing new
+  commits changes the sha, expiring the receipt. The Actions job itself is
+  named `review-gate-referee`, not `review-received`: the latter name is
+  reserved for the commit status so an obsolete pre-review check run cannot
+  keep the PR blocked after a receipt arrives.
 
 - **The reviewer** is any tool you choose. It (1) reviews the diff, (2) posts
   each finding as a PR review thread, (3) posts the receipt.

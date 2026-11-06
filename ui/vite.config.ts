@@ -88,7 +88,7 @@ const SDK_SOURCE_ENTRIES: Record<string, string> = {
     [
       'conceptspace', 'content-funding', 'delegation', 'displayable-documents',
       'fundingportals', 'identity', 'lazy-giving', 'mutable-refs',
-      'nudger-publications', 'signer-profiles', 'subjectiv',
+      'nudger-publications', 'signer-profiles', 'subjectiv', 'suggested-names', 'work-requests',
     ].map((name) => [name, `subsystems/${name}/index.ts`]),
   ),
 }
@@ -223,6 +223,7 @@ function buildRuntimeConfig(env: Record<string, string>) {
     'VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS',
     'VITE_TRUST_REGISTRY_CONTRACT_ADDRESS',
     'VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS',
+    'VITE_SUGGESTED_NAMES_ADDRESS',
     'VITE_PUBLISHED_DATA_CONTRACT_ADDRESS',
     'VITE_CONTENT_REGISTRY_ADDRESS',
     'VITE_BENEFICIARY_IDENTITY_ADDRESS',
@@ -232,7 +233,9 @@ function buildRuntimeConfig(env: Record<string, string>) {
     'VITE_CREATOR_ASSURANCE_VETO_ADDRESS',
     'VITE_PROJECT_FACTORY_CONTRACT_ADDRESS',
     'VITE_CREATOR_GAS_TANK_ADDRESS',
+    'VITE_STATEMENT_GAS_TANK_ADDRESS',
     'VITE_SPONSORED_GAS_ENTRY_POINT_ADDRESS',
+    'VITE_SPONSORED_GAS_PAYMASTER_URL',
     'VITE_PAYMENT_TOKEN_ADDRESS',
     'VITE_CHAIN_ID',
     'VITE_PAYMENT_TOKEN_SYMBOL',

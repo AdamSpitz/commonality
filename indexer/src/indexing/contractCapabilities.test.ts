@@ -48,6 +48,7 @@ test("conceptspace selection drops funding contracts", () => {
     Implications: { kind: "conceptspace" },
     AlignmentAttestations: { kind: "conceptspace" },
     AccountAssertions: { kind: "conceptspace" },
+    SuggestedNames: { kind: "conceptspace" },
     TrustRegistry: { kind: "conceptspace" },
     MutableRefUpdater: { kind: "conceptspace" },
     NudgePublications: { kind: "conceptspace" },

@@ -12,10 +12,11 @@ import type {
   WithdrawnEvent,
   CreatorContractCreatedEvent,
 } from '../events.js';
-import type { ContentFundingState } from '../folds.js';
-import { foldAllContentFundingEvents } from '../folds.js';
+import type { ContentFundingState, ContentItem, ChannelInfo } from '../folds.js';
+import { CONTENT_FUNDING_FOLD_VERSION, foldAllContentFundingEvents, foldContentRegistry } from '../folds.js';
 import type { SDKMachinery } from '../../../machinery.js';
-import { fetchAllContentFundingEvents } from '../../../utils/eventCacheClient.js';
+import { fetchAllContentFundingEvents, readFinalizedThrough } from '../../../utils/eventCacheClient.js';
+import { foldStoreKey, runResumableFold } from '../../../utils/resumableFold.js';
 import {
   decodeContentItemRegisteredEvent,
   decodeContentItemReleasedEvent,
@@ -54,91 +55,257 @@ export interface ContentFundingStateWithVetoedEvents {
   vetoedEvents: ContractVetoedEvent[];
 }
 
-export async function fetchAndFoldContentFundingState(
-  machinery: SDKMachinery,
-): Promise<ContentFundingStateWithVetoedEvents | null> {
-  const rawEvents = await fetchAllContentFundingEvents(machinery);
-  if (rawEvents.length === 0 && !machinery.contractAddresses?.contentRegistry) {
-    return null;
-  }
+type ContentFundingFoldEvent =
+  | ContentItemRegisteredEvent
+  | ContentItemReleasedEvent
+  | BeneficiaryVerifiedEvent
+  | BeneficiaryControlTakenEvent
+  | BeneficiaryControlReleasedEvent
+  | ProjectDisavowedEvent
+  | ProjectDisavowalWithdrawnEvent
+  | PayoutAddressRotatedEvent
+  | ContractVetoedEvent
+  | DepositedEvent
+  | WithdrawnEvent
+  | CreatorContractCreatedEvent;
 
+interface ContentFundingAccumulator {
+  state: ContentFundingState;
+  vetoedEvents: ContractVetoedEvent[];
+}
+
+function asBigint(value: bigint | string): bigint {
+  return typeof value === 'bigint' ? value : BigInt(value);
+}
+
+function emptyContentFundingState(): ContentFundingState {
+  return {
+    contentRegistry: { items: new Map() },
+    beneficiaryRegistry: { channels: new Map(), disavowedProjects: new Set() },
+    beneficiaryEscrow: { balances: new Map() },
+    creatorContracts: { contracts: new Map() },
+  };
+}
+
+function emptyAccumulator(): ContentFundingAccumulator {
+  return { state: emptyContentFundingState(), vetoedEvents: [] };
+}
+
+function isEmptyAccumulator(accumulator: ContentFundingAccumulator): boolean {
+  const { state, vetoedEvents } = accumulator;
+  return vetoedEvents.length === 0
+    && state.contentRegistry.items.size === 0
+    && state.beneficiaryRegistry.channels.size === 0
+    && state.beneficiaryRegistry.disavowedProjects.size === 0
+    && state.beneficiaryEscrow.balances.size === 0
+    && state.creatorContracts.contracts.size === 0;
+}
+
+function decodeContentFundingEvent(raw: { eventName: string }): ContentFundingFoldEvent | null {
+  switch (raw.eventName) {
+    case 'ContentItemRegistered': {
+      const decoded = decodeContentItemRegisteredEvent(raw as never);
+      return decoded ? { type: 'ContentItemRegistered', ...decoded } : null;
+    }
+    case 'ContentItemReleased': {
+      const decoded = decodeContentItemReleasedEvent(raw as never);
+      return decoded ? { type: 'ContentItemReleased', contentId: decoded.contentId, contractAddress: decoded.contractAddress, blockNumber: decoded.blockNumber, blockTimestamp: decoded.blockTimestamp, transactionHash: decoded.transactionHash, logIndex: decoded.logIndex } : null;
+    }
+    case 'BeneficiaryVerified': {
+      const decoded = decodeBeneficiaryVerifiedEvent(raw as never);
+      return decoded ? { type: 'BeneficiaryVerified', ...decoded } : null;
+    }
+    case 'BeneficiaryControlTaken': {
+      const decoded = decodeBeneficiaryControlTakenEvent(raw as never);
+      return decoded ? { type: 'BeneficiaryControlTaken', ...decoded } : null;
+    }
+    case 'BeneficiaryControlReleased': {
+      const decoded = decodeBeneficiaryControlReleasedEvent(raw as never);
+      return decoded ? { type: 'BeneficiaryControlReleased', ...decoded } : null;
+    }
+    case 'ProjectDisavowed': {
+      const decoded = decodeProjectDisavowedEvent(raw as never);
+      return decoded ? { type: 'ProjectDisavowed', ...decoded } : null;
+    }
+    case 'ProjectDisavowalWithdrawn': {
+      const decoded = decodeProjectDisavowalWithdrawnEvent(raw as never);
+      return decoded ? { type: 'ProjectDisavowalWithdrawn', ...decoded } : null;
+    }
+    case 'PayoutAddressRotated': {
+      const decoded = decodePayoutAddressRotatedEvent(raw as never);
+      return decoded ? { type: 'PayoutAddressRotated', ...decoded } : null;
+    }
+    case 'ContractVetoed': {
+      const decoded = decodeContractVetoedEvent(raw as never);
+      return decoded ? { type: 'ContractVetoed', ...decoded } : null;
+    }
+    case 'Deposited': {
+      const decoded = decodeDepositedEvent(raw as never);
+      return decoded ? { type: 'Deposited', ...decoded } : null;
+    }
+    case 'Withdrawn': {
+      const decoded = decodeWithdrawnEvent(raw as never);
+      return decoded ? { type: 'Withdrawn', ...decoded } : null;
+    }
+    case 'CreatorContractCreated': {
+      const decoded = decodeCreatorContractCreatedEvent(raw as never);
+      return decoded ? { type: 'CreatorContractCreated', contractAddress: decoded.contractAddress, channelId: decoded.channelId, creator: decoded.creator, isThirdParty: decoded.isThirdParty, blockNumber: decoded.blockNumber, blockTimestamp: decoded.blockTimestamp, transactionHash: decoded.transactionHash, logIndex: decoded.logIndex } : null;
+    }
+    default:
+      return null;
+  }
+}
+
+function stepContentFunding(accumulator: ContentFundingAccumulator, events: ContentFundingFoldEvent[]): ContentFundingAccumulator {
   const contentRegistryEvents: (ContentItemRegisteredEvent | ContentItemReleasedEvent)[] = [];
   const beneficiaryRegistryEvents: (BeneficiaryVerifiedEvent | BeneficiaryControlTakenEvent | BeneficiaryControlReleasedEvent | PayoutAddressRotatedEvent | ProjectDisavowedEvent | ProjectDisavowalWithdrawnEvent)[] = [];
   const beneficiaryEscrowEvents: (DepositedEvent | WithdrawnEvent)[] = [];
   const creatorContractEvents: CreatorContractCreatedEvent[] = [];
-  const contractVetoedEvents: ContractVetoedEvent[] = [];
+  const vetoedEvents = [...accumulator.vetoedEvents];
 
-  for (const raw of rawEvents) {
-    switch (raw.eventName) {
-      case 'ContentItemRegistered': {
-        const d = decodeContentItemRegisteredEvent(raw);
-        if (d) contentRegistryEvents.push({ type: 'ContentItemRegistered', ...d });
+  for (const event of events) {
+    switch (event.type) {
+      case 'ContentItemRegistered':
+      case 'ContentItemReleased':
+        contentRegistryEvents.push(event);
         break;
-      }
-      case 'ContentItemReleased': {
-        const d = decodeContentItemReleasedEvent(raw);
-        if (d) contentRegistryEvents.push({ type: 'ContentItemReleased', contentId: d.contentId, contractAddress: d.contractAddress, blockNumber: d.blockNumber, blockTimestamp: d.blockTimestamp, transactionHash: d.transactionHash, logIndex: d.logIndex });
+      case 'BeneficiaryVerified':
+      case 'BeneficiaryControlTaken':
+      case 'BeneficiaryControlReleased':
+      case 'ProjectDisavowed':
+      case 'ProjectDisavowalWithdrawn':
+      case 'PayoutAddressRotated':
+        beneficiaryRegistryEvents.push(event);
         break;
-      }
-      case 'BeneficiaryVerified': {
-        const d = decodeBeneficiaryVerifiedEvent(raw);
-        if (d) beneficiaryRegistryEvents.push({ type: 'BeneficiaryVerified', ...d });
+      case 'Deposited':
+      case 'Withdrawn':
+        beneficiaryEscrowEvents.push(event);
         break;
-      }
-      case 'BeneficiaryControlTaken': {
-        const d = decodeBeneficiaryControlTakenEvent(raw);
-        if (d) beneficiaryRegistryEvents.push({ type: 'BeneficiaryControlTaken', ...d });
+      case 'CreatorContractCreated':
+        creatorContractEvents.push(event);
         break;
-      }
-      case 'BeneficiaryControlReleased': {
-        const d = decodeBeneficiaryControlReleasedEvent(raw);
-        if (d) beneficiaryRegistryEvents.push({ type: 'BeneficiaryControlReleased', ...d });
+      case 'ContractVetoed':
+        vetoedEvents.push(event);
         break;
-      }
-      case 'ProjectDisavowed': {
-        const d = decodeProjectDisavowedEvent(raw);
-        if (d) beneficiaryRegistryEvents.push({ type: 'ProjectDisavowed', ...d });
-        break;
-      }
-      case 'ProjectDisavowalWithdrawn': {
-        const d = decodeProjectDisavowalWithdrawnEvent(raw);
-        if (d) beneficiaryRegistryEvents.push({ type: 'ProjectDisavowalWithdrawn', ...d });
-        break;
-      }
-      case 'PayoutAddressRotated': {
-        const d = decodePayoutAddressRotatedEvent(raw);
-        if (d) beneficiaryRegistryEvents.push({ type: 'PayoutAddressRotated', ...d });
-        break;
-      }
-      case 'ContractVetoed': {
-        const d = decodeContractVetoedEvent(raw);
-        if (d) contractVetoedEvents.push({ type: 'ContractVetoed', ...d });
-        break;
-      }
-      case 'Deposited': {
-        const d = decodeDepositedEvent(raw);
-        if (d) beneficiaryEscrowEvents.push({ type: 'Deposited', ...d });
-        break;
-      }
-      case 'Withdrawn': {
-        const d = decodeWithdrawnEvent(raw);
-        if (d) beneficiaryEscrowEvents.push({ type: 'Withdrawn', ...d });
-        break;
-      }
-      case 'CreatorContractCreated': {
-        const d = decodeCreatorContractCreatedEvent(raw);
-        if (d) creatorContractEvents.push({ type: 'CreatorContractCreated', contractAddress: d.contractAddress, channelId: d.channelId, creator: d.creator, isThirdParty: d.isThirdParty, blockNumber: d.blockNumber, blockTimestamp: d.blockTimestamp, transactionHash: d.transactionHash, logIndex: d.logIndex });
-        break;
-      }
     }
   }
 
-  const state = foldAllContentFundingEvents(
-    sortedByBlockOrder(contentRegistryEvents),
-    sortedByBlockOrder(beneficiaryRegistryEvents),
-    sortedByBlockOrder(beneficiaryEscrowEvents),
-    sortedByBlockOrder(creatorContractEvents),
-  );
+  return {
+    state: foldAllContentFundingEvents(
+      sortedByBlockOrder(contentRegistryEvents),
+      sortedByBlockOrder(beneficiaryRegistryEvents),
+      sortedByBlockOrder(beneficiaryEscrowEvents),
+      sortedByBlockOrder(creatorContractEvents),
+      accumulator.state,
+    ),
+    vetoedEvents,
+  };
+}
 
-  return { state, vetoedEvents: contractVetoedEvents };
+function serializeAccumulator(accumulator: ContentFundingAccumulator): unknown {
+  const { state } = accumulator;
+  return {
+    items: [...state.contentRegistry.items.entries()]
+      .filter((entry): entry is [string, ContentItem] => typeof entry[0] === 'string')
+      .map(([key, item]) => [key, { ...item, contentId: item.contentId.toString() }]),
+    channels: [...state.beneficiaryRegistry.channels.entries()].map(([id, info]) => [id, {
+      ...info,
+      controlTakenAt: info.controlTakenAt?.toString() ?? null,
+    }]),
+    disavowedProjects: [...state.beneficiaryRegistry.disavowedProjects],
+    balances: [...state.beneficiaryEscrow.balances.entries()].map(([id, entry]) => [id, {
+      balance: entry.balance.toString(),
+      totalDeposited: entry.totalDeposited.toString(),
+      totalWithdrawn: entry.totalWithdrawn.toString(),
+    }]),
+    contracts: [...state.creatorContracts.contracts.entries()],
+    vetoedEvents: accumulator.vetoedEvents.map(event => ({
+      ...event,
+      blockNumber: event.blockNumber.toString(),
+      blockTimestamp: event.blockTimestamp.toString(),
+    })),
+  };
+}
+
+function deserializeAccumulator(raw: unknown): ContentFundingAccumulator {
+  const record = raw as {
+    items: [string, Omit<ContentItem, 'contentId'> & { contentId: string }][];
+    channels: [string, Omit<ChannelInfo, 'controlTakenAt'> & { controlTakenAt: string | null }][];
+    disavowedProjects: string[];
+    balances: [string, { balance: string; totalDeposited: string; totalWithdrawn: string }][];
+    contracts: [string, ContentFundingState['creatorContracts']['contracts'] extends Map<string, infer T> ? T : never][];
+    vetoedEvents: (Omit<ContractVetoedEvent, 'blockNumber' | 'blockTimestamp'> & { blockNumber: string; blockTimestamp: string })[];
+  };
+  return {
+    state: {
+      contentRegistry: foldContentRegistry([], {
+        items: new Map(record.items.map(([key, item]) => [key, { ...item, contentId: asBigint(item.contentId) }])),
+      }),
+      beneficiaryRegistry: {
+        channels: new Map(record.channels.map(([id, info]) => [id, {
+          ...info,
+          controlTakenAt: info.controlTakenAt == null ? null : asBigint(info.controlTakenAt),
+        }])),
+        disavowedProjects: new Set(record.disavowedProjects),
+      },
+      beneficiaryEscrow: {
+        balances: new Map(record.balances.map(([id, entry]) => [id, {
+          balance: asBigint(entry.balance),
+          totalDeposited: asBigint(entry.totalDeposited),
+          totalWithdrawn: asBigint(entry.totalWithdrawn),
+        }])),
+      },
+      creatorContracts: { contracts: new Map(record.contracts) },
+    },
+    vetoedEvents: record.vetoedEvents.map(event => ({
+      ...event,
+      type: 'ContractVetoed' as const,
+      blockNumber: asBigint(event.blockNumber),
+      blockTimestamp: asBigint(event.blockTimestamp),
+    })),
+  };
+}
+
+export async function fetchAndFoldContentFundingState(
+  machinery: SDKMachinery,
+): Promise<ContentFundingStateWithVetoedEvents | null> {
+  const addresses = machinery.contractAddresses;
+  const contracts = [
+    addresses?.contentRegistry,
+    addresses?.beneficiaryRegistry,
+    addresses?.beneficiaryEscrow,
+    addresses?.creatorContractFactory,
+  ].filter((address): address is `0x${string}` => address != null);
+
+  const folded = await runResumableFold<ContentFundingFoldEvent, ContentFundingAccumulator, ContentFundingAccumulator>({
+    id: 'content-funding',
+    version: CONTENT_FUNDING_FOLD_VERSION,
+    key: foldStoreKey({
+      chainId: machinery.defaultChainId ?? 0,
+      eventCacheUrl: machinery.eventCacheUrl ?? '',
+      contracts,
+      id: 'content-funding',
+      version: CONTENT_FUNDING_FOLD_VERSION,
+    }),
+    store: machinery.foldStore,
+    empty: emptyAccumulator,
+    fetch: async cursor => {
+      const rawEvents = await fetchAllContentFundingEvents(machinery, cursor ? BigInt(cursor.blockNumber) : 0n);
+      return {
+        events: rawEvents.flatMap(raw => {
+          const decoded = decodeContentFundingEvent(raw);
+          return decoded ? [decoded] : [];
+        }),
+        finalizedThrough: await readFinalizedThrough(machinery, 'ContentItemRegistered'),
+      };
+    },
+    position: event => ({ blockNumber: event.blockNumber.toString(), logIndex: event.logIndex }),
+    step: stepContentFunding,
+    serialize: serializeAccumulator,
+    deserialize: deserializeAccumulator,
+    finish: accumulator => accumulator,
+  });
+
+  if (isEmptyAccumulator(folded) && !addresses?.contentRegistry) return null;
+  return { state: folded.state, vetoedEvents: folded.vetoedEvents };
 }

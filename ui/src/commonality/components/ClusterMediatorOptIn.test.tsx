@@ -42,7 +42,7 @@ describe('ClusterMediatorOptIn', () => {
   it('does not treat opening the cluster as subscribe — starts off', () => {
     render(<ClusterMediatorOptIn fields={fields} />)
     expect(screen.getByTestId('cluster-mediator-optin')).toHaveAttribute('aria-pressed', 'false')
-    expect(screen.getByText(/not this page/i)).toBeInTheDocument()
+    expect(screen.getByText(/If you choose to/i)).toBeInTheDocument()
   })
 
   it('deep-links to Settings without a service URL', () => {

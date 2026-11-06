@@ -51,9 +51,10 @@ export function WorkPage() {
       <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2 }}>
         <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Looking for money or a cause board?</Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, mb: 1 }}>
-          Directing money is Fund. Publishing a mix of statements is Organize.
+          A request for work says what outcome you want before a provider exists. Directing money into a project is Fund. Publishing a mix of statements is Organize.
         </Typography>
         <Stack direction="row" spacing={2}>
+          <Button component={RouterLink} to="/work/requests" sx={{ px: 0 }}>Requests for work</Button>
           <Button component={RouterLink} to="/dashboard" sx={{ px: 0 }}>Go to Fund</Button>
           <Button component={RouterLink} to="/causes" sx={{ px: 0 }}>Go to Organize</Button>
         </Stack>

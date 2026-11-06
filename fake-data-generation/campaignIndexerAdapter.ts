@@ -24,6 +24,7 @@ export const CAMPAIGN_ACTION_EVENTS: Record<CampaignActionType, readonly string[
   'deposit-note': ['NoteCreated'],
   'delegate-note': ['NoteDelegated'],
   'revoke-delegation': ['NoteRevoked'],
+  'spend-delegated-note': ['ERC1155Bought'],
 };
 
 export interface CampaignDerivedCheckProvider {

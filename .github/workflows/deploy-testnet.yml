@@ -46,7 +46,17 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.force_contracts }}" = "true" ]; then
             CONTRACTS_CHANGED="force-deploy"
           elif git rev-parse HEAD^ >/dev/null 2>&1; then
-            CONTRACTS_CHANGED=$(git diff --name-only HEAD^ HEAD | grep -E '^(hardhat|contracts|sdk/packages/hardhat)/' || true)
+            # A fast-forward release pushes many commits at once. HEAD^ is only
+            # the tip's parent, so compare with the master SHA from before this
+            # push when GitHub provides one.
+            RANGE="HEAD^"
+            if [ "${{ github.event_name }}" = "push" ]; then
+              BEFORE="${{ github.event.before }}"
+              if [ -n "$BEFORE" ] && [ "$BEFORE" != "0000000000000000000000000000000000000000" ] && git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+                RANGE="$BEFORE"
+              fi
+            fi
+            CONTRACTS_CHANGED=$(git diff --name-only "$RANGE" HEAD | grep -E '^(hardhat|contracts|sdk/packages/hardhat)/' || true)
           else
             # First commit to master, assume contracts need deployment
             CONTRACTS_CHANGED="force-deploy"
@@ -144,7 +154,14 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.force_ui }}" = "true" ]; then
             UI_CHANGED="force-deploy"
           elif git rev-parse HEAD^ >/dev/null 2>&1; then
-            UI_CHANGED=$(git diff --name-only HEAD^ HEAD | grep -E '^(ui|sdk/docs|hardhat/docs)/|^deployments/base-sepolia\.(env|contracts-manifest\.json)$|^render\.yaml$|^scripts/(setup-env|deploy-testnet)\.sh$' || true)
+            RANGE="HEAD^"
+            if [ "${{ github.event_name }}" = "push" ]; then
+              BEFORE="${{ github.event.before }}"
+              if [ -n "$BEFORE" ] && [ "$BEFORE" != "0000000000000000000000000000000000000000" ] && git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+                RANGE="$BEFORE"
+              fi
+            fi
+            UI_CHANGED=$(git diff --name-only "$RANGE" HEAD | grep -E '^(ui|sdk/docs|hardhat/docs)/|^deployments/base-sepolia\.(env|contracts-manifest\.json)$|^render\.yaml$|^scripts/(setup-env|deploy-testnet)\.sh$' || true)
           else
             UI_CHANGED="first-commit"
           fi

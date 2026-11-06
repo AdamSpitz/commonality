@@ -1,13 +1,13 @@
 {
-  "comment": "Verifier LLM leaves spend against Adam's subscription providers only. Never OpenRouter (pay-per-token). Override with COMMONALITY_VERIFIER_LLM_MODEL=opencode-go/<model> or COMMONALITY_VERIFIER_LLM_PROVIDER=opencode-go.",
+  "comment": "Verifier LLM leaves spend against Adam's subscription providers only. Never OpenRouter (pay-per-token). Override with COMMONALITY_VERIFIER_LLM_MODEL=opencode-go/<model> or COMMONALITY_VERIFIER_LLM_PROVIDER=opencode-go. Cheap clear-communication uses opencode-go/qwen3.8-flash: on 2026-10-16 it returned parseable JSON and matched the v3.2 designed yes/no on one short pair and one long modified-to-commonality pair. opencode-go DeepSeek ids return 400 until the OpenCode workspace privacy region is Global.",
   "allowedProviders": ["xai", "opencode-go"],
-  "default": "xai/grok-4.6",
+  "default": "xai/grok-4.7",
   "byTaskKind": {
-    "big-picture-thinking": "xai/grok-4.6",
-    "clear-communication": "xai/grok-4.6",
-    "easy": "xai/grok-4.6",
-    "complex-coding": "xai/grok-4.6",
-    "normal-coding": "xai/grok-4.6",
-    "easy-coding": "xai/grok-4.6"
+    "big-picture-thinking": "xai/grok-4.7",
+    "clear-communication": "opencode-go/qwen3.8-flash",
+    "easy": "xai/grok-4.7",
+    "complex-coding": "xai/grok-4.7",
+    "normal-coding": "xai/grok-4.7",
+    "easy-coding": "xai/grok-4.7"
   }
 }
