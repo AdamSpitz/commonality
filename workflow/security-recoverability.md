@@ -6,9 +6,7 @@ could do that we *couldn't recover from*, and the to-do list for closing those
 gaps. The goal is **not** to lock LLMs out; it's to make every plausible
 mistake recoverable, so LLMs can keep doing as much as possible.
 
-Companion: [deployment.md](./deployment.md) (what deploys where),
-[task-tiers.md](./task-tiers.md) (Ask/Tell/Trust autonomy vocabulary used in
-the to-do list below).
+Companion: [deployment.md](./deployment.md) (what deploys where).
 
 ## Threat model — what actually matters
 
@@ -151,25 +149,24 @@ Rationale and consequences:
 
 ## To-do list
 
-Tagged with [task tiers](./task-tiers.md). Items marked **(Adam)** need human
-hands (hardware, dashboards, account access) and should just be surfaced in
-`inbox.md` when an LLM gets to them.
+Items marked **(Adam)** need human hands (hardware, dashboards, account access)
+and should just be surfaced in `inbox.md` when an LLM gets to them.
 
 ### Secrets handling
 
-- [ ] (Tell) Split `.env.secrets` into the two buckets above: keep service
+- [ ] Split `.env.secrets` into the two buckets above: keep service
       secrets where the local stack expects them; move operator secrets to a
       directory outside the repo tree (e.g. `~/.secrets/commonality/`), and
       update the scripts that consume them (`setup-env.sh`, `update-ens.sh`,
       `publish-ipns.sh`, `deploy-testnet*.sh`, `generate-render-secrets.mjs`,
       etc.) to source from there. Update `workflow/deployment.md` and
       `.env.secrets.example` accordingly.
-- [ ] (Tell) Tighten `.claude/settings.local.json`: add `permissions.deny`
+- [ ] Tighten `.claude/settings.local.json`: add `permissions.deny`
       rules for the secrets paths; remove `curl:*`, `rm:*`, `node -e:*`, and
       `sudo chown:*` from the allowlist (accepting more permission prompts as
       the cost). Note: deny rules are a speed bump, not a guarantee — the
       real fix is the bucket split above. (USER'S NOTE: honestly, don't even bother, it's not real security, I'm just going to get into the habit of tapping "okay" without really examining.)
-- [x] (Tell) Rename `deployments/wallets.env` to `deployments/operator-addresses.env`
+- [x] Rename `deployments/wallets.env` to `deployments/operator-addresses.env`
       and fix the references.
 - [ ] **(Adam)** Move `ENS_OWNER_PRIVATE_KEY` to cold storage after the
       bucket split; confirm the offline backup of all operator secrets is
@@ -177,14 +174,14 @@ hands (hardware, dashboards, account access) and should just be surfaced in
 
 ### Onchain blast radius
 
-- [x] (Ask) Add a post-deploy step to `hardhat/scripts/deploy.js` that
+- [x] Add a post-deploy step to `hardhat/scripts/deploy.js` that
       transfers ownership of deployed admin-controlled contracts to a configurable
       `CONTRACT_ADMIN_ADDRESS`, distinct from the deployer. The script now
       initiates `Ownable2Step` transfer for `BeneficiaryVerifier` and
       `BeneficiaryRegistry`, and directly transfers `DelegatableNotes` ownership.
       `ProspectiveContentTokens` are per-project tokens, not deployed by this
       script; the current test payment token is `FreeERC20` and has no owner.
-- [x] (Tell) Add `hardhat/scripts/accept-admin-ownership.js` so Adam can run the
+- [x] Add `hardhat/scripts/accept-admin-ownership.js` so Adam can run the
       manual `Ownable2Step` accept phase without hand-crafting transactions.
       Usage after a non-local deploy:
       ```bash
@@ -199,7 +196,7 @@ hands (hardware, dashboards, account access) and should just be surfaced in
       as `CONTRACT_ADMIN_ADDRESS` before the next non-local deploy, then run the
       accept script above after deploy. (Use a hardware wallet now; consider a
       Safe multisig before mainnet.)
-- [x] (Ask) Add the two-speed verifier lever required by the governance
+- [x] Add the two-speed verifier lever required by the governance
       decision above. Implemented as `contracts/utils/Guardable.sol`: an
       optional guardian role, appointed by the owner (so appointment is itself
       timelocked), that can call the new `ChannelVerifier.revokeTrustedVerifier`
@@ -210,7 +207,7 @@ hands (hardware, dashboards, account access) and should just be surfaced in
       downstream power (control, veto, escrow withdrawal), which is covered by
       test. A compromised guardian can therefore only cause a denial of service
       lasting one timelock delay; it can never redirect trust.
-- [ ] (Tell) Add deploy/ops support for the timelock + Safe: point
+- [ ] Add deploy/ops support for the timelock + Safe: point
       `CONTRACT_ADMIN_ADDRESS` at the Safe, put a `TimelockController` (48h)
       between the Safe and the contracts, and extend
       `scripts/accept-admin-ownership.sh` and `workflow/deployment.md` for the
@@ -218,14 +215,14 @@ hands (hardware, dashboards, account access) and should just be surfaced in
       `onlyOwner`, so the guardian must be appointed *before* ownership moves to
       the timelock — otherwise appointing it is itself a 48-hour proposal.
       Blocked on Adam creating the Safe.
-- [ ] (Tell) Extend the `security.onchain-owners` verifier check to assert the
+- [ ] Extend the `security.onchain-owners` verifier check to assert the
       owner is the timelock (not a bare EOA), and add a check that alerts on
       anything sitting in the timelock queue — a 48h delay only helps if a
       pending proposal is actually noticed.
 - [ ] **(Adam)** Create the 2-of-3 Safe (hardware wallet + phone + offline
       backup) and record its address in `deployments/operator-addresses.env`.
       Prerequisite for both items above.
-- [x] (Tell) Document in `workflow/deployment.md` mainnet preconditions:
+- [x] Document in `workflow/deployment.md` mainnet preconditions:
       real-stablecoin payment token (no project-owned mintable test token), admin
       ownership on cold key/Safe, deployer key holds gas money only.
 
@@ -238,14 +235,14 @@ hands (hardware, dashboards, account access) and should just be surfaced in
 
 ### Detection (verifier checks — see [using-verifier workflow](../verifier/README.md))
 
-- [x] (Ask) Add gating verifier checks for: (a) drift in the trusted-attester
+- [x] Add gating verifier checks for: (a) drift in the trusted-attester
       /nudger lists in `deployments/<network>.env` vs. a recorded baseline;
       (b) onchain owner of `BeneficiaryVerifier`/`BeneficiaryRegistry`/
       `DelegatableNotes` still equals the expected admin address;
       (c) new entries in `package-lock.json` dependencies since last review.
       Implemented as `security.trust-roots`, `security.onchain-owners`, and
       `security.package-lock-dependencies`; all are wired into `facet.security`.
-- [x] (Tell) Add an advisory verifier check on agent-wallet balances/nonces
+- [x] Add an advisory verifier check on agent-wallet balances/nonces
       (unexpected spend or activity). Implemented as
       `security.agent-wallet-activity`, also wired into `facet.security`.
 
@@ -253,6 +250,6 @@ hands (hardware, dashboards, account access) and should just be surfaced in
 
 - [ ] **(Adam)** Enable branch protection (no force-push, no deletion) on
       `master` and `dev` at both GitHub and GitLab.
-- [ ] (Tell) Set up a periodic off-machine backup of the working tree
+- [ ] Set up a periodic off-machine backup of the working tree
       including untracked files (restic or borg), excluding `node_modules`
       and other regenerable artifacts; document the restore procedure.

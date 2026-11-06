@@ -204,4 +204,4 @@ Do these in order unless Adam names a different item. Keep each item small enoug
 - [`PLAN.md`](./PLAN.md) remains the source of truth for the four fake/seed-data jobs and statement-volume sequencing.
 - [`statement-generation.md`](./statement-generation.md) remains the only acceptance pipeline for new real statements.
 - [`../workflow/testnet-working-plan.md`](../workflow/testnet-working-plan.md) owns shared-lab health and deployment operations.
-- The verifier should gain campaign-specific checks only when their desired inputs, cadence, and autonomy tier are understood; the first implementation can produce standalone reconciliation artifacts.
+- The verifier should gain campaign-specific checks only when their desired inputs and cadence are understood; the first implementation can produce standalone reconciliation artifacts.

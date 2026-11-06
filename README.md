@@ -5,9 +5,8 @@ Commonality is a system for decentralized crowdfunding of public goods: people c
   - [Current focus](./focus.md) — the one or two kinds of work we are concentrating on right now (not a to-do list)
   - [AI continuity notes](./CONTINUITY.md)
   - [Fake / seed data plan](./fake-data-generation/PLAN.md) — tiny local world vs real Conceptspace statements vs mass fake activity; **next step for a fresh LLM**
-  - [To-do list](./TODO.md) — where LLMs file new one-shot tasks. Tag each with its [autonomy tier](./workflow/task-tiers.md) (Ask / Tell / Trust); untagged means Ask.
-  - [Task autonomy tiers](./workflow/task-tiers.md): how much latitude an LLM has to act without Adam — **Ask** before, **Tell** after, **Trust** entirely.
-  - [Needs attention](./inbox.md) — Adam's inbox: Ask items awaiting a ruling, and Tell items reported after the fact.
+  - [To-do list](./TODO.md) — where LLMs file new one-shot tasks.
+  - [Needs attention](./inbox.md) — Adam's inbox for stuff that needs his attention.
   - [Verifier workspace](./verifier/README.md): current report on what's working. LLM “human tester” leaves are **manual**; if Adam asks you (the chat LLM) to run one, follow [Run an LLM-judgment check from this chat](./verifier/README.md#run-an-llm-judgment-check-from-this-chat) — do not spawn `pi` / OpenRouter.
   - [Testing inventory](./workflow/testing-inventory.md): map of conventional tests, verifier coverage, and remaining testing gaps
   - [High-level project status](./workflow/project-status.md) AKA what milestone are we currently heading for: never deployed to mainnet yet, just did first testnet deployment, see also [MVP](./specs/product/mvp.md)

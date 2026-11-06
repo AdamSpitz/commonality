@@ -168,7 +168,7 @@ sponsored deploy per new donor but removes the dependency on counterfactual deli
 
 Workstream 2 ("Plain on-ramp") needs a concrete provider. This narrows the candidate list
 (Stripe crypto onramp, Coinbase Onramp, MoonPay, Transak vanilla) down to a spike-first
-recommendation rather than trialing all four. Status: **(Ask)** — decision is Adam's; this section
+recommendation rather than trialing all four. Status: undecided — decision is Adam's; this section
 records the reasoning so the spike has a clear target.
 
 #### The criterion that actually narrows it

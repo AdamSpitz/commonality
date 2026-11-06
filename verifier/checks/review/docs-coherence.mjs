@@ -31,7 +31,6 @@ const DEFAULT_INPUT_FILES = [
   "../README.md",
   "../CONTINUITY.md",
   "../TODO.md",
-  "../workflow/task-tiers.md",
   "../inbox.md",
   "README.md",
   "../workflow/project-status.md",

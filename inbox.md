@@ -1,6 +1,6 @@
 # Needs attention — Adam's inbox
 
-Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks that might be suitable for an LLM to do. This file is Adam's inbox; it's for stuff that needs his attention. AIs can put stuff in here if they want; see [task autonomy tiers](./workflow/task-tiers.md).
+Note that [TODO.md](/TODO.md) is the project's inbox; use that one for tasks that might be suitable for an LLM to do. This file is Adam's inbox; it's for stuff that needs his attention. AIs can put stuff in here if they want.
 
 When an item from this page is done and no longer needs my attention, don't mark it "done", just delete it. I don't want this file to get cluttered with already-completed items.
 
@@ -10,28 +10,10 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 <!-- backlog-reminder -->
 > **Standing reminder:** the one-shot backlog lives in [`TODO.md`](/TODO.md).
-> When it has accumulated items, consider having an LLM make a processing pass —
-> routing each item by its tier (Ask → here; Tell → do it and note it here;
-> Trust → just do it). See [`task-tiers.md`](./workflow/task-tiers.md). The
-> `meta.backlog-reminder` verifier check guards that this reminder stays present.
+> When it has accumulated items, consider having an LLM work through it.
+> The `meta.backlog-reminder` verifier check guards that this reminder stays present.
 
 ## Main list
-
-- **Tell Report:** Base Sepolia content check for the raw-CID change. 246 of 254 chain digests already resolve through PublishedData calldata. Four well-known documents that did not (CSM mission, project-alignment topic, roster coherence claim and topic) were published as raw bytes by lab wallet `0x60ec8A30…` in tx `0xeb9dc6437805ef0cb053f5bbfa53dfa4417ad710c3e94fc29ec82fcdd4ccb5c3`. They will read once the indexer sees that tx. Four other digests have no recoverable bytes (one implication pair and two alignment statement ids). Public IPFS did not have either codec. Mainnet was not touched.
-
-- **Tell Report:** Testnet ops pager is in (`scripts/testnet-ops-pager.mjs`, every 15 minutes once this is on the default branch). It comments on an `ops-pager` issue only when a probe flips. Subscribe to repo issue notifications if you want the mail. `RENDER_API_KEY` is now a GitHub secret. Those three workers are not suspended now (checked the Render API). Optional later: set secret `OPS_PAGER_NTFY_TOPIC` if you also want ntfy.
-
-- **Tell Report:** Cold-start step 5 is done. The project registry and statement browse run in a Web Worker. Smaller global folds stay on the calling thread. The step 2 bench still describes request counts.
-
-- **Tell Report:** Cold-start step 4 is done. Global folds resume from a stored accumulator (`runResumableFold`). A reorg in the unfinalized tail is not saved. The local chain is shorter than the finality lag, so the step 2 bench still describes repeat-visit bytes. Workers are step 5.
-
-- **Tell Report:** Cold-start step 3 is done. Finalized history for one event name can be served as immutable segments (`GET /api/event-segments/...`), and global SDK fetches verify the hash and then download only the tail. The local chain is too short for a segment, so the step 2 bench still describes that stack. Resumable folds are step 4.
-
-- **Tell Report:** Cold-start step 2 is done. My Notes, a single note, notes by owner or root, and a note's intents no longer download every note. Purchase, refund, and reimbursement events are still downloaded whole, because those note ids are not indexed. Statement browse, implications, content funding, standing pledges, and the project registry stay global for later steps. The first bench is in the fold-performance plan: on the existing local chain, `getAllProjects` was 223 requests and 401 ms for 55 projects. Testnet `NoteIntent` still needs a redeploy (already on `TODO.md`).
-
-- **Tell Report:** Structured fundable work is implemented. Ordinary projects and content contracts reserve work ids in `ContentRegistry` (`specs/tech/subsystems/work-items.md`). Creation still works with no ids. The project page lists current items; failed-attempt history is the registry events, not a separate timeline yet. Sequence attestations and domain templates were not built. Testnet needs a redeploy of `ContentRegistry`, `ProjectFactory`, and `CreatorAssuranceContractFactory` before this bytecode is live there.
-
-- **Tell Report:** Civility and content-funding boards. `/explore` lists configured properties (Civility's noninflammatory check only). `/explore/civility` lists registry posts a trusted attester marked with the baked topic statement, capped at 40, with hide, one-channel, and followed-channel scopes. Posts never registered cannot appear, because the attestation stores a hash. `/fund` sends a pledge to the Aligning portal for that statement and a delegation deposit with the statement preselected. No new payment contract.
 
 - Think through the further delegation-narrowing ideas in [delegation-narrowing.md](specs/product/legal/delegation-narrowing.md). The three TODO.md items (one hop, one voice, optional delay) are the baseline. Still open: risk tiers based on vouches for payout addresses rather than "new project" or "address has been paid before"; signed spend rules; refunds and reimbursement returning to the donor; expiring authority; an optional watcher who can cancel but not spend; and whether the delegate should ever hold a balance. Not legal advice, and not a decision yet.
 
@@ -55,7 +37,7 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 - Bridge-creator package is done; remaining work (CSM beat-agent stand-up, Civility-agent context source adapter, feeding signing outcomes into anchor reflection, and end-to-end rehearsal) is enumerated in [`bridge-creator-csm-next-steps.md`](workflow/bridge-creator-csm-next-steps.md). Mostly LLM-doable; the rehearsal pass needs your judgment.
 
-- [ ] **(Ask)** Claim links for wallet-less donors: decide hosted vs. self-hosted Linkdrop relay (see [bridges.md](specs/tech/bridges.md#the-one-real-open-decision-hosted-vs-self-hosted-relay) for the full evaluation — Linkdrop SDK V3 is already the settled choice over a custom `TradFiBridgeEscrow`). Needs a small spike to confirm the relay self-hosts cleanly and check the per-claim fee/gas model.
+- [ ] Claim links for wallet-less donors: decide hosted vs. self-hosted Linkdrop relay (see [bridges.md](specs/tech/bridges.md#the-one-real-open-decision-hosted-vs-self-hosted-relay) for the full evaluation — Linkdrop SDK V3 is already the settled choice over a custom `TradFiBridgeEscrow`). Needs a small spike to confirm the relay self-hosts cleanly and check the per-claim fee/gas model.
 
 - [ ] **(Adam)** Create the 2-of-3 Safe for the contract-admin role (hardware wallet + phone + offline backup) and record its address in `deployments/operator-addresses.env`. Only remaining human step from the 2026-07-27 governance decision; all the contract/ops work behind it is queued in [security-recoverability.md](workflow/security-recoverability.md#decision-adam-2026-07-27) and blocked on the Safe existing.
 
@@ -127,7 +109,7 @@ Standing index: [`workflow/testnet-working-plan.md`](workflow/testnet-working-pl
 
 - Can we think of ways to make the trust-graph thing less onerous, or (probably more importantly) to make it easier for the projects to display their credentials / bona fides in various verifiable ways (so that the system in general is less vulnerable to spam and sabotage)? See [alignment-anti-abuse.md](specs/product/alignment-anti-abuse.md).
 
-- **(Ask) Use cases — one decision left: is A2/A3/A5/A6 one combinator project rather than four features?** The full inventory, with statuses verified against the live UI, is in [use-cases.md](specs/product/use-cases.md); the other three questions from that pass have since resolved themselves. Headline was that the build is further along than the specs suggested. Side note worth acting on: the demo seed is entirely political-content flavoured, so A1/A5/E2 can't be *seen* working even in principle — seeding one local-public-goods cause would make the story demonstrable.
+- **Use cases — one decision left: is A2/A3/A5/A6 one combinator project rather than four features?** The full inventory, with statuses verified against the live UI, is in [use-cases.md](specs/product/use-cases.md); the other three questions from that pass have since resolved themselves. Headline was that the build is further along than the specs suggested. Side note worth acting on: the demo seed is entirely political-content flavoured, so A1/A5/E2 can't be *seen* working even in principle — seeding one local-public-goods cause would make the story demonstrable.
 
 - **Revisit the prospective-round claim/entitlement model — it confused me, which is a bad sign.** Entitlement is the *current* receipt balance while `claimedAmount` is permanent, so an account can have claimed more than it now holds, and burning receipts silently reduces future claims with nothing recording what was given up. The specific questions (snapshot vs. live balance, whether unclaimed capacity survives a burn, per-item vs. per-round claiming) are written up under [materialization.md § Open question](specs/tech/subsystems/content-funding/materialization.md#open-question-is-the-claim-model-too-confusing).
 
