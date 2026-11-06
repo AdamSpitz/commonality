@@ -16,6 +16,10 @@ Getting **testnet to a two-person shared lab** is also a standing plan, not a pi
 
 ----
 
+- **(Ask)** Decide implication hints: where they are stored, who may send them, and how to stop a hint from becoming a cheap way to make the attester do a lot of work. The idea is in [statement proliferation](specs/product/statement-proliferation.md) §7. A hint only points at a pair; it is not a claim, and a declined hint changes nothing.
+
+- **(Ask)** Generalize content funding into extensible structured work types: domain-defined canonical work-item IDs, explicit links to funding requests with duplicate-claim rules, structured creation forms, and item/sequence alignment attestations feeding fundable-projects boards. Capture and refine the design before implementation; see [Structured fundable work](specs/product/structured-fundable-work.md).
+
 - **(Ask)** Manually confirm enrolled statement support is sponsored on a Base Account against the HTTPS paymaster after the statement tank is redeployed. Disbelief, mixed batches, and unenrolled statements must stay on the user's own gas.
 
 

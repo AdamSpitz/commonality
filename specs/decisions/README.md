@@ -69,3 +69,5 @@ instance most needs answered and can't get anywhere else.
 | [0019](./0019-beneficiary-scoped-work-identity.md) | Ordinary work identity belongs to its beneficiary | Accepted |
 | [0020](./0020-work-requests-are-published-versions.md) | Work requests are published versions | Accepted |
 | [0021](./0021-portable-wallets-not-privy.md) | Portable wallets (Base Account) instead of Privy | Accepted |
+| [0022](./0022-statement-families.md) | Statement families describe generated statements, outside the core | Proposed |
+| [0023](./0023-no-gasless-family-long-tail.md) | Do not gaslessly sponsor a statement family's long tail | Accepted |
