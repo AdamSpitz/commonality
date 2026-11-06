@@ -4,6 +4,8 @@
 
 Assurance contracts aren't just a funding mechanism — they're a **coordination-proof threat mechanism**. A community can publicly demonstrate its willingness and ability to fund something independently, at zero cost if the threat is never called. This shifts negotiating power away from whoever currently controls the funding spigot, even if the alternative funding is never actually used.
 
+What makes the threat cheap is that the funder is [swappable](./swappable-funders.md): if the project already runs on open rails, the backup funders don't have to rebuild anything. They just have to pay.
+
 ## The pattern
 
 Any time funding comes with strings attached — policy conditions, compliance requirements, ideological mandates — the funder has leverage over the recipient. The recipient's options in the traditional world are: comply, or lose the funding and scramble.

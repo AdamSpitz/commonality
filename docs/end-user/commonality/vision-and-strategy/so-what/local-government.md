@@ -52,6 +52,8 @@ Second, Commonality's own mechanisms *can* scale up, even though they work best 
 
 This means Commonality doesn't just shift *funding* downward — it undermines the *justification* for higher-level government. The province's role was "we coordinate things that individual towns can't coordinate alone." If a protocol can do that coordination without a central authority, the province's remaining role shrinks to the genuinely provincial-scale functions — which is arguably where it should be.
 
+Even when the money *does* still come from the province, a town that runs its projects on Commonality rails keeps the option of [swapping funders](../hard-to-stop/swappable-funders.md): if provincial money stops or comes with unacceptable strings, local people can fund the same projects directly, with nothing to rebuild.
+
 ## What about redistribution?
 
 One objection to localism is redistribution: if wealthy communities fund their own stuff beautifully, what happens to poor communities that can't? This is the main reason higher-level governments collect taxes centrally and distribute downward.
