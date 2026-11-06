@@ -7,7 +7,7 @@
 Some of it is soft: awareness, familiarity, experience. Those matter, but there are concrete things too:
 
   - **Accounts and addresses.** Everyone who might pay or be paid already has an address to receive funds and an account to donate from.
-  - **Templates and running projects.** Sample projects exist for common kinds of work, and real projects are already running, including ongoing ones (see [recurring pledges](/specs/product/recurring-pledges.md)).
+  - **Templates and running projects.** Sample projects exist for common kinds of work, and real projects are already running, including ongoing ones (see `specs/product/recurring-pledges.md`).
   - **Open data with permissionless funding.** This is the big one, and the rest of this doc is about it.
 
 ## The structural difference
