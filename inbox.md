@@ -33,8 +33,6 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 - Maybe try making this "statement putter-togetherer" as a more-general UI widget on the Commonality site?
 
-- Fund-now / claim-later is now the [focus](focus.md) (replaced testnet-usable + Commonality UI). Product [fund-now-claim-later.md](specs/product/fund-now-claim-later.md), tech [claimable-beneficiaries.md](specs/tech/subsystems/claimable-beneficiaries.md).
-
 - Bridge-creator package is done; remaining work (CSM beat-agent stand-up, Civility-agent context source adapter, feeding signing outcomes into anchor reflection, and end-to-end rehearsal) is enumerated in [`bridge-creator-csm-next-steps.md`](workflow/bridge-creator-csm-next-steps.md). Mostly LLM-doable; the rehearsal pass needs your judgment.
 
 - [ ] Claim links for wallet-less donors: decide hosted vs. self-hosted Linkdrop relay (see [bridges.md](specs/tech/bridges.md#the-one-real-open-decision-hosted-vs-self-hosted-relay) for the full evaluation — Linkdrop SDK V3 is already the settled choice over a custom `TradFiBridgeEscrow`). Needs a small spike to confirm the relay self-hosts cleanly and check the per-claim fee/gas model.
@@ -45,13 +43,11 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 Standing index: [`workflow/testnet-working-plan.md`](workflow/testnet-working-plan.md). Operator checklist: [`testnet-prep.md`](testnet-prep.md). The two-person lab is up through item 6. Remaining **your** clicks (none of these are “the lab is down”):
 
-- **Alignment-trust bootstrap (needed for Commonality’s shipped trust graph, not for sites/indexer).** Same as the Security item above: dedicated wallet from `generate-wallets.mjs`, fund `ALIGNMENT_TRUST_BOOTSTRAP_ADDRESS`, Render secret, denylist canary on the worker disk. Never Hardhat #8. Details: [`alignment-trust-bootstrap/README.md`](alignment-trust-bootstrap/README.md).
+- **Alignment-trust bootstrap** — see the Security item above.
 
-- **Pinata Host Origins:** add `https://testnet.commonality.works` (Picnic: no wildcards). Live Commonality HTML shell loads, but JS chunks 429 from public gateways after the dedicated origin times out — Worker fix is in [`TODO.md`](TODO.md). This dashboard allowlist is still needed for dedicated-gateway CORS.
+- **Pinata Host Origins:** add `https://causestarter.testnet.commonality.works` (Picnic: no wildcards). Live Commonality HTML shell loads, but JS chunks 429 from public gateways after the dedicated origin times out — Worker fix is in [`TODO.md`](TODO.md). This dashboard allowlist is still needed for dedicated-gateway CORS.
 
 - **Sponsored-gas live UI walk** — see Testing below.
-
-- **[x] Nightly mutation flag** — 2026-09-30, exported by `scripts/verifier-nightly-deep-cadence.sh` (not `.env`; fresh-seeded rewrites that file). Working-plan item 9. The canary write is `testnet.onchain-to-indexer` only.
 
 - **Cloudflare leftovers** (UIs already work via `*.testnet.commonality.works`): zone/DNSLink and `services.testnet.commonality.works` gateway. Unchecked boxes in [`testnet-prep.md`](testnet-prep.md).
 
@@ -61,7 +57,7 @@ Standing index: [`workflow/testnet-working-plan.md`](workflow/testnet-working-pl
 
 ### Testing/verification improvements
 
-- **Sponsored gas — human finish:** tank + UI are ready. Sign into [lazygiving.testnet.commonality.works](https://lazygiving.testnet.commonality.works) with Privy email OTP, contribute on enrolled project [`0x0b34E11c5A014C77b3b61E9e8b94609D8598FF93`](https://lazygiving.testnet.commonality.works/#/projects/0x0b34E11c5A014C77b3b61E9e8b94609D8598FF93) (high threshold, ~30-day deadline so it will fail rather than succeed), then refund after that deadline. Capture the UserOp calldata / gas overhead and retune placeholder caps. Steps: [sponsored-gas-live-trace.md](workflow/sponsored-gas-live-trace.md).
+- **Sponsored gas — human finish:** after the v0.6 tank redeploy (see "Rethink the gas-sponsorship thingy" above), contribute on an enrolled project with a Base Account, refund after the deadline, capture UserOp calldata / gas overhead, and retune placeholder caps. The old Privy email-OTP steps are obsolete (ADR 0021). Steps: [sponsored-gas-live-trace.md](workflow/sponsored-gas-live-trace.md).
 
 
 
@@ -121,4 +117,4 @@ Standing index: [`workflow/testnet-working-plan.md`](workflow/testnet-working-pl
 
 ## Before mainnet
 
-- Decide when to schedule the Hardhat 2→3 migration. It is deferred until after current testnet stabilization, but should be revisited before mainnet and treated as a standalone migration project, not a dependency bump.
+The consolidated list lives in [workflow/milestones.md](workflow/milestones.md#4-mainnet-ready).
