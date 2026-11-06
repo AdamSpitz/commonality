@@ -1,46 +1,25 @@
 # commonality.works setup
 
-This is the operator runbook for making `commonality.works` usable by the Commonality testnet deployment.
+Operator notes for the `commonality.works` zone. The from-scratch move is done. Do not add the zone again, and do not put Cloudflare tokens in `.env.secrets`.
 
-## Goal
+## Current state
 
-Cloudflare should be able to serve the public testnet routes for this zone:
+- Cloudflare is authoritative. Nameservers: `garret.ns.cloudflare.com`, `gigi.ns.cloudflare.com`.
+- `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ZONE_ID` live in `~/.secrets/commonality/operator.env` (or `COMMONALITY_OPERATOR_SECRETS_FILE`). That is what `./scripts/setup-testnet-naming.sh --dns` reads. `.env.secrets` is service runtime, not operator DNS.
+- Render does not need those two variables to serve traffic.
+- The service gateway is deployed. These return 200:
+  - `https://services.testnet.commonality.works/attesters/health`
+  - `https://services.testnet.commonality.works/workers/health`
+  - `https://services.testnet.commonality.works/indexer/graphql`
+  - `https://services.testnet.commonality.works/platform-api/health`
+- `/cause-assist` is not in the live Worker route table (404). `VITE_CAUSE_ASSIST_URL` still points at the Render host until that route is deployed.
+- DNSLink is partial. `./scripts/setup-testnet-naming.sh --dns` is the way to finish it. Do not create those records by hand.
 
-- `services.testnet.commonality.works` — Cloudflare Worker gateway to Render services
-- UI hostnames under `testnet.commonality.works` — DNSLink/IPFS records written by the deployment scripts
+[hostinger-dns-setup.md](hostinger-dns-setup.md) is historical. The zone is not on Hostinger.
 
-## Required human/operator access
+## If the zone ever has to be recreated
 
-- Access to the DNS registrar or current DNS host for `commonality.works`
-- Access to the Cloudflare account that should own/serve the zone
-- Permission to create or change DNS records for the zone
-
-## Preferred setup: move DNS to Cloudflare
-
-1. Add `commonality.works` as a zone in Cloudflare.
-2. In the domain registrar, replace the domain's nameservers with the two nameservers Cloudflare assigns for the zone.
-3. Wait for Cloudflare to mark the zone active.
-4. Create or confirm the Cloudflare API credentials used by deployment automation:
-   - `CLOUDFLARE_API_TOKEN`
-   - `CLOUDFLARE_ZONE_ID`
-5. Put those values in `.env.secrets` on the deployment machine.
-6. Deploy the service gateway from `cloudflare-service-gateway/` according to its README/config, then verify:
-   ```bash
-   curl https://services.testnet.commonality.works/attesters/health
-   curl https://services.testnet.commonality.works/workers/health
-   curl https://services.testnet.commonality.works/indexer/graphql
-   ```
-7. Run the UI/IPFS deployment flow in `workflow/deployment.md`; it should create/update the DNSLink records using the Cloudflare credentials.
-
-## If DNS is not yet on Cloudflare
-
-Use the transitional instructions in [hostinger-dns-setup.md](hostinger-dns-setup.md) if the zone is still managed at Hostinger. Prefer migrating to Cloudflare before public launch so Worker routes and DNSLink automation have one source of truth.
-
-## What to report back
-
-Tell the deployment LLM/operator:
-
-- whether Cloudflare is authoritative for `commonality.works`;
-- whether `CLOUDFLARE_ZONE_ID` and an appropriately scoped API token are available in `.env.secrets`;
-- whether `services.testnet.commonality.works` resolves and reaches the gateway;
-- whether any DNSLink records had to be created manually.
+1. In the Cloudflare dashboard, **Domains → Onboard a domain**, apex `commonality.works` only, Free plan.
+2. At the registrar, replace nameservers with the two Cloudflare assigns. Turn DNSSEC off at the registrar first.
+3. Put a zone-scoped DNS Edit token and the zone ID in `~/.secrets/commonality/operator.env`, not `.env.secrets`.
+4. Deploy `cloudflare-service-gateway/` per its README, then run `./scripts/setup-testnet-naming.sh --dns`.

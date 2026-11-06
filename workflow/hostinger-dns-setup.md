@@ -1,5 +1,7 @@
 # Hostinger DNS setup (transitional)
 
+Historical only. `commonality.works` is already on Cloudflare (`garret.ns.cloudflare.com`, `gigi.ns.cloudflare.com`). Do not follow this file.
+
 Use this only if `commonality.works` has not yet been moved to Cloudflare DNS. The preferred long-term setup is [commonality-works-setup.md](commonality-works-setup.md), because Cloudflare can host both the Worker gateway and the DNSLink records used by deployment automation.
 
 ## Goal

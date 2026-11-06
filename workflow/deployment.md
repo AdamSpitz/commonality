@@ -184,10 +184,11 @@ First time only:
 
    It reads `.env.secrets`, `deployments/operator-addresses.env`, and `deployments/base-sepolia.env` and prints one block per service. `ALIGNMENT_TOPIC_STATEMENT_CID` will be missing until you run `scripts/setup-testnet-ai-policy.mjs` — add it to the attesters service afterward.
 
-For the alignment-trust worker, also open its Render Shell and put
-`ALIGNMENT_TRUST_DENYLISTED_ADDRESS` from `deployments/operator-addresses.env` in
-`/data/denylist.txt`. Funding, pause/resume, denylist editing, and verification
-procedures are in [`alignment-trust-bootstrap/README.md`](../alignment-trust-bootstrap/README.md#base-sepolia-operations).
+The alignment-trust worker seeds `/data/denylist.txt` from the public
+`ALIGNMENT_TRUST_DENYLISTED_ADDRESS` in `render.yaml` when that file is missing.
+Do not create the file by hand for the canary. Funding, pause/resume, later denylist edits,
+and verification procedures are in
+[`alignment-trust-bootstrap/README.md`](../alignment-trust-bootstrap/README.md#base-sepolia-operations).
 
 Subsequent deploys: just `git push`. Render rebuilds automatically (`autoDeploy: true`).
 

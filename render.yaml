@@ -109,6 +109,8 @@ services:
         value: "0x3a93BAB464Cc20333076b83490DE40357094355E"
       - key: ALIGNMENT_TRUST_BOOTSTRAP_PRIVATE_KEY
         sync: false  # Secret: dedicated funded hot wallet
+      - key: ALIGNMENT_TRUST_DENYLISTED_ADDRESS
+        value: "0x2b4b8aaA91F95acc3318aB469F45D58Cd77021a3"  # Public canary (COMMONALITY_TESTNET_VERIFIER_ADDRESS). Seeds /data/denylist.txt only if that file is missing.
       - key: START_BLOCK
         value: "42768673"
       - key: STATE_FILE

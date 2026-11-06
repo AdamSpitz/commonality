@@ -46,7 +46,7 @@ This is an operational fallback, not automatic client-side failover: already-pub
 
 Prerequisites:
 
-1. Move `commonality.works` DNS to Cloudflare, or otherwise configure a Cloudflare route for the zone.
+1. `commonality.works` is already a Cloudflare zone. Wrangler still needs a login that can deploy Workers on that zone (`npx wrangler login`). DNS tokens in `~/.secrets/commonality/operator.env` are for naming scripts, not for this deploy.
 2. Confirm the Render upstream URLs in `wrangler.testnet.toml` / `wrangler.mainnet.toml`. Render service names are expected to produce `*.onrender.com` origins, but use the actual dashboard URL if Render chooses a different hostname.
 3. Authenticate Wrangler: `npx wrangler login`.
 

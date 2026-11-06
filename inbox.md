@@ -21,8 +21,6 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 - Replace/scopedown external account tokens: Cloudflare scoped DNS token instead of global key; Render/Pinata scoped as narrowly as possible; OpenRouter spend limit.
 
-- Before deploying the Commonality alignment-trust bootstrap outside local Hardhat, run `node scripts/generate-wallets.mjs`, fund `ALIGNMENT_TRUST_BOOTSTRAP_ADDRESS`, install the worker's generated Render secret block, and add the configured denylist canary to its persistent disk. Never deploy the checked-in local Hardhat key; see the worker README runbook.
-
 ### Docs / UI copy
 
 - Decide whether to act on the fresh landing-copy positioning findings. The Civility grievance-first hero was reviewed and is fine; the verifier rubric was corrected so CSM’s recognition-register rule is not imposed on every vertical. Remaining findings: CSM front-loads the mediator toggle and uses “the other side’s bullshit,” Aligning repeats its main tradeoff several times, and Tally’s “Sign once, counted forever” headline presents a future goal as current capability. The umbrella Commonality landing that recruited generic end users was removed in the CauseStarter→Commonality cutover; [`specs/product/ui-domains.md`](specs/product/ui-domains.md) still describes that old site — rewrite is in [`TODO.md`](TODO.md).
@@ -43,13 +41,11 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 Standing index: [`workflow/testnet-working-plan.md`](workflow/testnet-working-plan.md). Operator checklist: [`testnet-prep.md`](testnet-prep.md). The two-person lab is up through item 6. Remaining **your** clicks (none of these are “the lab is down”):
 
-- **Alignment-trust bootstrap** — see the Security item above.
-
 - **Pinata Host Origins:** add `https://causestarter.testnet.commonality.works` (Picnic: no wildcards). Live Commonality HTML shell loads, but JS chunks 429 from public gateways after the dedicated origin times out — Worker fix is in [`TODO.md`](TODO.md). This dashboard allowlist is still needed for dedicated-gateway CORS.
 
 - **Sponsored-gas live UI walk** — see Testing below.
 
-- **Cloudflare leftovers** (UIs already work via `*.testnet.commonality.works`): zone/DNSLink and `services.testnet.commonality.works` gateway. Unchecked boxes in [`testnet-prep.md`](testnet-prep.md).
+- **Cloudflare leftovers:** zone, operator token, and the service gateway are done. Still open: `/cause-assist` is missing from the live Worker, and DNSLink is only partial (`./scripts/setup-testnet-naming.sh --dns`). See [`testnet-prep.md`](testnet-prep.md).
 
 - **Do not fund `VERIFIER_ADDRESS` `0xE486…` for the lab.** That is the content-funding **channel claim signer** (`VERIFIER_PRIVATE_KEY` / `CHANNEL_VERIFIER_TRUSTED_SIGNER_ADDRESS`). It signs off-chain; `fund-base-sepolia-wallets.mjs` skips it. Zero ETH is expected. The mutation canary is `COMMONALITY_TESTNET_VERIFIER_*` `0x6295d57…` (already funded; item 6 used it). `InvalidVerifierSignature` on channel create is code ([`TODO.md`](TODO.md) / working-plan item 7), not gas. `app-config` fail on 0 official implication attestations is an idle default — do not dummy-attest.
 

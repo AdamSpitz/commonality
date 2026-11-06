@@ -1,4 +1,4 @@
-import { getAddress, type Address, type Hex } from 'viem';
+import { getAddress, isAddress, type Address, type Hex } from 'viem';
 
 export interface BootstrapConfig {
   rpcUrl: string;
@@ -14,7 +14,15 @@ export interface BootstrapConfig {
   maxAdmissionsPerPoll: number;
   stateFile: string;
   denylistFile: string;
+  denylistSeedAddress?: Address;
   pauseFile?: string;
+}
+
+function optionalAddress(env: NodeJS.ProcessEnv, name: string): Address | undefined {
+  const value = env[name]?.trim();
+  if (!value) return undefined;
+  if (!isAddress(value)) throw new Error(`${name} must be an address`);
+  return getAddress(value);
 }
 
 function required(env: NodeJS.ProcessEnv, name: string): string {
@@ -48,6 +56,7 @@ export function loadBootstrapConfig(env: NodeJS.ProcessEnv = process.env): Boots
     maxAdmissionsPerPoll: positiveInteger(env, 'MAX_ADMISSIONS_PER_POLL', '100'),
     stateFile: env.STATE_FILE ?? './data/alignment-trust-bootstrap.json',
     denylistFile: env.DENYLIST_FILE ?? './data/alignment-trust-denylist.txt',
+    denylistSeedAddress: optionalAddress(env, 'ALIGNMENT_TRUST_DENYLISTED_ADDRESS'),
     pauseFile: env.PAUSE_FILE?.trim() || undefined,
   };
 }

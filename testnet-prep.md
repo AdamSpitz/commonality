@@ -30,8 +30,8 @@ Create/get credentials and put them in `.env.secrets`:
 
 - [x] Go to the Render dashboard and create a new Blueprint deployment, pointing it at your GitHub repo
 - [x] Copy required `sync: false` values into Render. (Run node scripts/generate-render-secrets.mjs to generate the .env blocks.)
-- [ ] Put `commonality.works` on Cloudflare DNS, or otherwise make Cloudflare able to serve Worker routes for the zone. Friend/operator instructions: [workflow/commonality-works-setup.md](workflow/commonality-works-setup.md).
-- [ ] Deploy the Cloudflare service gateway from [cloudflare-service-gateway/](cloudflare-service-gateway/) and verify `https://services.testnet.commonality.works/*` routes.
-- [ ] Configure DNSLink UI records for `commonality.works` using Cloudflare automation, [workflow/commonality-works-setup.md](workflow/commonality-works-setup.md), or the transitional [workflow/hostinger-dns-setup.md](workflow/hostinger-dns-setup.md) instructions if DNS is still on Hostinger.
+- [x] Put `commonality.works` on Cloudflare DNS. Zone is authoritative (`garret.ns.cloudflare.com`, `gigi.ns.cloudflare.com`). Operator credentials `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ZONE_ID` belong in `~/.secrets/commonality/operator.env`, not `.env.secrets`. See [workflow/commonality-works-setup.md](workflow/commonality-works-setup.md).
+- [x] Deploy the Cloudflare service gateway from [cloudflare-service-gateway/](cloudflare-service-gateway/). `https://services.testnet.commonality.works/{attesters,workers,indexer,platform-api}/…` answers. Leftover, not a zone problem: `/cause-assist` is not in the live Worker route table, so `VITE_CAUSE_ASSIST_URL` still points at the Render host.
+- [ ] Finish DNSLink UI records with `./scripts/setup-testnet-naming.sh --dns` (reads the operator secrets file). Some hosts already have a `dnslink=` TXT (`commonality.testnet`, `lazygiving.testnet`); `causestarter.testnet` and the `testnet` apex did not. Do not hand-create records, and do not use [workflow/hostinger-dns-setup.md](workflow/hostinger-dns-setup.md) — the zone is no longer on Hostinger. The UI Worker already serves the hostnames.
 
 Once these are done, ask an LLM to follow the testnet procedure in [workflow/deployment.md](workflow/deployment.md).

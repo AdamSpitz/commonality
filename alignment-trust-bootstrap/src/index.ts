@@ -5,7 +5,7 @@ import { privateKeyToAccount } from 'viem/accounts';
 import { AlignmentAttestationsAbi, TrustRegistryAbi } from '@commonality/sdk/abis';
 import { runPollLoop } from '@commonality/sdk/utils';
 import { loadBootstrapConfig, type BootstrapConfig } from './config.js';
-import { loadDenylist } from './policy.js';
+import { ensureDenylistFile, loadDenylist } from './policy.js';
 import { readCursor, writeCursor } from './state.js';
 import { admitAttesters, reconcileDenylist, type TrustWriter } from './worker.js';
 
@@ -30,6 +30,8 @@ export async function runBootstrap(config: BootstrapConfig, signal?: AbortSignal
     },
   };
   let chainReady = false;
+  const seeded = await ensureDenylistFile(config.denylistFile, config.denylistSeedAddress);
+  if (seeded === 'seeded') console.log(`Seeded denylist ${config.denylistFile} from ALIGNMENT_TRUST_DENYLISTED_ADDRESS`);
 
   await runPollLoop({
     serviceName: 'commonality-alignment-trust-bootstrap',

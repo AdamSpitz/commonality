@@ -12,8 +12,7 @@ Last triaged: 2026-11-06.
 
 Leftovers (mostly Adam's clicks; see [inbox.md](../inbox.md) and [testnet-prep.md](../testnet-prep.md)):
 
-- Cloudflare zone / DNSLink and the `services.testnet.commonality.works` gateway.
-- Alignment-trust bootstrap wallet, Render secret, and denylist canary.
+- Cloudflare leftovers: `/cause-assist` is not on the live service gateway, and DNSLink is only partial (`./scripts/setup-testnet-naming.sh --dns`). The zone, operator token, and the rest of the gateway are done.
 - Redeploy v0.6 gas-tank faces to Base Sepolia, then the sponsored-gas live walk with a Base Account ([wallet-without-privy-plan.md](../specs/tech/wallet-without-privy-plan.md), [sponsored-gas-live-trace.md](./sponsored-gas-live-trace.md)).
 - Testnet redeploys waiting on landed code: `NoteIntent`; `ContentRegistry` / `ProjectFactory` / `CreatorAssuranceContractFactory` for work items ([TODO.md](../TODO.md)).
 - Nightly `verifier:deep-cadence` exits red because the local destructive stack fails first ([TODO.md](../TODO.md)).
