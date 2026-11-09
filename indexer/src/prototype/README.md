@@ -71,6 +71,8 @@ bloom filtering/provider behavior differs. These results demonstrate removal of
 per-block scanning, not a production CU savings ratio. The prototype had one fixed
 source; busy/factory workloads and a long unfinalized Base tail remain unmeasured.
 
+A later isolated Hardhat node, not the Docker stack, deployed a factory, indexed the created child and its constructor event, dropped that child after a provisional reorg, refused a rewritten durable anchor, restarted from the snapshot file, and satisfied `waitForIndexerToSyncToBlockNumber` against `GET /status`. The SDK wait used to throw on its success log when `machinery.testConfig` was missing, then retry until timeout; that access is now optional.
+
 The temporary harness bypassed the installed Ponder CLI through its internal dev
 entry point because the CLI currently fails on Commander's `-vv` option parsing.
 No installed dependency was modified. All local test processes were stopped.

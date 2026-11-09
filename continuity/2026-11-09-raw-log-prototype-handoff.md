@@ -54,7 +54,7 @@ successful run used sequential `evm_mine` instead.
 The plan is [specs/tech/indexer/replace-ponder.md](../specs/tech/indexer/replace-ponder.md).
 Do not claim the production migration is implemented. Local drop-in is the current stopping point. Still outstanding:
 
-- Prove the local stack against a real Hardhat chain: factory children, reorg, restart from the snapshot, and SDK `waitForIndexerToSyncToBlockNumber` via `/status`. The unit tests do not start Docker.
+- Local Docker stack is still unproven. An isolated Hardhat node (not Docker) did prove factory-child discovery, provisional reorg drop, durable-reorg refusal, snapshot restart, and SDK `waitForIndexerToSyncToBlockNumber` via `/status`. See the prototype README. `machinery.testConfig` is now optional in that wait; a missing config used to throw on the success path and burn the timeout.
 - Review RPC assumptions, snapshot validation, source selection, and comparison coverage.
 - Real-chain factory/reorg exercise. Current factory coverage is deterministic RPC fixtures with the real ABIs.
 - Independent child-discovery parity, long provisional-tail cost under Base finality, and provider-weighted CU measurement.
