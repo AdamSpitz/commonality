@@ -1,6 +1,8 @@
 # Replace Ponder with a raw-log sync loop
 
-Status: **reasonable direction; implementation and cutover gates below are not yet satisfied.** Reviewed against the current code on 2026-11-09. This note does not authorize a production schema wipe, a full chain resync, or a switch of the testnet RPC to `https://sepolia.base.org`.
+Status: **reasonable direction; implementation and cutover gates below are not yet satisfied.** Reviewed against the current code on 2026-11-09. This note does not authorize a switch of the testnet RPC to `https://sepolia.base.org`.
+
+**Decision (Adam, 2026-11-09): clean break, no backward compatibility.** We are pre-mainnet and testnet has little real use. The new indexer starts in a **fresh `DATABASE_SCHEMA`** with its own tables and replays from each source's start block using range `eth_getLogs` (not Ponder's block-by-block path). Do not adopt Ponder's tables, metadata, or checkpoints. Do not keep Ponder-compatible checkpoint strings, `/graphql`, or `/sql`; update every caller in the same change. Client-side caches (SDK folds, followers, saved segments) are invalidated once at cutover via a new `upstreamId`. Rollback means redeploying Ponder against its old schema. The Ponder-era "never bump `DATABASE_SCHEMA`" rules in `workflow/deployment.md` and `indexer/README.md` still apply to Ponder until cutover, and to the new schema afterwards. Before the replay, estimate its request count (windows × sources from each start block) and confirm it is small against the Alchemy cap.
 
 ## Assessment
 
@@ -34,7 +36,7 @@ HyperSync, or any other bulk historical source, is out of scope. Add one later o
 - Client-side folding. No derived tables, no aggregation, no IPFS, no content bytes.
 - The `events` row shape: `id`, `chainId`, `contractAddress`, `eventName`, `blockNumber`, `blockTimestamp`, `transactionHash`, `logIndex`, `topic0`–`topic3`, `data`. `id` is `chainId + txHash + logIndex`. Inserts are idempotent on that key.
 - REST behavior documented in [`indexer/README.md`](../../../indexer/README.md): `/api/events` (filters, `follow`, cursors, `checkpoint`), `/api/event-segments/...`, `/api/published-data/...`, `/api/project-read-demand`, `/api/sync`, `POST /api/indexer-wake`.
-- `DATABASE_SCHEMA` (`commonality_base_sepolia_v6` on testnet). Renaming it drops the cache and replays history. Do not bump it. New code writes the existing `events` rows. Verify the live column types before assuming Ponder's Drizzle types match what Postgres will accept; adapt the writer, do not migrate the table.
+- A stable `DATABASE_SCHEMA` after cutover. The cutover itself mints one new schema (e.g. `commonality_base_sepolia_v7`, with `INDEXER_ALLOW_SCHEMA_BUMP=1`); the new code owns its table DDL there. The `events` row shape above is kept because the REST API and SDK consume it, not because of the old table.
 - Contract set, ABIs, start blocks, and `INDEXER_DEPLOYMENT_MANIFEST`, including the conceptspace-only mode that omits funding contracts.
 - RPC budget behavior in `indexer/start.sh`: on Alchemy monthly capacity, park and back off. Do not crash-loop. Do not change the archive RPC.
 
@@ -68,7 +70,7 @@ A child created inside the window must not miss constructor logs, including logs
 
 A single global cursor is insufficient when deployments are added later. Persist source identity (chain, address, ABI/event selection, start block, factory rule) and coverage. Backfill a new source from its own start block before advertising complete coverage; never rewind every existing source. Changed start blocks or event selections require an explicit coverage plan. Removed sources retain their cached rows under today's behavior.
 
-Adding historical rows can change already-published immutable segment bytes and invalidate saved SDK folds. Before allowing such a change, define cache invalidation: either prove it cannot affect published ranges, or introduce a new cache epoch and versioned segment URLs, updating consumers together. Do not silently change bytes at an immutable URL. This is a cutover requirement if adoption changes historical coverage, and a required policy for subsequent deployment additions.
+Adding historical rows can change already-published immutable segment bytes and invalidate saved SDK folds. Before allowing such a change after cutover, define cache invalidation: either prove it cannot affect published ranges, or bump `upstreamId` and version segment URLs, updating consumers together. Do not silently change bytes at an immutable URL. The cutover itself is covered by its one-time `upstreamId` change; the full policy for later deployment additions can come after it, but consumers must honor `upstreamId` from day one.
 
 Conceptspace mode does not register funding factories. Do not register a handler for a contract the selected config omitted; Ponder used to refuse to start in that case, and the new loop must simply not watch those addresses.
 
@@ -90,7 +92,7 @@ Promote only fully covered, validated blocks into the durable prefix. A mismatch
 - `finalizedThrough` is the fully covered durable cursor under the selected finality policy; it is never ahead of `indexedThrough`.
 - `ready` is false until historical backfill has committed. Followers must not freeze a checkpoint while `ready` is false. The first cursor write happens before backfill finishes; that is not readiness.
 - `upstreamId` is a persisted cache epoch, stable across ordinary code deploys; change it for a rebuild or a historical coverage correction that invalidates consumers. Audit SDK fold stores as well as followers to ensure they actually honor that invalidation.
-- Raw checkpoint strings may stay in the response for callers that compare them. They no longer have to be Ponder's 75-digit encoding, but a caller that parses them with `blockFromPonderCheckpoint` must be updated in the same change, and a regressing cursor must still be detectable.
+- Checkpoints use the new format only (no Ponder 75-digit encoding). Remove `blockFromPonderCheckpoint` and update its callers in the same change; a regressing cursor must still be detectable.
 
 ## API compatibility
 
@@ -98,9 +100,7 @@ Keep the Hono routes and their tests. Point them at SQL you own instead of `pond
 
 Segment eligibility must use the committed durable watermark, not `max(events.blockNumber) - confirmations` (the current routes do the latter), nor latest RPC head. Quiet blocks still complete windows. Serve rows and watermarks from a consistent database snapshot. Numeric follower checkpoints alone cannot identify a replaced tip: either bind pagination to a tip revision and reject stale cursors, updating callers, or explicitly ensure consumers discard and re-fetch provisional pages rather than persist mixed-fork results.
 
-Do not reimplement GraphQL. Render's health check, `pausedHealthServer.mjs`, and a few probes still hit `/graphql`. Replace those with a small `/health` (and a temporary `/graphql` stub that returns 200 so an old probe does not crash-loop the service during deploy). Update `render.yaml`, `verifier/environments/testnet.json`, and the deployment docs in the same change. Application data access remains `GET /api/events`.
-
-`POST /graphql` with `{ _meta { block { number } } }` is an old liveness probe. Either keep answering that one query from the cursor, or update every caller. Grep before deleting it.
+Do not reimplement GraphQL or `/sql`. Render's health check, `pausedHealthServer.mjs`, the nginx upstream probe, the local UI gateway's `/sql/` forward, the `_meta` liveness probe, and a few verifier probes still hit Ponder routes. Grep for all of them, move them to a small `/health` (and `/status` or `/api/sync` for block height), and delete the Ponder routes in the same change. Update `render.yaml`, `render.yaml.template`, `verifier/environments/testnet.json`, and the deployment docs too. Application data access remains `GET /api/events`.
 
 Drop the idle-head rule that treats `/graphql` as a reader wake once health checks no longer use it. A health check must not open the fast-poll window.
 
@@ -135,8 +135,20 @@ Drop the idle-head rule that treats `/graphql` as a reader wake once health chec
 
 ## Cutover
 
-1. Build the store adapter and bounded sync prototype first. Compare sorted raw rows and API results against Ponder over fixed historical windows, including every factory path and a quiet range. Run reorg/crash tests on a controllable local chain. Measure provider-weighted requests for active and idle workloads, including the chosen finality policy. Do not run a second full-history indexer as a benchmark.
-2. Write a read-only adoption report: actual SQL types, Ponder metadata/checkpoints, readiness, source coverage, discovered children, existing published segments, and proposed durable/tip boundaries. Never infer coverage from the newest event. A Ponder checkpoint may describe an intra-block position; prove whole-block completion or reconcile that bounded boundary block. If metadata cannot establish safe adoption, stop for an explicit recovery decision.
-3. Stop Ponder, take a restorable database snapshot, acquire exclusive ownership, and re-read metadata. Inspect Ponder triggers/rollback tables and remove or disable only the Ponder-specific machinery proven unsafe for direct writes. Seed new metadata and child coverage transactionally. Retain the same service and `DATABASE_SCHEMA`; reconcile only the explicitly identified provisional/boundary range. Do not replay from `START_BLOCK`.
-4. Keep readiness false until adoption, source coverage, and hash checks succeed. Rehearse rollback on a clone: once custom writes begin, old Ponder metadata is stale, so switching the executable back is not automatically safe. The fallback is a tested restore/reconciliation procedure with one writer.
-5. Verify API/SDK parity, stable segment bytes, lag, and actual RPC cost before calling the migration complete. Update `indexer/README.md`, generated Render configuration and its template, probes, and deployment docs in the implementation change. Liveness may remain 200 during budget parking, but readiness and sync status must expose the parked/stale state.
+Clean break (see the decision at the top). No adoption of Ponder's database.
+
+0. **Budget freeze (in effect).** The Alchemy monthly cap is exhausted and Adam will not raise it until nothing can burn new credits on arrival. The Ponder service (`srv-d8ctfd6k1jcs73a71d2g`) was **suspended on Render on 2026-11-09**; do not resume it. Other services on the same key are low-rate block-range pollers, but check them before raising the cap.
+1. **Cut per-poll cost, by arithmetic and test, not live measurement.** Cost is now `polls × calls per poll × CU weight`, which can be computed from code. Alchemy weights ([table](https://www.alchemy.com/docs/reference/compute-unit-costs), checked 2026-11-09): `eth_getBlockByNumber` 20 CU, `eth_getLogs` 60 CU. Ponder's caught-up cost was ~5 blocks/s × 20 CU ≈ 100 CU/s ≈ 260M CU/month. The prototype as written makes ~8 header reads + 2 log queries per poll (≈ 280 CU), i.e. ≈ 70 CU/s at a 4s poll — **only ~30% cheaper**. Before deploying:
+   - Trim a steady-state poll to about `latest` + `finalized` headers + one combined `eth_getLogs` (≈ 100 CU), validating hashes from the log `blockHash`s and those two headers instead of re-reading anchor/durable/head. `eth_chainId` once at startup. Extra calls only when logs or children appear.
+   - Raise the hosted poll interval (e.g. 12s) and keep idle mode, which now actually saves money (a wake costs one range query, not a block walk).
+   - Add a test that asserts the call count per quiet poll using the RPC meter, so regressions show up in CI.
+   - Target: well under 30M CU/month caught-up, before idle savings.
+   An optional sanity run against the public `https://sepolia.base.org` for **recent blocks only** with `--max-requests` is allowed (call counts only; never history, never production). Do not spend Alchemy credits to measure.
+2. **Spending guard.** The new indexer enforces its own hourly and daily request/CU budgets and parks (like monthly-capacity parking) when exceeded, so a bug or retry storm cannot drain a freshly raised cap.
+3. **Replay estimate.** Before raising the cap, compute the replay cost: windows from each source's start block (10k-block windows) × log queries per window × 60 CU, plus one header read per event-bearing block (event count via a read-only query of the old Ponder schema). Raise the cap to replay + a couple of months at the computed rate, with margin.
+4. **Postgres store.** Replace the snapshot file with a fresh schema the new code owns: `events`, sync state (durable and head block numbers and hashes, `upstreamId`), sources/coverage, and discovered children. Window commits are transactional; the singleton writer uses a Postgres advisory lock. Keep the reorg, crash, and factory tests passing against it.
+5. **Finish API changes:** `/health`, durable-watermark segment eligibility, new checkpoint format, Ponder routes and probes removed, SDK honoring `upstreamId`.
+6. **Raise the cap, then deploy** under a new `DATABASE_SCHEMA` (Ponder stopped first, or on a separate service). Readiness stays false until backfill commits. Verify API/SDK behavior, lag, and actual RPC cost.
+7. **Remove Ponder:** the dependency, `ponder.config.ts`, conceptspace config, `ponder:schema` imports, `INDEXER_ENGINE` switch, `ponderEventStore.ts`. Update `indexer/README.md` and `workflow/deployment.md` (schema-lock and persistent-disk notes are Ponder-specific). Liveness may remain 200 during budget parking, but readiness and sync status must expose the parked/stale state.
+
+Rollback before step 7 is resuming/redeploying Ponder against its old schema; its data is untouched (but it resumes ~260M CU/month).
