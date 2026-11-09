@@ -45,7 +45,7 @@ an interrupted process, verify the recorded PID is no longer running before
 removing its `.lock`; uncommitted `.PID.tmp` files can then be discarded. This
 bounded in-memory/file store is not a production database implementation.
 
-Other gaps: the HTTP server is a swap surface over the snapshot, not a production store adapter. Idle/wake scheduling is not wired into the sync loop (the wake route still returns the same JSON). Also still missing: production adoption,
+Other gaps: the HTTP server is a swap surface over the snapshot, not a production store adapter. `--serve` follows the existing idle-head flag: on `base-sepolia` (or `INDEXER_IDLE_HEAD_CACHE=1`) it skips the whole sync cycle for `INDEXER_IDLE_HEAD_INTERVAL_MS` unless a REST application read or `POST /api/indexer-wake` opens a fast window. `/graphql` does not. Finite `--polls` experiments always sync. Also still missing: production adoption,
 cache epochs or immutable segment migration, provider-weighted spending benchmark,
 or independently verified RPC completeness. Do not deploy it as the service.
 

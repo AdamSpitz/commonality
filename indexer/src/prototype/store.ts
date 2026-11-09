@@ -28,7 +28,9 @@ export function validateSnapshot(value: Snapshot): Snapshot {
     if (!address40.test(child?.address ?? "") || !hash32.test(child?.creationHash ?? "") || !Array.isArray(child.events)) {
       throw new Error("Invalid prototype snapshot child");
     }
-    return { ...child, startBlock: bigintField(child.startBlock, "child start") };
+    const startBlock = bigintField(child.startBlock, "child start");
+    if (startBlock < fromBlock || startBlock > head.number) throw new Error("Invalid prototype snapshot child coverage");
+    return { ...child, startBlock };
   });
   if (new Set(children.map(child => `${child.name}:${child.address}`)).size !== children.length) throw new Error("Duplicate prototype snapshot child");
   const rows: EventRow[] = value.rows.map(row => {

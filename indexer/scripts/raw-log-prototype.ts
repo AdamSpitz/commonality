@@ -8,7 +8,9 @@ import type { Server } from "node:http";
 import { createPrototypeApp, listen } from "../src/prototype/http";
 import { lockSnapshot, readSnapshot, writeSnapshot } from "../src/prototype/store";
 import { json, type Snapshot } from "../src/prototype/types";
-import { getIndexerChainId } from "../src/utils/chain";
+import { DEFAULT_IDLE_HEAD_INTERVAL_MS, DEFAULT_IDLE_HEAD_WAKE_MS, idleHeadCacheEnabled } from "../src/rpc/idleHeadCache";
+import { PrototypeIdleGate } from "../src/prototype/idle";
+import { getIndexerChainId, getIndexerChainName } from "../src/utils/chain";
 
 async function main() {
   const { values } = parseArgs({ options: {
@@ -43,6 +45,12 @@ async function main() {
   if (!url) throw new Error("Missing configured RPC URL");
   const catalog = await loadCatalog(values.contracts?.split(","));
   const rpc = new MeteredRpc(url, maxRequests);
+  const idle = serving && idleHeadCacheEnabled(getIndexerChainName())
+    ? new PrototypeIdleGate(
+      positive(process.env.INDEXER_IDLE_HEAD_INTERVAL_MS ?? String(DEFAULT_IDLE_HEAD_INTERVAL_MS), 3_600_000),
+      positive(process.env.INDEXER_IDLE_HEAD_WAKE_MS ?? String(DEFAULT_IDLE_HEAD_WAKE_MS), 3_600_000),
+    )
+    : undefined;
   const unlock = await lockSnapshot(values.out);
   let server: Server | undefined;
   let stop = false;
@@ -53,11 +61,19 @@ async function main() {
     let snapshot = await readSnapshot(values.out);
     const current = (): Snapshot | undefined => snapshot;
     if (servePort != null) {
-      server = await listen(createPrototypeApp(current), servePort);
+      server = await listen(createPrototypeApp(current), servePort, (method, path) => idle?.note(method, path));
       console.error(json({ serving: `http://127.0.0.1:${servePort}`, routes: ["/api/events", "/api/sync", "/api/event-segments", "/api/published-data", "/api/project-read-demand", "/api/indexer-wake", "/graphql _meta"] }));
     }
     for (let poll = 0; poll < polls && !stop; poll++) {
-      if (poll) await delay(interval);
+      if (poll && idle && !idle.fast()) {
+        await idle.wait(idle.idleIntervalMs);
+        if (!idle.fast()) {
+          console.log(json({ poll: poll + 1, skipped: "idle", indexedThrough: snapshot?.head.number, totalRpcRequests: rpc.calls }));
+          continue;
+        }
+      } else if (poll) {
+        await (idle ? idle.wait(interval) : delay(interval));
+      }
       const before = { ...rpc.calls };
       const started = Date.now();
       const head = await readHeader(rpc, values.to === "latest" ? "latest" : BigInt(values.to));

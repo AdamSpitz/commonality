@@ -48,12 +48,12 @@ Do not claim the production migration is implemented. Still outstanding:
 - Review RPC assumptions, snapshot validation, source selection, and comparison coverage.
 - Real-chain factory/reorg exercise. Current factory coverage is deterministic RPC fixtures with the real ABIs.
 - Independent child-discovery parity, long provisional-tail cost under Base finality, and provider-weighted CU measurement.
-- Idle/wake scheduling in the prototype sync loop. The wake route returns the same JSON but does not open a fast-poll window.
+- Idle/wake is wired for `--serve` only, using the existing idle-head flag. Finite `--polls` experiments always sync. `/graphql` does not open the fast window.
 - Segment eligibility still uses `max(events.blockNumber) - confirmations`, not the durable watermark the spec requires at cutover.
 - Checkpoint strings are 16-digit padded block numbers, not Ponder's 75-digit encoding. SDK length-reset behavior needs a check before swap in production.
 - `/sql` and non-`_meta` GraphQL are Ponder-only.
 - Production store, adoption report, exclusive writer lock, and the cutover steps in the spec. Source changes refuse snapshot reuse; historical backfill is unimplemented.
-- Tests cover simulated failures and atomic snapshot restart, not a full process-kill fault-injection matrix.
+- Tests cover simulated failures and atomic snapshot restart, not a full process-kill fault-injection matrix. Snapshot reads now reject a child creation block outside `[fromBlock, head]`. Row topic/data shape is still not revalidated on read.
 
 No PR or deploy has been requested.
 

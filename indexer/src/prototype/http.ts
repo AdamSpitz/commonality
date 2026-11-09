@@ -39,11 +39,12 @@ export function createPrototypeApp(current: () => Snapshot | undefined, chainNam
   return app;
 }
 
-export function listen(app: Hono, port: number): Promise<Server> {
+export function listen(app: Hono, port: number, onRequest?: (method: string, path: string) => void): Promise<Server> {
   const server = createServer(async (req, res) => {
     try {
       const host = req.headers.host ?? `127.0.0.1:${port}`;
       const url = new URL(req.url ?? "/", `http://${host}`);
+      onRequest?.(req.method ?? "GET", url.pathname);
       const chunks: Buffer[] = [];
       for await (const chunk of req) chunks.push(Buffer.from(chunk));
       const hasBody = req.method !== "GET" && req.method !== "HEAD";
