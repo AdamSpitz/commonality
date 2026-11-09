@@ -41,8 +41,6 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 Standing index: [`workflow/testnet-working-plan.md`](workflow/testnet-working-plan.md). Operator checklist: [`testnet-prep.md`](testnet-prep.md). The two-person lab is up through item 6. Remaining **your** clicks (none of these are “the lab is down”):
 
-- **Pinata Host Origins:** add `https://causestarter.testnet.commonality.works` (Picnic: no wildcards). Live Commonality HTML shell loads, but JS chunks 429 from public gateways after the dedicated origin times out — Worker fix is in [`TODO.md`](TODO.md). This dashboard allowlist is still needed for dedicated-gateway CORS.
-
 - **Sponsored-gas live UI walk** — see Testing below.
 
 - **Cloudflare leftovers:** zone, operator token, and the service gateway are done. Still open: `/cause-assist` is missing from the live Worker, and DNSLink is only partial (`./scripts/setup-testnet-naming.sh --dns`). See [`testnet-prep.md`](testnet-prep.md).
