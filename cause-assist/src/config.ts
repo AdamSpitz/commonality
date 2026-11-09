@@ -60,7 +60,7 @@ export function loadConfigFromEnv(env: NodeJS.ProcessEnv = process.env): CauseAs
     ]),
     ethereumRpcUrl: firstEnv(env, [
       'CAUSE_ASSIST_ETHEREUM_RPC_URL',
-      'ETHEREUM_RPC_URL',
+      'RPC_URL',
     ]),
     alignmentAttestationsContractAddress: firstEnv(env, [
       'ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS',

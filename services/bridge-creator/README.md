@@ -114,7 +114,7 @@ This schema is explicitly provisional for one revision pending a live rehearsal.
 |---|---|---|---|
 | `OPENROUTER_API_KEY` | Yes | — | API key for OpenRouter LLM calls |
 | `BRIDGE_CREATOR_PRIVATE_KEY` | Yes | — | Ethereum private key for signing nudge messages |
-| `BRIDGE_CREATOR_ETHEREUM_RPC_URL` / `ETHEREUM_RPC_URL` | Yes | — | RPC URL for blockchain access |
+| `BRIDGE_CREATOR_ETHEREUM_RPC_URL` / `RPC_URL` | Yes | — | RPC URL for blockchain access |
 | `BRIDGE_CREATOR_INDEXER_URL` / `INDEXER_URL` | No | `http://localhost:3001` | URL of the Ponder event cache |
 | `BRIDGE_CREATOR_IPFS_API` / `IPFS_API` | No | `http://localhost:5001` | IPFS API URL |
 | `BRIDGE_CREATOR_IPFS_GATEWAY` / `IPFS_GATEWAY` | No | `http://localhost:8080` | IPFS gateway URL |

@@ -60,6 +60,8 @@ The indexer is the intended heavy user of an archive RPC. Do **not** switch `PON
 
 When Alchemy returns **monthly capacity** (distinct from compute-units-per-second), `start.sh` records a flag, parks behind a stub `/graphql` 200, and waits 1 minute doubling up to 6 hours before retrying. That is the automatic “suspend” — Render stays up, JSON-RPC stops. A human still has to raise the billing fuse (or wait for the period reset) before indexing resumes.
 
+Base Sepolia switched from 2s blocks to **200ms blocks** at block 48953176 (2026-10-22 23:41 UTC). In realtime sync, Ponder 0.15 fills each missed block with `eth_getBlockByNumber(n, true)` (`MAX_QUEUED_BLOCKS = 50`) and only calls `eth_getLogs` when the bloom matches. The idle-head cache only skips repeat `latest` polls; it does not replace those per-block fetches. The 10k `eth_getLogs` window only cheapens historical catch-up. Caught-up indexer CU usage therefore tracks block rate: about 10x versus 2s blocks. Do not “fix” that by pointing history at `https://sepolia.base.org`.
+
 Optional dashboard hygiene: put the **indexer** on its own Alchemy app/key so a seed script cannot share the fuse. Fake-data writes can keep using the same archive URL; they are cheap compared to `eth_getLogs` catch-up. If you split keys, keep the indexer on archive and never on the pruned public node.
 
 Contract deployments can still be configured with the legacy one-env-var-per-contract

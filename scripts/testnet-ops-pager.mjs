@@ -61,6 +61,13 @@ export function resolveConfig(env = process.env, files = {}) {
     return ''
   }
   return {
+    spend: {
+      capUsd: Number(pick('OPS_PAGER_ALCHEMY_CAP_USD') || 30),
+      usdPerMillionCu: Number(pick('OPS_PAGER_ALCHEMY_USD_PER_MILLION_CU') || 0.525),
+      cuPerBlock: Number(pick('OPS_PAGER_ALCHEMY_CU_PER_BLOCK') || 20),
+      baselineMonthlyCu: Number(pick('OPS_PAGER_ALCHEMY_BASELINE_MONTHLY_CU') || 10_000_000),
+      threshold: Number(pick('OPS_PAGER_ALCHEMY_WARNING_FRACTION') || 0.7),
+    },
     renderApiKey: pick('RENDER_API_KEY'),
     rpcUrl: pick('PONDER_RPC_URL_84532', 'BASE_SEPOLIA_RPC_URL'),
     stateFile: env.OPS_PAGER_STATE_FILE || join(ROOT, 'tmp/testnet-ops-pager-state.json'),
@@ -186,6 +193,33 @@ export async function probeAlchemy(fetchImpl, rpcUrl, sleep) {
   }
 }
 
+export async function probeProjectedSpend(fetchImpl, rpcUrl, head, settings = {}) {
+  const config = { capUsd: 30, usdPerMillionCu: 0.525, cuPerBlock: 20,
+    baselineMonthlyCu: 10_000_000, threshold: 0.7, ...settings }
+  const { capUsd, usdPerMillionCu, cuPerBlock, baselineMonthlyCu, threshold } = config
+  if (![capUsd, usdPerMillionCu, cuPerBlock, threshold].every((n) => Number.isFinite(n) && n > 0)
+    || threshold > 1 || !Number.isFinite(baselineMonthlyCu) || baselineMonthlyCu < 0) {
+    return { ok: false, reason: 'Invalid Alchemy spend model configuration.' }
+  }
+  if (!head?.ok || !Number.isSafeInteger(head.block) || head.block < 1000 || !Number.isFinite(head.timestamp)) {
+    return { ok: false, reason: 'Cannot project Alchemy spend: valid RPC head and timestamp required.' }
+  }
+  // A 1000-block window smooths integer-second timestamps on 200ms chains.
+  const older = await ethCall(fetchImpl, rpcUrl, 'eth_getBlockByNumber', [`0x${(head.block - 1000).toString(16)}`, false])
+  const timestamp = Number.parseInt(older.body?.result?.timestamp ?? '', 16)
+  const elapsed = head.timestamp - timestamp
+  if (older.status !== 200 || !Number.isFinite(elapsed) || elapsed <= 0) {
+    return { ok: false, reason: 'Cannot project Alchemy spend: historical block timestamp unavailable or invalid.' }
+  }
+  const blocksPerSecond = 1000 / elapsed
+  const monthlyCu = blocksPerSecond * 30 * 86400 * cuPerBlock + baselineMonthlyCu
+  const projectedUsd = monthlyCu / 1_000_000 * usdPerMillionCu
+  return {
+    ok: projectedUsd <= capUsd * threshold,
+    reason: `Estimated 30-day Alchemy run rate $${projectedUsd.toFixed(2)} (${(monthlyCu / 1_000_000).toFixed(1)}M CU, ${blocksPerSecond.toFixed(2)} blocks/s), warning at $${(capUsd * threshold).toFixed(2)} of $${capUsd.toFixed(2)} cap. Model, not billed usage; excludes catch-up and unmodeled traffic.`,
+  }
+}
+
 function indexerBlock(status) {
   if (!status || typeof status !== 'object') return null
   const candidates = []
@@ -280,6 +314,7 @@ export async function runProbes({ fetchImpl, sleep, config }) {
     return {
       'render-suspend': { ok: false, reason },
       alchemy: { ok: alchemy.ok, reason: alchemy.reason },
+      'alchemy-projected-spend': await probeProjectedSpend(fetchImpl, config.rpcUrl, alchemy, config.spend),
       'indexer-lag': await probeIndexerLag(fetchImpl, alchemy),
       'public-edges': await edges,
       'private-ipfs': { ok: false, reason },
@@ -302,6 +337,7 @@ export async function runProbes({ fetchImpl, sleep, config }) {
       ? { ok: false, reason: renderError }
       : await probeRenderSuspend(services),
     alchemy: { ok: alchemy.ok, reason: alchemy.reason },
+    'alchemy-projected-spend': await probeProjectedSpend(fetchImpl, config.rpcUrl, alchemy, config.spend),
     'indexer-lag': indexer,
     'public-edges': publicEdges,
     'private-ipfs': renderError

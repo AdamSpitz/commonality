@@ -37,7 +37,7 @@ The service exposes a minimal HTTP interface for discovery and health monitoring
 | Environment Variable | Description | Default |
 |----------------------|-------------|---------|
 | `NUDGER_PRIVATE_KEY` | Private key for signing publish transactions | (required) |
-| `ETHEREUM_RPC_URL` | Ethereum RPC URL | (required) |
+| `RPC_URL` | Ethereum RPC URL | (required) |
 | `NUDGE_PUBLICATIONS_CONTRACT_ADDRESS` | Address of the `NudgePublications` contract | (required) |
 | `PUBLISHED_DATA_CONTRACT_ADDRESS` | Address of the `PublishedData` contract for retraction re-anchor nudges | `0x000...000` |
 | `INDEXER_URL` | Indexer URL | `http://localhost:3001` |

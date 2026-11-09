@@ -3,7 +3,7 @@ import { loadConfig } from '../src/config.js';
 
 const REQUIRED_ENV = {
   NUDGER_PRIVATE_KEY: '0x1234567890123456789012345678901234567890123456789012345678901234',
-  ETHEREUM_RPC_URL: 'http://localhost:8545',
+  RPC_URL: 'http://localhost:8545',
   NUDGE_PUBLICATIONS_CONTRACT_ADDRESS: '0x1234567890123456789012345678901234567890',
 };
 
@@ -55,7 +55,7 @@ describe('loadConfig', () => {
         const config = loadConfig();
 
         assert.strictEqual(config.nudgerPrivateKey, REQUIRED_ENV.NUDGER_PRIVATE_KEY);
-        assert.strictEqual(config.ethereumRpcUrl, REQUIRED_ENV.ETHEREUM_RPC_URL);
+        assert.strictEqual(config.ethereumRpcUrl, REQUIRED_ENV.RPC_URL);
         assert.strictEqual(
           config.nudgePublicationsContractAddress,
           REQUIRED_ENV.NUDGE_PUBLICATIONS_CONTRACT_ADDRESS

@@ -7,12 +7,48 @@ import {
   isPrunedPublicRpc,
   lagSeconds,
   probeAlchemy,
+  probeProjectedSpend,
+  resolveConfig,
   probeIndexerLag,
   probePrivateIpfs,
   probePublicEdges,
   probeRenderSuspend,
   runPager,
 } from './testnet-ops-pager.mjs'
+
+test('spend model warns on 200ms blocks but not 2s blocks', async () => {
+  for (const elapsed of [200, 2000]) {
+    const result = await probeProjectedSpend(async (_url, init) => {
+      const request = JSON.parse(init.body)
+      assert.equal(request.method, 'eth_getBlockByNumber')
+      assert.deepEqual(request.params, ['0x3e8', false])
+      return { status: 200, text: async () => JSON.stringify({ result: { timestamp: `0x${(5000 - elapsed).toString(16)}` } }) }
+    }, 'https://example.test', { ok: true, block: 2000, timestamp: 5000 })
+    assert.equal(result.ok, elapsed === 2000)
+    assert.match(result.reason, /Model, not billed usage/)
+  }
+})
+
+test('spend model fails closed on invalid config, missing head, and bad timestamps', async () => {
+  const head = { ok: true, block: 2000, timestamp: 5000 }
+  const forbidden = async () => { throw new Error('must not fetch') }
+  for (const settings of [{ capUsd: 0 }, { threshold: 2 }, { baselineMonthlyCu: -1 }, { cuPerBlock: NaN }]) {
+    assert.equal((await probeProjectedSpend(forbidden, '', head, settings)).ok, false)
+  }
+  for (const badHead of [null, { ok: false }, { ...head, timestamp: null }]) {
+    assert.equal((await probeProjectedSpend(forbidden, '', badHead)).ok, false)
+  }
+  for (const timestamp of [undefined, '0x1388', '0x1389']) {
+    const result = await probeProjectedSpend(async () => ({ status: 200, text: async () => JSON.stringify({ result: { timestamp } }) }), '', head)
+    assert.equal(result.ok, false)
+  }
+})
+
+test('spend config accepts explicit zero baseline and overrides defaults', () => {
+  const config = resolveConfig({ OPS_PAGER_ALCHEMY_BASELINE_MONTHLY_CU: '0', OPS_PAGER_ALCHEMY_CAP_USD: '100' }, { render: {}, local: {} })
+  assert.equal(config.spend.baselineMonthlyCu, 0)
+  assert.equal(config.spend.capUsd, 100)
+})
 
 test('monthly capacity matches Alchemy fuse text and not a bare 429', () => {
   assert.equal(isMonthlyCapacity('429 Monthly capacity limit exceeded'), true)

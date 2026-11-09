@@ -3,7 +3,7 @@ import { loadConfig, loadConfigFromEnv } from '../src/config.js';
 
 const baseEnv = {
   BRIDGE_CREATOR_PRIVATE_KEY: '0xbridge',
-  ETHEREUM_RPC_URL: 'http://rpc.example',
+  RPC_URL: 'http://rpc.example',
   OPENROUTER_API_KEY: 'openrouter-key',
   NUDGE_PUBLICATIONS_CONTRACT_ADDRESS: '0xnudges',
 };
@@ -90,7 +90,7 @@ describe('bridge creator config', () => {
     assert.throws(
       () => loadConfig({
         NUDGER_PRIVATE_KEY: '0xgeneric',
-        ETHEREUM_RPC_URL: 'http://rpc.example',
+        RPC_URL: 'http://rpc.example',
         OPENROUTER_API_KEY: 'openrouter-key',
         NUDGE_PUBLICATIONS_CONTRACT_ADDRESS: '0xnudges',
       }),

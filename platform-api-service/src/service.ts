@@ -595,7 +595,7 @@ export class PlatformApiService {
       throw new HttpError(
         503,
         'service_unavailable',
-        'On-chain verification submission requires VERIFIER_PRIVATE_KEY, ETHEREUM_RPC_URL, and BENEFICIARY_REGISTRY_ADDRESS',
+        'On-chain verification submission requires VERIFIER_PRIVATE_KEY, RPC_URL, and BENEFICIARY_REGISTRY_ADDRESS',
       );
     }
 

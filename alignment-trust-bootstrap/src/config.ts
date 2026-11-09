@@ -43,7 +43,7 @@ export function loadBootstrapConfig(env: NodeJS.ProcessEnv = process.env): Boots
     throw new Error('ALIGNMENT_TRUST_BOOTSTRAP_PRIVATE_KEY must be a 32-byte hex private key');
   }
   return {
-    rpcUrl: env.RPC_URL?.trim() || required(env, 'ETHEREUM_RPC_URL'),
+    rpcUrl: required(env, 'RPC_URL'),
     chainId: positiveInteger(env, 'CHAIN_ID', '31337'),
     alignmentAttestationsAddress: getAddress(required(env, 'ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS')),
     trustRegistryAddress: getAddress(required(env, 'TRUST_REGISTRY_ADDRESS')),

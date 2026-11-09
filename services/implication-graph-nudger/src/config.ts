@@ -20,7 +20,7 @@ export function loadConfigFromEnv(env: NodeJS.ProcessEnv = process.env): NudgerC
   return {
     nudgerPrivateKey: requireFrom('IMPLICATION_GRAPH_NUDGER_PRIVATE_KEY'),
     ethereumRpcUrl: readString(
-      ['IMPLICATION_GRAPH_NUDGER_ETHEREUM_RPC_URL', 'ETHEREUM_RPC_URL'],
+      ['IMPLICATION_GRAPH_NUDGER_ETHEREUM_RPC_URL', 'RPC_URL'],
       '',
     ),
     indexerUrl: readString(['IMPLICATION_GRAPH_NUDGER_INDEXER_URL', 'INDEXER_URL'], 'http://localhost:3001'),
@@ -49,7 +49,7 @@ function readStringEnv(name: string, fallback: string): string {
 export function loadConfig(): NudgerConfig {
   return {
     nudgerPrivateKey: requireEnv('NUDGER_PRIVATE_KEY', process.env.NUDGER_PRIVATE_KEY) as `0x${string}`,
-    ethereumRpcUrl: requireEnv('ETHEREUM_RPC_URL', process.env.ETHEREUM_RPC_URL),
+    ethereumRpcUrl: requireEnv('RPC_URL', process.env.RPC_URL),
     indexerUrl: readStringEnv('INDEXER_URL', 'http://localhost:3001'),
     ipfsApiUrl: readStringEnv('IPFS_API', 'http://localhost:5001'),
     ipfsGatewayUrl: readStringEnv('IPFS_GATEWAY', 'http://localhost:8080'),

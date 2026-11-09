@@ -297,7 +297,7 @@ services:
         value: production
       - key: SERVICE_HOST_PORT
         value: 3000
-      - key: ETHEREUM_RPC_URL
+      - key: RPC_URL
         sync: false  # Secret: RPC provider URL (contains API key)
       - key: OPENROUTER_API_KEY
         sync: false  # Secret
@@ -447,7 +447,7 @@ services:
         sync: false  # Secret
       - key: VERIFIER_PRIVATE_KEY
         sync: false  # Secret
-      - key: ETHEREUM_RPC_URL
+      - key: RPC_URL
         sync: false  # Secret: RPC provider URL (contains API key)
       - key: BASE_RPC_URL
         sync: false  # Secret: Base mainnet RPC provider URL for on-ramp USDC polling
@@ -499,7 +499,7 @@ services:
         value: production
       - key: SERVICE_HOST_PORT
         value: 3000
-      - key: ETHEREUM_RPC_URL
+      - key: RPC_URL
         sync: false  # Secret: RPC provider URL (contains API key)
       - key: OPENROUTER_API_KEY
         sync: false  # Secret

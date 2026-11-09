@@ -102,7 +102,7 @@ Bundle selection flags:
 Shared env vars used by multiple enabled services:
 
 - `PORT` or `SERVICE_HOST_PORT`
-- `ETHEREUM_RPC_URL`
+- `RPC_URL`
 - `OPENROUTER_API_KEY`
 - `INDEXER_URL`, `EVENT_CACHE_URL`, `PLATFORM_API_URL`
 - `IPFS_API`, `IPFS_GATEWAY`, `IPFS_GATEWAY_URL`
@@ -123,7 +123,7 @@ With env vars only:
 
 ```bash
 SERVICE_HOST_PORT=3000 \
-ETHEREUM_RPC_URL=http://localhost:8545 \
+RPC_URL=http://localhost:8545 \
 OPENROUTER_API_KEY=secret \
 IMPLICATION_FINDER_ENABLED=false \
 CONTENT_FINDER_ENABLED=false \

@@ -19,7 +19,7 @@ describe('bridge creator browser HTTP access', () => {
     writeFileSync(anchors, JSON.stringify({ anchors: [] }));
     const config = loadConfigFromEnv({
       BRIDGE_CREATOR_PRIVATE_KEY: `0x${'11'.repeat(32)}`,
-      ETHEREUM_RPC_URL: 'http://rpc.example',
+      RPC_URL: 'http://rpc.example',
       OPENROUTER_API_KEY: 'test',
       NUDGE_PUBLICATIONS_CONTRACT_ADDRESS: `0x${'22'.repeat(20)}`,
       BRIDGE_CREATOR_ANCHOR_STORE_PATH: anchors,

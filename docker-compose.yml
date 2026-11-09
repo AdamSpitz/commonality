@@ -683,7 +683,7 @@ services:
       - YOUTUBE_API_KEY=${YOUTUBE_API_KEY:-}
       - YOUTUBE_API_BASE_URL=${YOUTUBE_API_BASE_URL:-https://www.googleapis.com/youtube/v3}
       - VERIFIER_PRIVATE_KEY=${VERIFIER_PRIVATE_KEY:-}
-      - ETHEREUM_RPC_URL=${ETHEREUM_RPC_URL:-http://hardhat-node:8545}
+      - RPC_URL=${RPC_URL:-http://hardhat-node:8545}
       - BENEFICIARY_IDENTITY_ADDRESS=${BENEFICIARY_IDENTITY_ADDRESS:-}
       - BENEFICIARY_REGISTRY_ADDRESS=${BENEFICIARY_REGISTRY_ADDRESS:-}
       - BENEFICIARY_VERIFIER_ADDRESS=${BENEFICIARY_VERIFIER_ADDRESS:-}
@@ -731,7 +731,7 @@ services:
       - SERVICE_HOST_PORT=3000
       # all (default) is the combined host. conceptspace refuses funding instance names.
       - SERVICE_HOST_CAPABILITY=${SERVICE_HOST_CAPABILITY:-all}
-      - ETHEREUM_RPC_URL=http://hardhat-node:8545
+      - RPC_URL=http://hardhat-node:8545
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
       - OPENROUTER_MODEL=deepseek/deepseek-v4-flash-0731
       - IPFS_API=http://ipfs:5001
@@ -804,7 +804,7 @@ services:
     environment:
       - SERVICE_HOST_PORT=3000
       - SERVICE_HOST_CAPABILITY=${SERVICE_HOST_CAPABILITY:-all}
-      - ETHEREUM_RPC_URL=http://hardhat-node:8545
+      - RPC_URL=http://hardhat-node:8545
       - INDEXER_URL=http://indexer:42069
       - IPFS_API=http://ipfs:5001
       - IPFS_GATEWAY=http://ipfs:8080
@@ -859,7 +859,7 @@ services:
       - HOME=/tmp
       - BRIDGE_CREATOR_MEDIATOR_CONFIG_PATH=/app/services/bridge-creator/config/christian-secular-conservative.example.json
       - CHRISTIAN_BRIDGE_MEDIATOR_PRIVATE_KEY=${CHRISTIAN_BRIDGE_MEDIATOR_PRIVATE_KEY:-0xdbda1821b80551c9d65939329250298aa3472ba22feea921c0cf5d620ea67b97}
-      - ETHEREUM_RPC_URL=http://hardhat-node:8545
+      - RPC_URL=http://hardhat-node:8545
       - INDEXER_URL=http://indexer:42069
       - IPFS_API=http://ipfs:5001
       - IPFS_GATEWAY=http://ipfs:8080

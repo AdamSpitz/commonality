@@ -70,7 +70,7 @@ export function loadConfig(): PlatformApiServiceConfig {
       process.env.YOUTUBE_API_BASE_URL ?? 'https://www.googleapis.com/youtube/v3',
     ),
     verifierPrivateKey: normalizeOptionalHex32('VERIFIER_PRIVATE_KEY', process.env.VERIFIER_PRIVATE_KEY),
-    ethereumRpcUrl: normalizeOptionalUrl(process.env.ETHEREUM_RPC_URL),
+    ethereumRpcUrl: normalizeOptionalUrl(process.env.RPC_URL),
     beneficiaryRegistryAddress: normalizeOptionalAddress(process.env.BENEFICIARY_REGISTRY_ADDRESS),
     beneficiaryVerifierAddress: normalizeOptionalAddress(process.env.BENEFICIARY_VERIFIER_ADDRESS),
     chainId: normalizeOptionalChainId(process.env.CHAIN_ID),

@@ -113,7 +113,7 @@ export function loadConfigFromEnv(
 		attesterName: readStringFrom(["BEAT_AGENT_NAME"], env, "beat-agent"),
 		ethereumPrivateKey: requireEnvFrom("BEAT_AGENT_PRIVATE_KEY", env),
 		ethereumRpcUrl: readStringFrom(
-			["BEAT_AGENT_ETHEREUM_RPC_URL", "ETHEREUM_RPC_URL"],
+			["BEAT_AGENT_ETHEREUM_RPC_URL", "RPC_URL"],
 			env,
 		),
 		alignmentAttestationsContractAddress: requireEnvFrom(

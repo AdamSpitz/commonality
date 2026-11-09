@@ -35,7 +35,7 @@ The repo's current content-funding contracts include a real signature-verifying 
 That means:
 
 - `POST /verify/confirm` signs the exact proof payload that the on-chain `BeneficiaryVerifier` checks
-- `POST /verify/confirm` can optionally submit `verifyBeneficiary(...)` if `ETHEREUM_RPC_URL`, `BENEFICIARY_REGISTRY_ADDRESS`, and `SUBMIT_VERIFICATION_TX=true` are configured
+- `POST /verify/confirm` can optionally submit `verifyBeneficiary(...)` if `RPC_URL`, `BENEFICIARY_REGISTRY_ADDRESS`, and `SUBMIT_VERIFICATION_TX=true` are configured
 - end-to-end verification works on the local deployment as long as `VERIFIER_PRIVATE_KEY` corresponds to the verifier contract's configured `trustedVerifier`
 
 ## Configuration
@@ -70,7 +70,7 @@ All configuration is via environment variables.
 ### Verification / Ethereum
 
 - `VERIFIER_PRIVATE_KEY` optional, required for `POST /verify/confirm`
-- `ETHEREUM_RPC_URL` optional, required only if on-chain submission is enabled
+- `RPC_URL` optional, required only if on-chain submission is enabled
 - `BENEFICIARY_REGISTRY_ADDRESS` optional, required for domain challenges and on-chain submission
 - `CHAIN_ID` required for signing proofs and domain challenges
 - `SUBMIT_VERIFICATION_TX` default `false`
