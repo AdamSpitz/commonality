@@ -56,6 +56,12 @@ test("prototype serves the indexer REST routes from a snapshot", async () => {
   process.env.EVENT_SEGMENT_CONFIRMATIONS = "1";
   try {
     const app = createPrototypeApp(() => snapshot(), "hardhat");
+    const status = await app.request("http://indexer.test/status");
+    assert.equal(status.status, 200);
+    const statusBody = await status.json() as { hardhat: { block: { number: number; timestamp: number } } };
+    assert.equal(statusBody.hardhat.block.number, 20);
+    assert.equal(statusBody.hardhat.block.timestamp, 20);
+
     const sync = await app.request("http://indexer.test/api/sync");
     assert.equal(sync.status, 200);
     const syncBody = await sync.json() as { ready: boolean; upstreamId: string; chains: Array<{ indexedThrough: string; finalizedThrough: string; indexedCheckpoint: string }> };

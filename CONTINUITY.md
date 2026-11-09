@@ -2187,3 +2187,7 @@ Third-party ordinary proposals require explicit per-project acceptance, followed
 Full integration revealed older SDK deployment-event assumptions: creation and discovery were missing projects deployed through `FixedControllerFactory`. Both now use `ProjectCreated` in addition to existing relevant event histories. New integration coverage checks scoped IDs, initiator attribution, acceptance, veto, retry, and indexed registration events.
 
 Validation: full Hardhat suite (508 passing before an additional boundary test; all six new work tests pass), SDK (585 passing), focused UI (138 tests across proposal, status, create/detail suites), UI production build, workspace typecheck (39 tasks), SDK/UI lint (warnings only), and `verifier-run automated.test-full-integration` (107 passing, one existing pending). Full Hardhat JS lint has an unrelated pre-existing unused `err` in `hardhat/scripts/deploy-incremental.js:311`; touched JS files lint clean. Changes are local and uncommitted; testnet needs redeployment of the registry/factory dependency chain, and ordinary unscoped work hashes must be replaced with beneficiary-scoped hashes.
+
+## 2026-11-09 — Raw-log indexer is the local Docker process
+
+Local `indexer/start.sh` now runs the raw-log prototype unless `INDEXER_ENGINE=ponder` or the script is a hosted `start`. `GET /status` matches the SDK wait. Snapshot lives on the Ponder volume. Production cutover is not done. Remaining work: [continuity/2026-11-09-raw-log-prototype-handoff.md](continuity/2026-11-09-raw-log-prototype-handoff.md).

@@ -455,7 +455,7 @@ Do **not** mint a fresh `DATABASE_SCHEMA` (`v7`, …) to get a green deploy. Tha
 
 The indexer is upgradeable in place because it stores only the raw `events` table. Handler/ABI/address-list changes reuse the same schema (`PONDER_EXPERIMENTAL_DB=platform`). Wipe only when the onchainTable shape is incompatible, and then set `INDEXER_ALLOW_SCHEMA_BUMP=1` for smoke-check.
 
-For local Docker development, the same image still defaults to `PONDER_SCRIPT=dev:no-ui` and `PONDER_CHAIN=hardhat`.
+For local Docker development, the same image still defaults to `PONDER_SCRIPT=dev:no-ui` and `PONDER_CHAIN=hardhat`, but `start.sh` runs the raw-log prototype instead of Ponder unless `INDEXER_ENGINE=ponder`. Hosted `ponder start` is unchanged.
 
 ---
 

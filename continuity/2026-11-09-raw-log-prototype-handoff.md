@@ -9,6 +9,15 @@ which itself is ahead of `dev`. A PR of this branch would carry those parent
 commits unless it is rebased. No push, PR, deployment, production RPC experiment,
 or database mutation has been requested.
 
+## Local drop-in (2026-11-09, later the same day)
+
+Not a production cutover. Local Docker now starts the prototype instead of Ponder.
+
+- `indexer/start.sh`: if `PONDER_SCRIPT` is not `start` or `start:conceptspace`, `INDEXER_ENGINE` defaults to `raw-log`. `INDEXER_ENGINE=ponder` is the escape hatch. Hosted `start` still runs Ponder, including the monthly-capacity parking loop. `start:conceptspace` still execs Ponder and is not in that loop.
+- `--local --serve PORT --host 0.0.0.0` derives the start block from the catalog, polls `latest`, and writes `INDEXER_SNAPSHOT_PATH` (default `/app/.ponder/raw-log-snapshot.json` on the existing Ponder volume). Hardhat uses a 100ms poll and `depth:0` because this path does not depend on Hardhat's `finalized` tag. A failed poll is logged and retried; the last snapshot keeps being served. The lifetime 10k-block experiment cap does not apply to `--local`.
+- `GET /status` returns `{ [chainName]: { id, block: { number, timestamp } | null } }` so `sdk/src/indexer-sync.ts` and the nginx upstream probe work. `/graphql` still answers only `_meta`.
+- Next `./scripts/services.sh --start` should rebuild the indexer image; `start.sh` and prototype sources are image inputs, not a bind mount. Wiping `data/ponder` also removes the snapshot.
+
 ## Current artifacts
 
 - Revised scope/correctness requirements: `specs/tech/indexer/replace-ponder.md`.
@@ -43,17 +52,19 @@ successful run used sequential `evm_mine` instead.
 ## What remains
 
 The plan is [specs/tech/indexer/replace-ponder.md](../specs/tech/indexer/replace-ponder.md).
-Do not claim the production migration is implemented. Still outstanding:
+Do not claim the production migration is implemented. Local drop-in is the current stopping point. Still outstanding:
 
+- Prove the local stack against a real Hardhat chain: factory children, reorg, restart from the snapshot, and SDK `waitForIndexerToSyncToBlockNumber` via `/status`. The unit tests do not start Docker.
 - Review RPC assumptions, snapshot validation, source selection, and comparison coverage.
 - Real-chain factory/reorg exercise. Current factory coverage is deterministic RPC fixtures with the real ABIs.
 - Independent child-discovery parity, long provisional-tail cost under Base finality, and provider-weighted CU measurement.
-- Idle/wake is wired for `--serve` only, using the existing idle-head flag. Finite `--polls` experiments always sync. `/graphql` does not open the fast window.
+- Idle/wake is wired for `--serve` only, using the existing idle-head flag. Finite `--polls` experiments always sync. `/graphql` and `/status` do not open the fast window (`/status` is not in the wake list). A local chain that enables idle will not advance just because the SDK polls `/status`.
 - Segment eligibility still uses `max(events.blockNumber) - confirmations`, not the durable watermark the spec requires at cutover.
 - Checkpoint strings are 16-digit padded block numbers, not Ponder's 75-digit encoding. SDK length-reset behavior needs a check before swap in production.
-- `/sql` and non-`_meta` GraphQL are Ponder-only.
-- Production store, adoption report, exclusive writer lock, and the cutover steps in the spec. Source changes refuse snapshot reuse; historical backfill is unimplemented.
+- `/sql` and non-`_meta` GraphQL are Ponder-only. The local UI gateway still forwards `/sql/`.
+- Production store, adoption report, exclusive writer lock, and the cutover steps in the spec. Source changes refuse snapshot reuse; historical backfill is unimplemented. `--local` still refuses a snapshot whose catalog scope changed.
 - Tests cover simulated failures and atomic snapshot restart, not a full process-kill fault-injection matrix. Snapshot reads now reject a child creation block outside `[fromBlock, head]`. Row topic/data shape is still not revalidated on read.
+- A chain longer than memory can hold is still one in-memory snapshot. Fine for local Hardhat; not a hosted store.
 
 No PR or deploy has been requested.
 

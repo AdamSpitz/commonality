@@ -32,14 +32,31 @@ export function attachGraphqlCompat(app: Hono, current: () => Snapshot | undefin
   app.post("/graphql", handler);
 }
 
+/** Ponder's `/status` shape. The SDK waits on `result[chain].block.number`. */
+export function attachStatus(app: Hono, current: () => Snapshot | undefined, chainName: string): void {
+  app.get("/status", c => {
+    const snapshot = current();
+    const block = snapshot
+      ? { number: Number(snapshot.head.number), timestamp: Number(snapshot.head.timestamp) }
+      : null;
+    return c.json({
+      [chainName]: {
+        id: snapshot?.chainId ?? null,
+        block,
+      },
+    });
+  });
+}
+
 export function createPrototypeApp(current: () => Snapshot | undefined, chainName: string = getIndexerChainName()): Hono {
   const app = new Hono();
   attachRest(app, snapshotEventStore(current, chainName));
   attachGraphqlCompat(app, current, chainName);
+  attachStatus(app, current, chainName);
   return app;
 }
 
-export function listen(app: Hono, port: number, onRequest?: (method: string, path: string) => void): Promise<Server> {
+export function listen(app: Hono, port: number, onRequest?: (method: string, path: string) => void, host = "127.0.0.1"): Promise<Server> {
   const server = createServer(async (req, res) => {
     try {
       const host = req.headers.host ?? `127.0.0.1:${port}`;
@@ -69,6 +86,6 @@ export function listen(app: Hono, port: number, onRequest?: (method: string, pat
   });
   return new Promise((resolve, reject) => {
     server.once("error", reject);
-    server.listen(port, "127.0.0.1", () => resolve(server));
+    server.listen(port, host, () => resolve(server));
   });
 }

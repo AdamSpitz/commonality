@@ -604,7 +604,7 @@ services:
       - commonality
 
   # =============================================================================
-  # Ponder indexer service
+  # Indexer service. Local start.sh runs the raw-log prototype (INDEXER_ENGINE=ponder restores Ponder).
   # =============================================================================
   # Persists indexer sync state to the configured COMMONALITY_DATA_DIR.
   # Wipe this directory if you want to reindex from scratch.

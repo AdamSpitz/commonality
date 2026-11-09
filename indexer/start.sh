@@ -25,6 +25,12 @@ PONDER_SCRIPT="${PONDER_SCRIPT:-dev:no-ui}"
 # INDEXER_CONTRACTS=conceptspace uses ponder.conceptspace.config.ts so funding
 # ABI modules are not loaded. The default shared feed is unchanged.
 PONDER_SCRIPT="$(node /app/selectPonderScript.mjs "$PONDER_SCRIPT" "${INDEXER_CONTRACTS:-all}")"
+# Local Docker replaces Ponder. Hosted start scripts stay on Ponder unless
+# INDEXER_ENGINE is set explicitly. INDEXER_ENGINE=ponder is the local escape hatch.
+case "$PONDER_SCRIPT" in
+  start|start:conceptspace) INDEXER_ENGINE="${INDEXER_ENGINE:-ponder}" ;;
+  *) INDEXER_ENGINE="${INDEXER_ENGINE:-raw-log}" ;;
+esac
 FLAG_PATH="${INDEXER_RPC_BUDGET_FLAG_PATH:-/tmp/commonality-rpc-monthly-capacity}"
 
 if [ -d /data ] && [ -w /data ]; then
@@ -74,6 +80,12 @@ if [ "$PONDER_SCRIPT" = "start" ]; then
     rm -f "$BACKOFF_PATH"
     exit "$code"
   done
+fi
+
+if [ "$INDEXER_ENGINE" = "raw-log" ]; then
+  export INDEXER_SNAPSHOT_PATH="${INDEXER_SNAPSHOT_PATH:-/app/.ponder/raw-log-snapshot.json}"
+  mkdir -p "$(dirname "$INDEXER_SNAPSHOT_PATH")"
+  exec npm run prototype -- --local --serve "${PORT:-42069}" --host 0.0.0.0
 fi
 
 exec npm run "$PONDER_SCRIPT"
