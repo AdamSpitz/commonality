@@ -46,9 +46,7 @@ start later. A new source address is backfilled from its own start block. If tha
 
 Rows, discovered children, and watermarks commit together by synced file write and
 atomic rename. Restart reads that snapshot and replaces the entire provisional
-tail above the durable anchor. A sidecar lock excludes competing writers. After
-an interrupted process, verify the recorded PID is no longer running before
-removing its `.lock`; uncommitted `.PID.tmp` files can then be discarded. This
+tail above the durable anchor. A sidecar lock excludes competing writers. If that `.lock` records a PID that is no longer running, the next start removes it and continues. That matters on Render, where `/tmp` survives a crash restart and a leftover lock otherwise exit-loops with `EEXIST` before `/health` can bind. Uncommitted `.PID.tmp` files can then be discarded. This
 bounded in-memory/file store is not a production database implementation. `INDEXER_PROTOTYPE_DATABASE_URL` switches load/commit to a schema this process creates (`INDEXER_PROTOTYPE_SCHEMA`, default `raw_log`) instead of the snapshot file. Do not point it at Ponder's `DATABASE_URL`. The file lock is still taken. A second database writer blocks on a session advisory lock. Hosted `start` sets it. Local Docker does not. `postgres.live.test.ts` covers that lock, a killed uncommitted write, and a provisional reorg against a real Postgres when `INDEXER_PROTOTYPE_TEST_DATABASE_URL` is set; the default suite skips it.
 
 Other gaps: the HTTP server is a swap surface over the snapshot, not a production store adapter. `--serve` follows the existing idle-head flag: on `base-sepolia` (or `INDEXER_IDLE_HEAD_CACHE=1`) it skips the whole sync cycle for `INDEXER_IDLE_HEAD_INTERVAL_MS` unless a REST application read or `POST /api/indexer-wake` opens a fast window. `/health` and `/status` do not. Finite `--polls` experiments always sync. Also still missing: production adoption,
