@@ -80,10 +80,45 @@ export async function writeSnapshot(path: string, snapshot: Snapshot): Promise<v
   }
 }
 
+function lockHeldByLiveProcess(pid: number): boolean {
+  if (pid === process.pid) return true;
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    return (error as NodeJS.ErrnoException).code !== "ESRCH";
+  }
+}
+
+/** A lock left by a killed process (Render keeps /tmp across crash restarts). */
+async function staleSnapshotLock(lock: string): Promise<boolean> {
+  let text: string;
+  try {
+    text = await readFile(lock, "utf8");
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return false;
+    throw error;
+  }
+  const pid = Number(text.trim());
+  if (!Number.isInteger(pid) || pid <= 0) return true;
+  return !lockHeldByLiveProcess(pid);
+}
+
 export async function lockSnapshot(path: string): Promise<() => Promise<void>> {
   const lock = `${path}.lock`;
-  const handle = await open(lock, "wx", 0o600);
-  await handle.writeFile(String(process.pid));
-  await handle.close();
-  return () => unlink(lock);
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const handle = await open(lock, "wx", 0o600);
+      await handle.writeFile(String(process.pid));
+      await handle.close();
+      return () => unlink(lock);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "EEXIST" || attempt === 1) throw error;
+      if (!await staleSnapshotLock(lock)) throw error;
+      await unlink(lock).catch(unlinkError => {
+        if ((unlinkError as NodeJS.ErrnoException).code !== "ENOENT") throw unlinkError;
+      });
+    }
+  }
+  throw new Error("Unreachable snapshot lock retry");
 }

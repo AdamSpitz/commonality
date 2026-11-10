@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { mkdtemp, rm, readFile } from "node:fs/promises";
+import { mkdtemp, rm, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { encodeAbiParameters, parseAbiItem, toEventSelector, type AbiEvent, type Hex } from "viem";
@@ -168,6 +168,16 @@ test("failure leaves state intact; snapshot restart and writer exclusion", async
     assert.equal((await readSnapshot(path))!.head.number, 12n);
     const committed = await readSnapshot(path);
     await assert.rejects(Promise.resolve().then(() => validateSnapshot({ ...committed!, rows: [committed!.rows[0]!, committed!.rows[0]!] })), /Duplicate/);
+    await unlock();
+  } finally { await rm(dir, { recursive: true, force: true }); }
+});
+
+test("a lock whose pid is gone is reclaimed", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "raw-log-prototype-"));
+  const path = join(dir, "state.json");
+  try {
+    await writeFile(`${path}.lock`, "2147483647");
+    const unlock = await lockSnapshot(path);
     await unlock();
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
