@@ -18,7 +18,7 @@ import {
 } from '../types.js';
 import type { DecodedDirectSupportEvent } from '../../../utils/event-decoders/conceptspace.js';
 import { fetchDecodedDirectSupportEvents, fetchDecodedImplicationLifecycleEvents } from './fetch.js';
-import { readFinalizedThrough } from '../../../utils/eventCacheClient.js';
+import { indexerUpstreamId, readFinalizedThrough } from '../../../utils/eventCacheClient.js';
 import { foldStoreKey, runResumableFold } from '../../../utils/resumableFold.js';
 import { fetchStatementDocument, uniqueAddresses } from './documents.js';
 import { filterByTrustedAttesters } from './implications.js';
@@ -304,6 +304,7 @@ export async function getImplicationSourceActivity(
       contracts: beliefs ? [beliefs] : [],
       id: 'implications',
       version: IMPLICATION_FOLD_VERSION,
+      upstreamId: await indexerUpstreamId(machinery),
     }),
     store: machinery.foldStore,
     empty: emptyImplications,

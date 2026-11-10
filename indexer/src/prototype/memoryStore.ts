@@ -65,7 +65,7 @@ export function syncFromSnapshot(snapshot: Snapshot | undefined, chainName: stri
     indexedCheckpoint: checkpointFromBlock(snapshot.head.number),
     finalizedCheckpoint: checkpointFromBlock(snapshot.durable.number),
   };
-  return { ready: true, upstreamId: snapshot.scope, chains: [chain] };
+  return { ready: true, upstreamId: snapshot.upstreamId ?? "", chains: [chain] };
 }
 
 /** In-memory EventStore over the latest committed prototype snapshot. */

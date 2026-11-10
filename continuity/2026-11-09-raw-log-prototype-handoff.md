@@ -63,10 +63,10 @@ Do not claim the production migration is implemented. Local drop-in is the curre
 - Real-chain factory/reorg exercise. Current factory coverage is deterministic RPC fixtures with the real ABIs.
 - Independent child-discovery parity, long provisional-tail cost under Base finality, and provider-weighted CU measurement.
 - Idle/wake is wired for `--serve` only, using the existing idle-head flag. Finite `--polls` experiments always sync. `/graphql` and `/status` do not open the fast window (`/status` is not in the wake list). A local chain that enables idle will not advance just because the SDK polls `/status`.
-- Segment eligibility still uses `max(events.blockNumber) - confirmations`, not the durable watermark the spec requires at cutover.
+- Segment eligibility now uses the ready sync `finalizedThrough`, including quiet blocks. `GET /health` exists on the prototype. Snapshot `upstreamId` is minted once and carried; SDK fold keys append a non-empty epoch. Ponder `/graphql` and `/sql` probes are still in place.
 - Checkpoint strings are 16-digit padded block numbers, not Ponder's 75-digit encoding. SDK length-reset behavior needs a check before swap in production.
 - `/sql` and non-`_meta` GraphQL are Ponder-only. The local UI gateway still forwards `/sql/`.
-- Production store, adoption report, exclusive writer lock, and the cutover steps in the spec. Source changes refuse snapshot reuse; historical backfill is unimplemented. `--local` still refuses a snapshot whose catalog scope changed.
+- Production store, adoption report, exclusive writer lock, and the cutover steps in the spec. New addresses backfill from their own start and bump `upstreamId` when the insert is already durable. A changed start block or event set is still refused. Snapshots with no `coverage` field still refuse a changed catalog. `--estimate --head N` is arithmetic only.
 - Tests cover simulated failures and atomic snapshot restart, not a full process-kill fault-injection matrix. Snapshot reads now reject a child creation block outside `[fromBlock, head]`. Row topic/data shape is still not revalidated on read.
 - A chain longer than memory can hold is still one in-memory snapshot. Fine for local Hardhat; not a hosted store.
 

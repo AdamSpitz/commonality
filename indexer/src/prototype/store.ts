@@ -20,10 +20,17 @@ function header(value: Header, label: string): Header {
 export function validateSnapshot(value: Snapshot): Snapshot {
   if (value?.version !== 1 || !Array.isArray(value.rows) || !Array.isArray(value.children)) throw new Error("Invalid prototype snapshot");
   if (!Number.isSafeInteger(value.chainId) || !/^[0-9a-f]{64}$/.test(value.scope ?? "")) throw new Error("Invalid prototype snapshot identity");
+  if (value.upstreamId != null && !/^[0-9a-f]{64}$/.test(value.upstreamId)) throw new Error("Invalid prototype snapshot upstreamId");
   const fromBlock = bigintField(value.fromBlock, "fromBlock");
   const head = header(value.head, "head");
   const durable = header(value.durable, "durable");
   if (fromBlock < 1n || durable.number < fromBlock - 1n || durable.number > head.number) throw new Error("Invalid prototype snapshot coverage");
+  const coverage = value.coverage?.map(source => {
+    if (!address40.test(source?.address ?? "") || !Array.isArray(source.selectors) || source.selectors.some(item => !hash32.test(item))) {
+      throw new Error("Invalid prototype snapshot source coverage");
+    }
+    return { address: source.address, startBlock: bigintField(source.startBlock, "coverage start"), selectors: source.selectors };
+  });
   const children: Child[] = value.children.map(child => {
     if (!address40.test(child?.address ?? "") || !hash32.test(child?.creationHash ?? "") || !Array.isArray(child.events)) {
       throw new Error("Invalid prototype snapshot child");
@@ -44,7 +51,7 @@ export function validateSnapshot(value: Snapshot): Snapshot {
     return row;
   });
   if (new Set(rows.map(row => row.id)).size !== rows.length) throw new Error("Duplicate prototype snapshot row");
-  return { ...value, fromBlock, head, durable, children, rows };
+  return { ...value, fromBlock, head, durable, children, rows, coverage };
 }
 
 export async function readSnapshot(path: string): Promise<Snapshot | undefined> {

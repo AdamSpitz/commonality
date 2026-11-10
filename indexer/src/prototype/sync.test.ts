@@ -144,7 +144,7 @@ test("deep reorg, wrong chain, and changed source scope refuse commit", async ()
   assert.equal(raced.head.hash, first.head.hash, "in-window head rewrite is not re-fetched; next poll adopts the new header");
   chain.duringLogs = undefined;
   await assert.rejects(syncWindow(chain, fixed, { ...options, chainId: 1 }), /chain ID/);
-  await assert.rejects(syncWindow(chain, { ...fixed, sources: [{ ...source, startBlock: 2n }] }, options, first), /scope changed/);
+  await assert.rejects(syncWindow(chain, { ...fixed, sources: [{ ...source, startBlock: 2n }] }, options, first), /coverage plan/);
 });
 
 test("failure leaves state intact; snapshot restart and writer exclusion", async () => {
@@ -170,6 +170,35 @@ test("failure leaves state intact; snapshot restart and writer exclusion", async
     await assert.rejects(Promise.resolve().then(() => validateSnapshot({ ...committed!, rows: [committed!.rows[0]!, committed!.rows[0]!] })), /Duplicate/);
     await unlock();
   } finally { await rm(dir, { recursive: true, force: true }); }
+});
+
+test("a new source backfills only its own history and bumps the cache epoch", async () => {
+  const chain = new Chain();
+  chain.logs = [chain.log(4n, child), chain.log(8n)];
+  const first = await syncWindow(chain, fixed, options);
+  const added: Catalog = { sources: [source, { ...source, address: child, startBlock: 4n }], factories: [] };
+  const calls = chain.calls.length;
+  const second = await syncWindow(chain, added, { ...options, fromBlock: 1n, maxBlocks: 20n }, first);
+  assert.equal(second.rows.length, 2);
+  assert.equal(second.rows[0]!.contractAddress, child);
+  assert.notEqual(second.upstreamId, first.upstreamId);
+  assert.equal(second.coverage?.some(item => item.address === child), true);
+  const logCalls = chain.calls.slice(calls).filter(call => call.method === "eth_getLogs");
+  assert.ok(logCalls.some(call => (call.params[0] as { address: string[]; fromBlock: string }).address.includes(child) &&
+    (call.params[0] as { fromBlock: string }).fromBlock === hex(4n)));
+  assert.equal(logCalls.filter(call => (call.params[0] as { address: string[] }).address.includes(parent) &&
+    BigInt((call.params[0] as { fromBlock: string }).fromBlock) <= 5n).length, 0);
+});
+
+test("removing a source keeps its provisional rows", async () => {
+  const chain = new Chain();
+  chain.logs = [chain.log(8n, child)];
+  const both: Catalog = { sources: [source, { ...source, address: child }], factories: [] };
+  const first = await syncWindow(chain, both, options);
+  chain.logs = [];
+  const second = await syncWindow(chain, fixed, { ...options, toBlock: 12n, finalizedBlock: 6n }, first);
+  assert.equal(second.rows.length, 1);
+  assert.equal(second.rows[0]!.contractAddress, child);
 });
 
 test("missing factory history and oversized ranges are rejected", async () => {

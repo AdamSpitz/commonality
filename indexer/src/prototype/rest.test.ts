@@ -13,6 +13,7 @@ function snapshot(): Snapshot {
     version: 1,
     chainId: 31337,
     scope: "a".repeat(64),
+    upstreamId: "b".repeat(64),
     fromBlock: 1n,
     head: { number: 20n, hash: ("0x" + "1".repeat(64)) as Hex, timestamp: 20n },
     durable: { number: 12n, hash: ("0x" + "2".repeat(64)) as Hex, timestamp: 12n },
@@ -66,7 +67,7 @@ test("prototype serves the indexer REST routes from a snapshot", async () => {
     assert.equal(sync.status, 200);
     const syncBody = await sync.json() as { ready: boolean; upstreamId: string; chains: Array<{ indexedThrough: string; finalizedThrough: string; indexedCheckpoint: string }> };
     assert.equal(syncBody.ready, true);
-    assert.equal(syncBody.upstreamId, "a".repeat(64));
+    assert.equal(syncBody.upstreamId, "b".repeat(64));
     assert.equal(syncBody.chains[0]?.indexedThrough, "20");
     assert.equal(syncBody.chains[0]?.finalizedThrough, "12");
     assert.equal(syncBody.chains[0]?.indexedCheckpoint, "0000000000000020");
@@ -82,6 +83,14 @@ test("prototype serves the indexer REST routes from a snapshot", async () => {
     assert.equal(publishedBody.status, "active");
     assert.equal(publishedBody.publications[0]?.publisher.toLowerCase(), publisher);
 
+    const health = await app.request("http://indexer.test/health");
+    assert.equal(health.status, 200);
+    const healthBody = await health.json() as { ok: boolean; ready: boolean; block: string };
+    assert.equal(healthBody.ok, true);
+    assert.equal(healthBody.ready, true);
+    assert.equal(healthBody.block, "20");
+
+    process.env.EVENT_SEGMENT_CONFIRMATIONS = "1000";
     const manifest = await app.request("http://indexer.test/api/event-segments/manifest?chainId=31337&eventName=DataPublished");
     const manifestBody = await manifest.json() as { segments: Array<{ fromBlock: string; count: number }> };
     assert.equal(manifestBody.segments.length, 1);

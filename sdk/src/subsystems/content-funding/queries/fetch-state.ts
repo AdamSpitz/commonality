@@ -15,7 +15,7 @@ import type {
 import type { ContentFundingState, ContentItem, ChannelInfo } from '../folds.js';
 import { CONTENT_FUNDING_FOLD_VERSION, foldAllContentFundingEvents, foldContentRegistry } from '../folds.js';
 import type { SDKMachinery } from '../../../machinery.js';
-import { fetchAllContentFundingEvents, readFinalizedThrough } from '../../../utils/eventCacheClient.js';
+import { fetchAllContentFundingEvents, indexerUpstreamId, readFinalizedThrough } from '../../../utils/eventCacheClient.js';
 import { foldStoreKey, runResumableFold } from '../../../utils/resumableFold.js';
 import {
   decodeContentItemRegisteredEvent,
@@ -286,6 +286,7 @@ export async function fetchAndFoldContentFundingState(
       contracts,
       id: 'content-funding',
       version: CONTENT_FUNDING_FOLD_VERSION,
+      upstreamId: await indexerUpstreamId(machinery),
     }),
     store: machinery.foldStore,
     empty: emptyAccumulator,

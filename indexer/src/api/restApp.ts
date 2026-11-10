@@ -19,7 +19,6 @@ import {
   encodeSegmentTuples,
   eventSegmentBlocks,
   eventSegmentConfirmations,
-  finalizedThroughBlock,
   immutableSegmentRanges,
   maybeGzip,
   segmentResponseHeaders,
@@ -32,6 +31,15 @@ const TOPIC_IN_LIMIT = 32;
 const PROJECT_CREATION_EVENTS = ["LazyGivingAssuranceContractCreated", "CreatorContractCreated", "FixedControllerAssuranceCreated"];
 
 class TopicInError extends Error {}
+
+/** Immutable segments stop at the committed durable watermark, not the newest event. */
+async function durableSegmentThrough(store: EventStore, chainId: number): Promise<bigint> {
+  const sync = await store.sync();
+  if (!sync.ready) return -1n;
+  const chain = sync.chains.find(row => row.chainId === String(chainId));
+  if (!chain || !/^\d+$/.test(chain.finalizedThrough)) return -1n;
+  return BigInt(chain.finalizedThrough);
+}
 
 function serializeBigInts(obj: unknown): unknown {
   if (typeof obj === "bigint") return String(obj);
@@ -234,7 +242,7 @@ export function attachRest(app: Hono, store: EventStore): void {
       const segmentSize = eventSegmentBlocks();
       const confirmations = eventSegmentConfirmations();
       const head = await store.maxBlock(chainId);
-      const finalizedThrough = finalizedThroughBlock(head, confirmations);
+      const finalizedThrough = await durableSegmentThrough(store, chainId);
       const segments = [];
       for (const range of immutableSegmentRanges(finalizedThrough, segmentSize)) {
         const rows = await store.query({
@@ -271,12 +279,11 @@ export function attachRest(app: Hono, store: EventStore): void {
       const eventName = c.req.param("eventName");
       const fromBlock = BigInt(c.req.param("fromBlock"));
       const segmentSize = eventSegmentBlocks();
-      const confirmations = eventSegmentConfirmations();
       if (!Number.isInteger(chainId) || fromBlock < 0n || fromBlock % segmentSize !== 0n) {
         return c.json({ error: "segment is not a finalized aligned range" }, 400);
       }
       const toBlock = fromBlock + segmentSize - 1n;
-      const finalizedThrough = finalizedThroughBlock(await store.maxBlock(chainId), confirmations);
+      const finalizedThrough = await durableSegmentThrough(store, chainId);
       if (toBlock > finalizedThrough) return c.json({ error: "segment is not finalized" }, 404);
       const rows = await store.query({
         chainId,

@@ -11,6 +11,7 @@ export type FactoryRule = {
 };
 export type Catalog = { sources: Source[]; factories: FactoryRule[] };
 export type Child = Source & { creationHash: Hex };
+export type SourceCoverage = { address: Hex; startBlock: bigint; selectors: Hex[] };
 export type EventRow = {
   id: string; chainId: number; contractAddress: Hex; eventName: string;
   blockNumber: string; blockTimestamp: string; transactionHash: Hex; logIndex: number;
@@ -19,7 +20,11 @@ export type EventRow = {
 };
 export type Snapshot = {
   version: 1; chainId: number; scope: string; fromBlock: bigint;
+  /** Cache epoch. Stable across polls; a new value invalidates SDK folds and segments. */
+  upstreamId?: string;
   head: Header; durable: Header; rows: EventRow[]; children: Child[];
+  /** Addresses already backfilled. Absent on snapshots written before source admission. */
+  coverage?: SourceCoverage[];
 };
 export type Rpc = { request(method: string, params: unknown[]): Promise<unknown> };
 

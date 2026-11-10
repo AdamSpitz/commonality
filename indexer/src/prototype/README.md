@@ -3,7 +3,7 @@
 Experimental implementation of [replace-ponder.md](../../../specs/tech/indexer/replace-ponder.md).
 Local Docker (`indexer/start.sh`, unless `PONDER_SCRIPT` is a hosted `start` script or `INDEXER_ENGINE=ponder`) runs this process instead of Ponder. It binds `0.0.0.0`, polls latest, and writes `INDEXER_SNAPSHOT_PATH` (default `/app/.ponder/raw-log-snapshot.json` on the existing Ponder volume). Hardhat uses a 100ms poll and `depth:0` finality because Hardhat's `finalized` tag is not a dependency. `GET /status` returns Ponder's chain block shape so the SDK sync wait works. A failed poll is logged and retried; the last committed snapshot keeps being served.
 
-`--serve PORT` without `--local` still binds `127.0.0.1` unless `--host 0.0.0.0` is set, and serves the same REST routes as the Ponder indexer (`/api/events`, `/api/sync`, `/api/event-segments`, `/api/published-data`, `/api/project-read-demand`, `POST /api/indexer-wake`) plus `GET /status` and a `/graphql` stub that answers only `_meta` liveness probes. Point a client at that URL to swap readers. It does not serve `/sql` or the rest of Ponder's GraphQL schema. Segment eligibility still follows the current routes (`max(events.blockNumber)` minus confirmations), not the prototype's durable watermark. `/api/sync` reports the snapshot head and durable block; checkpoint strings are 16-digit zero-padded block numbers, not Ponder's 75-digit encoding.
+`--serve PORT` without `--local` still binds `127.0.0.1` unless `--host 0.0.0.0` is set, and serves the same REST routes as the Ponder indexer (`/api/events`, `/api/sync`, `/api/event-segments`, `/api/published-data`, `/api/project-read-demand`, `POST /api/indexer-wake`) plus `GET /status` and a `/graphql` stub that answers only `_meta` liveness probes. Point a client at that URL to swap readers. It does not serve `/sql` or the rest of Ponder's GraphQL schema. Segment eligibility uses the committed durable watermark from `/api/sync`, not `max(events.blockNumber)` minus confirmations. `GET /health` is liveness (200 while parked; `ready` is false). `/api/sync` reports the snapshot head, durable block, and persisted `upstreamId` (minted once per snapshot, not the catalog scope). Checkpoint strings are 16-digit zero-padded block numbers, not Ponder's 75-digit encoding.
 
 Non-Hardhat runs also enforce a spend guard (`INDEXER_HOURLY_CU` default 100000, `INDEXER_DAILY_CU` default 1000000, plus request ceilings). Exceeding it parks the sync loop and marks `/status` parked and `/api/sync` not ready. `INDEXER_SPEND_GUARD=0` disables it; Hardhat enables it only with `INDEXER_SPEND_GUARD=1`.
 
@@ -13,6 +13,7 @@ From the repository root:
 
 ```sh
 npm run prototype --workspace=indexer -- --help
+npm run prototype --workspace=indexer -- --estimate --head N --event-blocks N
 npm run test:prototype --workspace=indexer
 ```
 
@@ -41,8 +42,7 @@ counts per poll and cumulative totals; these are not provider-weighted CU estima
 Without `--contracts`, all configured sources in the selected capability are used.
 Factory discovery requires `--from` at/before every selected factory's deployment
 (and >= 1); otherwise it refuses an incomplete scan. Fixed-address experiments can
-start later. Configuration changes require a new snapshot; historical source
-admission/backfill is not implemented.
+start later. A new source address is backfilled from its own start block. If that history is already durable, `upstreamId` changes. Changing a watched address's start block or event set still requires an explicit coverage plan. Removed addresses keep their cached rows. Snapshots written before source coverage cannot admit a changed catalog.
 
 Rows, discovered children, and watermarks commit together by synced file write and
 atomic rename. Restart reads that snapshot and replaces the entire provisional

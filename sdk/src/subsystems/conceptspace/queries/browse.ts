@@ -1,5 +1,5 @@
 import { type Address } from 'viem';
-import { padAddressAsTopic, readFinalizedThrough } from '../../../utils/eventCacheClient.js';
+import { indexerUpstreamId, padAddressAsTopic, readFinalizedThrough } from '../../../utils/eventCacheClient.js';
 import { foldStoreKey, runResumableFold } from '../../../utils/resumableFold.js';
 import { IpfsCidV1 } from '../../../utils/cid-types.js';
 import { SDKMachinery } from '../../../machinery.js';
@@ -34,6 +34,7 @@ async function loadDirectSupportBrowse(machinery: SDKMachinery): Promise<DirectS
       contracts: beliefs ? [beliefs] : [],
       id: 'direct-support-browse',
       version: DIRECT_SUPPORT_BROWSE_FOLD_VERSION,
+      upstreamId: await indexerUpstreamId(machinery),
     }),
     store: machinery.foldStore,
     empty: emptyDirectSupportBrowse,

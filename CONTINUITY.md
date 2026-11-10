@@ -2195,3 +2195,7 @@ Cutover step 1 of [replace-ponder.md](specs/tech/indexer/replace-ponder.md), by 
 ## 2026-11-09 — Raw-log indexer is the local Docker process
 
 Local `indexer/start.sh` now runs the raw-log prototype unless `INDEXER_ENGINE=ponder` or the script is a hosted `start`. `GET /status` matches the SDK wait. Snapshot lives on the Ponder volume. Production cutover is not done. Remaining work: [continuity/2026-11-09-raw-log-prototype-handoff.md](continuity/2026-11-09-raw-log-prototype-handoff.md).
+
+## 2026-11-09 — Raw-log source admission and replay arithmetic
+
+A changed catalog no longer always refuses the snapshot. A new address is backfilled from its own start; a changed start block or event set still needs an explicit coverage plan; removed addresses keep their rows. Historical inserts bump `upstreamId`. `npm run prototype --workspace=indexer -- --estimate --head N --event-blocks N` prints Alchemy CU arithmetic and does not call RPC. Factory-child backfill is excluded. Live Postgres reorg/crash and the testnet catalog estimate are still open. No Alchemy spend.

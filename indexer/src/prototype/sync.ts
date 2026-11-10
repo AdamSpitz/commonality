@@ -1,7 +1,8 @@
-import { createHash } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { decodeEventLog, toEventSelector, type Hex } from "viem";
 import { RpcFailure } from "./rpc";
-import { address, hex, json, type Catalog, type Child, type EventRow, type Header, type RawLog, type Rpc, type Snapshot, type Source } from "./types";
+import { admissionPlan, catalogSources, coverageOf } from "./coverage";
+import { address, hex, json, type Catalog, type Child, type EventRow, type Header, type RawLog, type Rpc, type Snapshot, type Source, type SourceCoverage } from "./types";
 
 export async function readHeader(rpc: Rpc, block: bigint | "latest" | "finalized"): Promise<Header> {
   const result = await rpc.request("eth_getBlockByNumber", [typeof block === "bigint" ? hex(block) : block, false]);
@@ -86,11 +87,29 @@ export async function syncWindow(rpc: Rpc, catalog: Catalog, options: SyncOption
     throw new Error("RPC chain ID mismatch");
   }
   const scope = createHash("sha256").update(json(catalog)).digest("hex");
-  if (previous && (previous.chainId !== chainId || previous.scope !== scope || previous.fromBlock !== fromBlock)) {
-    throw new Error("Snapshot scope changed; use a separate output for this experiment");
+  const coverage = coverageOf(catalog);
+  const knownCoverage: SourceCoverage[] | undefined = previous
+    ? previous.coverage ?? (previous.scope === scope ? coverage : undefined)
+    : undefined;
+  if (previous && !knownCoverage) {
+    throw new Error("Snapshot predates source coverage; cannot admit a changed catalog");
+  }
+  const admission = admissionPlan(knownCoverage, coverage);
+  if (previous && previous.chainId !== chainId) throw new Error("Snapshot chain changed; use a separate output for this experiment");
+  if (previous && fromBlock > previous.fromBlock) throw new Error("Refusing to raise the snapshot start block");
+  if (previous && fromBlock < previous.fromBlock && !admission.backfill.some(source => source.startBlock < previous.fromBlock)) {
+    throw new Error("Snapshot start block changed without a new earlier source");
   }
   if (!previous && catalog.factories.some(rule => rule.source.startBlock < fromBlock)) {
     throw new Error("Window omits factory history; start at/before factory deployment or select fixed contracts only");
+  }
+  const backfillSpan = admission.backfill.reduce((max, source) => {
+    const span = toBlock - source.startBlock + 1n;
+    return span > max ? span : max;
+  }, 0n);
+  if (backfillSpan > (options.maxBlocks ?? 10_000n)) throw new Error("Invalid or oversized prototype window (fromBlock must be >= 1)");
+  if (admission.backfill.some(source => source.startBlock < fromBlock)) {
+    throw new Error("Window omits new source history; start at/before the new source");
   }
   const anchor = previous?.durable ?? await readHeader(rpc, fromBlock - 1n);
   if (toBlock < anchor.number || finalizedBlock < anchor.number) throw new Error("Head/finality regressed behind durable anchor");
@@ -110,9 +129,15 @@ export async function syncWindow(rpc: Rpc, catalog: Catalog, options: SyncOption
   };
   const from = anchor.number + 1n;
   const children: Child[] = (previous?.children ?? []).filter(child => child.startBlock <= anchor.number);
-  const factorySources = catalog.factories.map(rule => ({ ...rule.source, events: [rule.event] }));
-  const known = [...catalog.sources, ...children, ...factorySources];
+  const backfillAddresses = new Set(admission.backfill.map(source => source.address));
+  const watched = catalogSources(catalog).filter(source => !backfillAddresses.has(source.address));
+  const known = [...watched, ...children];
   const logs = await scan(rpc, known, from, toBlock, window);
+  if (admission.backfill.length) {
+    const added = catalogSources(catalog).filter(source => backfillAddresses.has(source.address));
+    const earliest = added.reduce((min, source) => source.startBlock < min ? source.startBlock : min, toBlock);
+    logs.push(...await scan(rpc, added, earliest, toBlock, window));
+  }
   const seenAddresses = new Set(known.map(source => source.address));
   for (const log of logs) {
     const header = await headerFor(log);
@@ -126,9 +151,14 @@ export async function syncWindow(rpc: Rpc, catalog: Catalog, options: SyncOption
     }
   }
   const born = children.filter(child => !seenAddresses.has(child.address));
-  if (born.length) logs.push(...await scan(rpc, born, from, toBlock, window));
+  if (born.length) {
+    const bornFrom = born.reduce((min, child) => child.startBlock < min ? child.startBlock : min, from);
+    logs.push(...await scan(rpc, born, bornFrom, toBlock, window));
+  }
   const sources = [...catalog.sources, ...children];
-  const rows = new Map((previous?.rows ?? []).filter(row => BigInt(row.blockNumber) <= anchor.number).map(row => [row.id, row]));
+  const removed = new Set(admission.removed.map(source => source.address));
+  const rows = new Map((previous?.rows ?? []).filter(row =>
+    BigInt(row.blockNumber) <= anchor.number || removed.has(row.contractAddress)).map(row => [row.id, row]));
   for (const log of logs) {
     const sourceEvents = sources.filter(source => source.address === address(log.address) && source.startBlock <= BigInt(log.blockNumber))
       .flatMap(source => source.events).filter(event => toEventSelector(event) === log.topics[0]);
@@ -150,6 +180,11 @@ export async function syncWindow(rpc: Rpc, catalog: Catalog, options: SyncOption
     if (existing && json(existing) !== json(row)) throw new Error("Conflicting duplicate event");
     rows.set(row.id, row);
   }
-  return { version: 1, chainId, scope, fromBlock, head, durable, children,
+  const historical = previous != null && [...rows.values()].some(row =>
+    BigInt(row.blockNumber) <= previous.durable.number && !previous.rows.some(old => old.id === row.id));
+  const upstreamId = historical || !/^[0-9a-f]{64}$/.test(previous?.upstreamId ?? "")
+    ? randomBytes(32).toString("hex") : previous!.upstreamId;
+  const committedFrom = previous && previous.fromBlock < fromBlock ? previous.fromBlock : fromBlock;
+  return { version: 1, chainId, scope, fromBlock: committedFrom, upstreamId, coverage, head, durable, children,
     rows: [...rows.values()].sort((a, b) => BigInt(a.blockNumber) < BigInt(b.blockNumber) ? -1 : BigInt(a.blockNumber) > BigInt(b.blockNumber) ? 1 : a.logIndex - b.logIndex) };
 }

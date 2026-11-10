@@ -56,6 +56,16 @@ export function createPrototypeApp(current: () => Snapshot | undefined, chainNam
   attachRest(app, snapshotEventStore(current, chainName, parked));
   attachGraphqlCompat(app, current, chainName);
   attachStatus(app, current, chainName, parked);
+  app.get("/health", c => {
+    const snapshot = current();
+    const pause = parked();
+    return c.json({
+      ok: true,
+      ready: snapshot != null && pause == null,
+      parked: pause != null,
+      block: snapshot ? snapshot.head.number.toString() : null,
+    });
+  });
   return app;
 }
 

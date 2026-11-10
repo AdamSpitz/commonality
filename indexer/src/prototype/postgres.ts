@@ -30,8 +30,11 @@ function lockKey(schema: string): [number, number] {
 
 /** Rows at or below the previous durable anchor are immutable; only the tail is rewritten. */
 export function provisionalTail(previous: Snapshot | undefined, next: Snapshot): { anchor: bigint; inserted: EventRow[] } {
-  if (previous && (previous.chainId !== next.chainId || previous.scope !== next.scope || previous.fromBlock !== next.fromBlock)) {
-    throw new Error("Refusing to commit a snapshot whose chain, scope, or start block changed");
+  if (previous && previous.chainId !== next.chainId) {
+    throw new Error("Refusing to commit a snapshot whose chain changed");
+  }
+  if (previous && next.fromBlock > previous.fromBlock) {
+    throw new Error("Refusing to commit a snapshot whose start block moved forward");
   }
   if (previous && next.durable.number < previous.durable.number) {
     throw new Error("Refusing to commit a regressed durable anchor");
@@ -54,7 +57,9 @@ export function schemaDdl(schema: string): string[] {
       head_timestamp numeric NOT NULL,
       durable_number numeric NOT NULL,
       durable_hash text NOT NULL,
-      durable_timestamp numeric NOT NULL
+      durable_timestamp numeric NOT NULL,
+      upstream_id text,
+      coverage jsonb
     )`,
     `CREATE TABLE IF NOT EXISTS ${name}.events (
       id text PRIMARY KEY,
@@ -85,6 +90,9 @@ export function schemaDdl(schema: string): string[] {
 
 export async function ensureSchema(db: Sql, schema: string): Promise<void> {
   for (const statement of schemaDdl(schema)) await db.query(statement);
+  const name = quoteIdent(schema);
+  await db.query(`ALTER TABLE ${name}.sync_state ADD COLUMN IF NOT EXISTS upstream_id text`);
+  await db.query(`ALTER TABLE ${name}.sync_state ADD COLUMN IF NOT EXISTS coverage jsonb`);
 }
 
 function headerParams(header: Header): [string, string, string] {
@@ -121,13 +129,14 @@ export async function commitSnapshot(db: Sql, schema: string, previous: Snapshot
     await db.query(
       `INSERT INTO ${name}.sync_state (
         id, chain_id, scope, from_block, head_number, head_hash, head_timestamp,
-        durable_number, durable_hash, durable_timestamp
-      ) VALUES (true,$1,$2,$3,$4,$5,$6,$7,$8,$9)
+        durable_number, durable_hash, durable_timestamp, upstream_id, coverage
+      ) VALUES (true,$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11::jsonb)
       ON CONFLICT (id) DO UPDATE SET
         chain_id = EXCLUDED.chain_id, scope = EXCLUDED.scope, from_block = EXCLUDED.from_block,
         head_number = EXCLUDED.head_number, head_hash = EXCLUDED.head_hash, head_timestamp = EXCLUDED.head_timestamp,
-        durable_number = EXCLUDED.durable_number, durable_hash = EXCLUDED.durable_hash, durable_timestamp = EXCLUDED.durable_timestamp`,
-      [next.chainId, next.scope, next.fromBlock.toString(), headNumber, headHash, headTimestamp, durableNumber, durableHash, durableTimestamp],
+        durable_number = EXCLUDED.durable_number, durable_hash = EXCLUDED.durable_hash, durable_timestamp = EXCLUDED.durable_timestamp,
+        upstream_id = EXCLUDED.upstream_id, coverage = EXCLUDED.coverage`,
+      [next.chainId, next.scope, next.fromBlock.toString(), headNumber, headHash, headTimestamp, durableNumber, durableHash, durableTimestamp, next.upstreamId ?? null, next.coverage ? JSON.stringify(next.coverage, (_, value) => typeof value === "bigint" ? value.toString() : value) : null],
     );
     await db.query("COMMIT");
   } catch (error) {
@@ -143,7 +152,7 @@ function asHeader(number: unknown, hash: unknown, timestamp: unknown, label: str
 
 export async function loadSnapshot(db: Sql, schema: string): Promise<Snapshot | undefined> {
   const name = quoteIdent(schema);
-  const state = await db.query(`SELECT chain_id, scope, from_block::text, head_number::text, head_hash, head_timestamp::text, durable_number::text, durable_hash, durable_timestamp::text FROM ${name}.sync_state`);
+  const state = await db.query(`SELECT chain_id, scope, from_block::text, head_number::text, head_hash, head_timestamp::text, durable_number::text, durable_hash, durable_timestamp::text, upstream_id, coverage FROM ${name}.sync_state`);
   const row = state.rows[0];
   if (!row) return undefined;
   const events = await db.query(`SELECT id, chain_id, contract_address, event_name, block_number::text, block_timestamp::text, transaction_hash, log_index, topic0, topic1, topic2, topic3, data FROM ${name}.events ORDER BY block_number, log_index`);
@@ -152,6 +161,7 @@ export async function loadSnapshot(db: Sql, schema: string): Promise<Snapshot | 
     version: 1,
     chainId: Number(row.chain_id),
     scope: String(row.scope),
+    upstreamId: typeof row.upstream_id === "string" ? row.upstream_id : undefined,
     fromBlock: BigInt(String(row.from_block)),
     head: asHeader(row.head_number, row.head_hash, row.head_timestamp, "head"),
     durable: asHeader(row.durable_number, row.durable_hash, row.durable_timestamp, "durable"),
@@ -177,6 +187,10 @@ export async function loadSnapshot(db: Sql, schema: string): Promise<Snapshot | 
       events: child.events as Child["events"],
       creationHash: String(child.creation_hash) as Child["creationHash"],
     })),
+    coverage: Array.isArray(row.coverage) ? row.coverage.map(item => {
+      const source = item as { address: string; startBlock: string; selectors: string[] };
+      return { address: source.address as Child["address"], startBlock: BigInt(source.startBlock), selectors: source.selectors as Child["creationHash"][] };
+    }) : undefined,
   };
   return snapshot;
 }

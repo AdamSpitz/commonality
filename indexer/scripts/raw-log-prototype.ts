@@ -1,6 +1,7 @@
 import { parseArgs } from "node:util";
 import { setTimeout as delay } from "node:timers/promises";
 import { loadCatalog } from "../src/prototype/catalog";
+import { coverageOf, estimateReplay } from "../src/prototype/coverage";
 import { compareWithPonder } from "../src/prototype/compare";
 import { MeteredRpc } from "../src/prototype/rpc";
 import { SpendLedger, SpendParked, spendLimitsFromEnv, type ParkedSync } from "../src/prototype/spend";
@@ -28,11 +29,22 @@ async function main() {
     "max-blocks": { type: "string", default: "10000" }, "max-requests": { type: "string", default: "1000" },
     window: { type: "string", default: "10000" }, finality: { type: "string", default: "finalized" },
     serve: { type: "string" }, host: { type: "string", default: "127.0.0.1" },
-    local: { type: "boolean" },
+    local: { type: "boolean" }, estimate: { type: "boolean" }, head: { type: "string" },
+    "event-blocks": { type: "string", default: "0" },
     help: { type: "boolean" },
   } });
   if (values.help) {
-    console.log("raw-log-prototype --from N --to N|latest --out PATH [--contracts Name,Name] [--compare INDEXER_URL] [--polls N] [--serve PORT] [--host HOST] [--finality finalized|depth:N] [--max-blocks N] [--max-requests N] [--window N] [--interval MS]\n--local --serve PORT replaces the local Ponder process: start block, poll, and finality come from the deployment env (hardhat uses depth:0 and a 100ms poll). Snapshot path is INDEXER_SNAPSHOT_PATH.\nUses existing deployment env and PONDER_RPC_URL_<chainId>. No env files are loaded automatically. Writes a local snapshot unless INDEXER_PROTOTYPE_DATABASE_URL is set (own schema, not Ponder's database).");
+    console.log("raw-log-prototype --from N --to N|latest --out PATH [--contracts Name,Name] [--compare INDEXER_URL] [--polls N] [--serve PORT] [--host HOST] [--finality finalized|depth:N] [--max-blocks N] [--max-requests N] [--window N] [--interval MS]\n--estimate --head N [--window N] [--event-blocks N] prints an Alchemy CU replay estimate and does not call RPC.\n--local --serve PORT replaces the local Ponder process: start block, poll, and finality come from the deployment env (hardhat uses depth:0 and a 100ms poll). Snapshot path is INDEXER_SNAPSHOT_PATH.\nUses existing deployment env and PONDER_RPC_URL_<chainId>. No env files are loaded automatically. Writes a local snapshot unless INDEXER_PROTOTYPE_DATABASE_URL is set (own schema, not Ponder's database).");
+    return;
+  }
+  if (values.estimate) {
+    if (!values.head || !/^\d+$/.test(values.head)) throw new Error("--estimate requires --head N");
+    const catalog = await loadCatalog(values.contracts?.split(","));
+    const window = BigInt(values.window ?? "10000");
+    console.log(json(estimateReplay({
+      sources: coverageOf(catalog), head: BigInt(values.head), window,
+      eventBearingBlocks: BigInt(values["event-blocks"] ?? "0"),
+    })));
     return;
   }
   if (!values.local && (!values.from || !values.to || !values.out)) throw new Error("--from, --to, and --out are required; see --help");

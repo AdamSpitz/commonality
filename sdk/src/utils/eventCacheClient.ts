@@ -553,6 +553,16 @@ export async function fetchChainSync(
   return { ready: data.ready, upstreamId: typeof data.upstreamId === 'string' ? data.upstreamId : '', chains: data.chains };
 }
 
+/** Cache epoch for fold keys. Empty when the indexer is old, down, or not configured. */
+export async function indexerUpstreamId(machinery: SDKMachinery): Promise<string> {
+  if (machinery.eventCacheUrl == null) return '';
+  try {
+    return (await fetchChainSync(machinery)).upstreamId;
+  } catch {
+    return '';
+  }
+}
+
 export async function fetchEventFeedPage(
   machinery: SDKMachinery,
   params: Omit<EventQueryParams, 'limit' | 'allowTruncation' | 'blockNumber_lte'>,
@@ -766,6 +776,7 @@ export async function fetchEventNamesResumable(
       contracts: [...eventNames],
       id,
       version: RESUMABLE_RAW_EVENTS_VERSION,
+      upstreamId: await indexerUpstreamId(machinery),
     }),
     store: machinery.foldStore,
     empty: () => [],

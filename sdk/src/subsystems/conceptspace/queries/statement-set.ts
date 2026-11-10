@@ -294,6 +294,7 @@ function scanKey(scope: ScanScope, id: string, statementCid: string): string {
     contracts: [addresses?.beliefs ?? '', addresses?.implications ?? '', scope.upstreamId],
     id: `${id}:${statementCid}`,
     version: STATEMENT_SCAN_VERSION,
+    upstreamId: scope.upstreamId,
   });
 }
 
