@@ -27,6 +27,8 @@ test("a commit rewrites only the provisional tail", () => {
   const delta = provisionalTail(snapshot([kept], 10n), next);
   assert.equal(delta.anchor, 10n);
   assert.deepEqual(delta.inserted.map(row => row.id), ["2"]);
+  const historical = { ...kept, id: "3", blockNumber: "5" };
+  assert.deepEqual(provisionalTail(snapshot([kept]), snapshot([historical, kept, tail], 12n)).inserted.map(row => row.id), ["3", "2"]);
   assert.throws(() => provisionalTail(snapshot([], 12n), snapshot([], 11n)), /regressed durable/);
 });
 

@@ -119,6 +119,21 @@ test("empty prototype snapshot is not ready", async () => {
   assert.equal((await health.json() as { ready: boolean }).ready, false);
 });
 
+test("public feeds and wake preflights are accessible from the UI origin", async () => {
+  const app = createPrototypeApp(() => snapshot(), "hardhat");
+  const origin = "https://testnet.commonality.works";
+  const response = await app.request("http://indexer.test/api/sync", { headers: { origin } });
+  assert.equal(response.headers.get("access-control-allow-origin"), "*");
+  const preflight = await app.request("http://indexer.test/api/indexer-wake", {
+    method: "OPTIONS",
+    headers: { origin, "access-control-request-method": "POST", "access-control-request-headers": "content-type" },
+  });
+  assert.equal(preflight.status, 204);
+  assert.equal(preflight.headers.get("access-control-allow-origin"), "*");
+  assert.match(preflight.headers.get("access-control-allow-methods") ?? "", /POST/);
+  assert.match(preflight.headers.get("access-control-allow-headers") ?? "", /content-type/);
+});
+
 test("a cursor written before historical backfill commits is not ready", async () => {
   const partial = { ...snapshot(), backfillCommitted: false };
   const app = createPrototypeApp(() => partial, "hardhat");

@@ -6,7 +6,7 @@ import { WorkRequestDetailPage } from './WorkRequestDetailPage'
 const mocks = vi.hoisted(() => {
   const address = `0x${'aa'.repeat(20)}`
   const other = `0x${'bb'.repeat(20)}`
-  return { address, other, decision: vi.fn(), acceptance: vi.fn(), reload: vi.fn(), totals: vi.fn((): Array<Record<string, unknown>> => []) }
+  return { address, other, decision: vi.fn(), acceptance: vi.fn(), reload: vi.fn(), totals: vi.fn((): Array<Record<string, unknown>> => []), acceptances: [] as Array<Record<string, unknown>> }
 })
 
 vi.mock('wagmi', () => ({ useAccount: () => ({ address: mocks.address }) }))
@@ -34,7 +34,7 @@ vi.mock('../hooks/useWorkRequests', () => ({
         { actor: mocks.address, slug: 'my-offer', current: { cid: 'my-offer', body: { requestVersionCid: 'request' } } },
       ],
       responses: [{ actor: mocks.other, slug: 'response', current: { cid: 'response-version', body: { requestVersionCid: 'request', providerAddress: mocks.address, workItemIds: ['park'], projectAddress: mocks.other } } }],
-      decisions: [], acceptances: [], backing: [], contributionLinks: [],
+      decisions: [], acceptances: mocks.acceptances, backing: [], contributionLinks: [],
     },
   }),
 }))
@@ -49,6 +49,7 @@ describe('WorkRequestDetailPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mocks.totals.mockReturnValue([])
+    mocks.acceptances.length = 0
   })
 
   it('lets the donor decide on their own offer when someone else published first', async () => {
@@ -70,6 +71,16 @@ describe('WorkRequestDetailPage', () => {
     showPage()
     expect(screen.getByRole('button', { name: 'Record a contribution link' })).toBeDisabled()
     expect(screen.getByText(/Recording a hash does not verify the contribution or refund/)).toBeInTheDocument()
+  })
+
+  it('shows the authorized acceptance even when an unrelated wallet published first', () => {
+    const acceptance = { responseOwner: mocks.other, responseSlug: 'response', current: { body: { capacity: 'Build the park' } } }
+    mocks.acceptances.push(
+      { ...acceptance, authorityMatchesProvider: false },
+      { ...acceptance, authorityMatchesProvider: true },
+    )
+    showPage()
+    expect(screen.getByText(/Provider accepted: Build the park/)).toBeInTheDocument()
   })
 
   it('shows verified contribution and refund figures apart from reported amounts', () => {

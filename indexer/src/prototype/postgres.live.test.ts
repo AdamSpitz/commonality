@@ -95,6 +95,15 @@ test("live postgres keeps durable rows across a killed write and a provisional r
     await assert.rejects(() => commitSnapshot(db.pool, schema, afterReorg, regressed), /regressed durable/);
     assert.equal((await db.load())?.durable.number, 10n);
 
+    const admitted = snap([row("backfill", "5"), kept], 10n, 14n);
+    admitted.upstreamId = "epoch-2";
+    await db.commit(afterReorg, admitted);
+    const afterAdmission = await db.load();
+    assert.deepEqual(afterAdmission?.rows.map(item => item.id), ["backfill", "durable"]);
+    assert.equal(afterAdmission?.upstreamId, "epoch-2");
+    await db.commit(afterAdmission, admitted);
+    assert.equal((await db.load())?.rows.length, 2);
+
     let blocked = true;
     const second = openPrototypeDatabase(url!, schema).then(opened => { blocked = false; return opened; });
     await new Promise(resolve => setTimeout(resolve, 400));

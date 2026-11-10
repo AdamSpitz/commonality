@@ -40,7 +40,8 @@ export function provisionalTail(previous: Snapshot | undefined, next: Snapshot):
     throw new Error("Refusing to commit a regressed durable anchor");
   }
   const anchor = previous?.durable.number ?? next.fromBlock - 1n;
-  return { anchor, inserted: next.rows.filter(row => BigInt(row.blockNumber) > anchor) };
+  const persisted = new Set(previous?.rows.map(row => row.id));
+  return { anchor, inserted: next.rows.filter(row => BigInt(row.blockNumber) > anchor || !persisted.has(row.id)) };
 }
 
 export function schemaDdl(schema: string): string[] {

@@ -142,7 +142,7 @@ export function WorkRequestDetailPage() {
 
       <Typography variant="subtitle2">Responses</Typography>
       {responses.map((response) => {
-        const acceptance = board.acceptances.find((item) => item.responseOwner === response.actor && item.responseSlug === response.slug)
+        const acceptance = board.acceptances.find((item) => item.responseOwner === response.actor && item.responseSlug === response.slug && item.authorityMatchesProvider)
         const accepted = acceptance?.authorityMatchesProvider ? acceptance.current : null
         return (
           <Stack key={`${response.actor}:${response.slug}`} spacing={0.5}>

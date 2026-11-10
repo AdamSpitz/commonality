@@ -1,5 +1,6 @@
 import { createServer, type Server } from "node:http";
 import { Hono } from "hono";
+import { cors } from "hono/cors";
 import { attachRest } from "../api/restApp";
 import type { ParkedSync } from "./spend";
 import type { Snapshot } from "./types";
@@ -27,6 +28,7 @@ export function attachStatus(app: Hono, current: () => Snapshot | undefined, cha
 
 export function createPrototypeApp(current: () => Snapshot | undefined, chainName: string = getIndexerChainName(), parked: () => ParkedSync = () => undefined): Hono {
   const app = new Hono();
+  app.use("*", cors({ origin: "*", allowMethods: ["GET", "HEAD", "POST", "OPTIONS"] }));
   attachRest(app, snapshotEventStore(current, chainName, parked));
   attachStatus(app, current, chainName, parked);
   app.get("/health", c => {
