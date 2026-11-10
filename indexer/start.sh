@@ -55,7 +55,7 @@ write_backoff() {
 }
 
 # Hosted `ponder start` crash-loops on Alchemy monthly-capacity 429s (even
-# eth_chainId). Keep the container alive with a stub /graphql and wait; do not
+# eth_chainId). Keep the container alive with a stub /health and wait; do not
 # bump DATABASE_SCHEMA or switch to sepolia.base.org.
 if [ "$PONDER_SCRIPT" = "start" ]; then
   while true; do

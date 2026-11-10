@@ -22,7 +22,7 @@ async function loadViem() {
 }
 
 function publishedDataUrl(config, { dataId, chainId, contractAddress }) {
-  const url = new URL(`/api/published-data/${dataId}`, config.eventCacheUrl ?? config.graphqlUrl.replace(/\/graphql\/?$/, ""));
+  const url = new URL(`/api/published-data/${dataId}`, config.eventCacheUrl);
   url.searchParams.set("chainId", String(chainId));
   url.searchParams.set("contractAddress", contractAddress);
   return url.toString();

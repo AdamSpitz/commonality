@@ -34,12 +34,11 @@ export function idleHeadCacheEnabled(chain: string, env: NodeJS.ProcessEnv = pro
 export function requestWakesIndexer(method: string, path: string): boolean {
   const normalized = path.split("?")[0] ?? path;
   if (method !== "GET" && method !== "POST") return false;
-  if (normalized === "/health" || normalized === "/ready" || normalized === "/metrics") return false;
+  if (normalized === "/" || normalized === "/health" || normalized === "/ready" || normalized === "/metrics" || normalized === "/status") return false;
+  if (normalized === "/graphql" || normalized.startsWith("/graphql/") || normalized === "/sql" || normalized.startsWith("/sql/")) return false;
   if (normalized === "/api/project-read-demand") return false;
   if (normalized === "/api/indexer-wake") return method === "POST";
-  if (normalized === "/" || normalized === "/graphql" || normalized.startsWith("/graphql/")) return true;
   if (normalized.startsWith("/api/")) return method === "GET";
-  if (normalized.startsWith("/sql")) return true;
   return false;
 }
 

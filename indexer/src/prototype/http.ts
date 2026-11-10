@@ -6,34 +6,8 @@ import type { Snapshot } from "./types";
 import { snapshotEventStore } from "./memoryStore";
 import { getIndexerChainName } from "../utils/chain";
 
-/**
- * Answer the liveness probe `POST /graphql { _meta { block { number } } }`
- * and the testnet check `{ _meta { status } }`. This is not Ponder's GraphQL API.
- */
-export function attachGraphqlCompat(app: Hono, current: () => Snapshot | undefined, chainName: string = getIndexerChainName()): void {
-  const handler = async (c: { req: { json: () => Promise<unknown> }; json: (body: unknown, status?: number) => Response }) => {
-    let query = "";
-    try {
-      const body = await c.req.json() as { query?: unknown };
-      query = typeof body.query === "string" ? body.query : "";
-    } catch {
-      query = "";
-    }
-    if (!query.includes("_meta")) {
-      return c.json({ errors: [{ message: "prototype GraphQL compat only answers _meta liveness probes" }] }, 400);
-    }
-    const snapshot = current();
-    const number = snapshot ? Number(snapshot.head.number) : 0;
-    const status = snapshot
-      ? { [chainName]: { block: { number } } }
-      : "not_ready";
-    return c.json({ data: { _meta: { block: { number }, status } } });
-  };
-  app.get("/graphql", handler);
-  app.post("/graphql", handler);
-}
 
-/** Ponder's `/status` shape. The SDK waits on `result[chain].block.number`. */
+/** `/status` shape. The SDK waits on `result[chain].block.number`. */
 export function attachStatus(app: Hono, current: () => Snapshot | undefined, chainName: string, parked: () => ParkedSync = () => undefined): void {
   app.get("/status", c => {
     const snapshot = current();
@@ -54,7 +28,6 @@ export function attachStatus(app: Hono, current: () => Snapshot | undefined, cha
 export function createPrototypeApp(current: () => Snapshot | undefined, chainName: string = getIndexerChainName(), parked: () => ParkedSync = () => undefined): Hono {
   const app = new Hono();
   attachRest(app, snapshotEventStore(current, chainName, parked));
-  attachGraphqlCompat(app, current, chainName);
   attachStatus(app, current, chainName, parked);
   app.get("/health", c => {
     const snapshot = current();

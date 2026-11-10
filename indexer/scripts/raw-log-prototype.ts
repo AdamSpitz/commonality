@@ -95,7 +95,7 @@ async function main() {
     const current = (): Snapshot | undefined => snapshot;
     if (servePort != null) {
       server = await listen(createPrototypeApp(current, getIndexerChainName(), () => parked), servePort, (method, path) => idle?.note(method, path), values.host);
-      console.error(json({ serving: `http://${values.host}:${servePort}`, routes: ["/api/events", "/api/sync", "/api/event-segments", "/api/published-data", "/api/project-read-demand", "/api/indexer-wake", "/status", "/graphql _meta"] }));
+      console.error(json({ serving: `http://${values.host}:${servePort}`, routes: ["/api/events", "/api/sync", "/api/event-segments", "/api/published-data", "/api/project-read-demand", "/api/indexer-wake", "/status", "/health"] }));
     }
     for (let poll = 0; poll < polls && !stop; poll++) {
       if (poll && idle && !idle.fast()) {

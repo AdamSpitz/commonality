@@ -128,9 +128,7 @@ wait_for_indexer() {
     local attempt=0
 
     while [ $attempt -lt $max_attempts ]; do
-        if curl -s -X POST -H "Content-Type: application/json" \
-            --data '{"query":"{ _meta { block { number } } }"}' \
-            http://localhost:42069/graphql > /dev/null 2>&1; then
+        if curl -sf http://localhost:42069/health > /dev/null 2>&1; then
             echo "Indexer is ready!"
             return 0
         fi

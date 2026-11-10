@@ -2203,3 +2203,7 @@ A changed catalog no longer always refuses the snapshot. A new address is backfi
 ## 2026-11-10 — Catalog replay estimate and live Postgres crash
 
 Ran the raw-log replay arithmetic against the Render base-sepolia manifest and a public `eth_blockNumber` (head 57053503): 1,429 log windows, 85,740 CU, plus 20 CU per event-bearing block. The old Ponder database was not queried, so that header term is unknown. Factory-child backfill is still excluded. Added `indexer/src/prototype/postgres.live.test.ts` (skipped unless `INDEXER_PROTOTYPE_TEST_DATABASE_URL` is set). A local Postgres 16 run passed: SIGKILL before commit left durable rows, a later commit dropped the provisional child, a regressed anchor was refused, and a second writer blocked on the advisory lock. Still not a production cutover. Next open cutover step is dropping `/graphql` and `/sql` together with the remaining probes and Ponder checkpoint decoding.
+
+## 2026-11-10 — Alchemy cap raised; do not resume Ponder
+
+Adam raised the Alchemy limit by $10 and asked a fresh agent to continue. Handoff: [continuity/2026-11-10-after-alchemy-cap-handoff.md](continuity/2026-11-10-after-alchemy-cap-handoff.md). The indexer service is still suspended. Do not resume it.

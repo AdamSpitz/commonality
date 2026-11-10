@@ -63,7 +63,7 @@ function parse(stdout) {
 // Build a pair of mock servers sharing one mutable state object. The RPC server
 // advances the chain (and, when `catchesUp`/`dataAdvances` are set, the indexer
 // block and the data-canary value) on each evm_mine. The GraphQL server returns
-// both the _meta block and the canary field, so the same endpoint serves the
+// both the chain block and the canary field, so the same endpoint serves the
 // block-lag sample and the data-canary sample the target issues.
 async function startMockPair({ catchesUp, dataAdvances }) {
   const state = { chainBlock: 100, indexerBlock: 100, dataValue: 100 };
@@ -77,21 +77,19 @@ async function startMockPair({ catchesUp, dataAdvances }) {
     }
     return { jsonrpc: "2.0", id: payload.id, error: { message: `unsupported ${payload.method}` } };
   });
-  const gql = await startJsonServer(() => ({
-    data: {
-      _meta: { block: { number: state.indexerBlock }, status: { foundry: { block: { number: state.indexerBlock } } } },
-      canary: { count: state.dataValue }
-    }
+  const status = await startJsonServer(() => ({
+    foundry: { block: { number: state.indexerBlock } },
+    canary: { count: state.dataValue }
   }));
-  return { rpc, gql };
+  return { rpc, status };
 }
 
 async function runCase(testCase, artifactRoot) {
-  const { rpc, gql } = await startMockPair(testCase);
+  const { rpc, status } = await startMockPair(testCase);
   try {
     const params = {
       rpcUrl: `http://127.0.0.1:${rpc.address().port}`,
-      graphqlUrl: `http://127.0.0.1:${gql.address().port}`,
+      statusUrl: `http://127.0.0.1:${status.address().port}`,
       chainSlug: "foundry",
       burstBlocks: 5,
       maxLagBlocks: 1,
@@ -100,7 +98,7 @@ async function runCase(testCase, artifactRoot) {
       timeoutPerRequestMs: 1000
     };
     if (testCase.dataCanary) {
-      params.dataCanary = testCase.dataCanary === true ? { graphqlQuery: "{ canary { count } }", resultPath: "canary.count", minIncrease: 1 } : testCase.dataCanary;
+      params.dataCanary = testCase.dataCanary === true ? { resultPath: "canary.count", minIncrease: 1 } : testCase.dataCanary;
     }
     if ("eventBurstCommand" in testCase) params.eventBurstCommand = testCase.eventBurstCommand;
     if ("eventBurstTimeoutMs" in testCase) params.eventBurstTimeoutMs = testCase.eventBurstTimeoutMs;
@@ -111,7 +109,7 @@ async function runCase(testCase, artifactRoot) {
     return { ok, findings: { name: testCase.name, targetStatus: result.status, targetSummary: result.summary, stdout: truncate(run.stdout), stderr: truncate(run.stderr), exitCode: run.exitCode } };
   } finally {
     await close(rpc);
-    await close(gql);
+    await close(status);
   }
 }
 
@@ -129,8 +127,8 @@ emit(async () => {
     // indexed application value must actually advance, or the check fails.
     { name: "canary-caught-up-passes", catchesUp: true, dataAdvances: true, dataCanary: true, expect: (result) => result.status === "pass" && /advanced by/i.test(result.summary) },
     { name: "canary-block-advances-data-stuck-fails", catchesUp: true, dataAdvances: false, dataCanary: true, expect: (result) => result.status === "fail" && hasProblem(result, /data canary/i) && !hasProblem(result, /exceeds .* budget/i) },
-    { name: "canary-incomplete-config-fails", catchesUp: true, dataAdvances: true, dataCanary: { graphqlQuery: "{ canary { count } }" }, expect: (result) => result.status === "fail" && hasProblem(result, /missing .*resultPath/i) },
-    { name: "canary-invalid-min-increase-fails", catchesUp: true, dataAdvances: true, dataCanary: { graphqlQuery: "{ canary { count } }", resultPath: "canary.count", minIncrease: 0 }, expect: (result) => result.status === "fail" && hasProblem(result, /minIncrease/i) },
+    { name: "canary-incomplete-config-fails", catchesUp: true, dataAdvances: true, dataCanary: {}, expect: (result) => result.status === "fail" && hasProblem(result, /missing .*resultPath/i) },
+    { name: "canary-invalid-min-increase-fails", catchesUp: true, dataAdvances: true, dataCanary: { resultPath: "canary.count", minIncrease: 0 }, expect: (result) => result.status === "fail" && hasProblem(result, /minIncrease/i) },
     // Event-burst command behaviour: command failure is a concrete failed probe,
     // not a silent pass hidden behind block-lag catch-up.
     { name: "event-command-failure-fails", catchesUp: true, dataAdvances: false, eventBurstCommand: ["/bin/false"], expect: (result) => result.status === "fail" && hasProblem(result, /Event burst command failed/i) },

@@ -646,9 +646,7 @@ services:
       - CHOKIDAR_USEPOLLING=true
     healthcheck:
       test: |
-        curl -f -X POST -H "Content-Type: application/json" \
-        --data '{"query":"{ _meta { block { number } } }"}' \
-        http://localhost:42069/graphql || exit 1
+        curl -f http://localhost:42069/health || exit 1
       interval: 2s
       timeout: 10s
       retries: 30

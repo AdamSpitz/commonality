@@ -1,11 +1,7 @@
 import { requestWakesIndexer } from "../rpc/idleHeadCache";
 
-/** Prototype GraphQL is only a liveness probe, so it must not open the fast window. */
+/** Health, status, and removed Ponder routes must not open the fast window. */
 export function prototypeRequestOpensFastPoll(method: string, path: string): boolean {
-  const normalized = path.split("?")[0] ?? path;
-  if (normalized === "/graphql" || normalized.startsWith("/graphql/") || normalized === "/sql" || normalized.startsWith("/sql/")) {
-    return false;
-  }
   return requestWakesIndexer(method, path);
 }
 

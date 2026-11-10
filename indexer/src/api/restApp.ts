@@ -1,6 +1,6 @@
 /**
  * REST routes shared by the Ponder process and the raw-log prototype.
- * Response shapes match indexer/README.md. GraphQL and /sql stay on Ponder.
+ * Response shapes match indexer/README.md. There is no GraphQL or /sql route.
  */
 
 import { Hono } from "hono";

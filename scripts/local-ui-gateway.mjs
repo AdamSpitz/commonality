@@ -13,7 +13,7 @@ const testDataRoot = process.env.TEST_DATA_ARTIFACT_ROOT || path.resolve('fake-d
 // falls back to the page origin and issues same-origin requests. Forward those
 // to the local indexer instead of the IPFS bundle, which would 404 on all of
 // them and make every data-backed page render an empty or error state.
-const indexerPathPrefixes = ['/api/', '/sql/', '/graphql', '/status']
+const indexerPathPrefixes = ['/api/', '/status', '/health']
 
 function isIndexerPath(pathname) {
   return indexerPathPrefixes.some(prefix =>

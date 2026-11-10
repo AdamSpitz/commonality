@@ -18,7 +18,7 @@ The Worker strips the first path segment and proxies to the corresponding Render
 Examples:
 
 ```text
-https://services.testnet.commonality.works/indexer/graphql
+https://services.testnet.commonality.works/indexer/health
 https://services.testnet.commonality.works/platform-api/health
 https://services.testnet.commonality.works/attesters/content-attester
 https://services.testnet.commonality.works/workers/health

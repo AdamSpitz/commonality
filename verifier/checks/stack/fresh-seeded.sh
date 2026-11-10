@@ -48,8 +48,8 @@ probe platform-api "Platform API health endpoint answered." "Platform API health
   curl --silent --show-error --fail http://localhost:3001/health
 probe ipfs "Local IPFS gateway health endpoint answered." "Local IPFS gateway health endpoint did not answer." \
   curl --silent --show-error --fail http://localhost:8088/health
-probe indexer-graphql "Indexer GraphQL _meta query answered." "Indexer GraphQL _meta query did not answer." \
-  curl --silent --show-error --fail -X POST -H "Content-Type: application/json" --data '{"query":"{ _meta { block { number } } }"}' http://localhost:42069/graphql
+probe indexer-health "Indexer /health answered." "Indexer /health did not answer." \
+  curl --silent --show-error --fail http://localhost:42069/health
 wait_for_indexed_event() {
   local attempt=1
   local max_attempts=60

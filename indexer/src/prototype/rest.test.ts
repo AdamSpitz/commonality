@@ -97,21 +97,10 @@ test("prototype serves the indexer REST routes from a snapshot", async () => {
     assert.equal(manifestBody.segments[0]?.fromBlock, "0");
     assert.equal(manifestBody.segments[0]?.count, 1);
 
-    const meta = await app.request("http://indexer.test/graphql", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ query: "{ _meta { block { number } } }" }),
-    });
-    const metaBody = await meta.json() as { data: { _meta: { block: { number: number }; status: { hardhat: { block: { number: number } } } } } };
-    assert.equal(metaBody.data._meta.block.number, 20);
-    assert.equal(metaBody.data._meta.status.hardhat.block.number, 20);
-
-    const other = await app.request("http://indexer.test/graphql", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ query: "{ events { id } }" }),
-    });
-    assert.equal(other.status, 400);
+    const removed = await app.request("http://indexer.test/graphql", { method: "POST" });
+    assert.equal(removed.status, 404);
+    const sql = await app.request("http://indexer.test/sql");
+    assert.equal(sql.status, 404);
   } finally {
     if (previousBlocks == null) delete process.env.EVENT_SEGMENT_BLOCKS;
     else process.env.EVENT_SEGMENT_BLOCKS = previousBlocks;

@@ -65,6 +65,18 @@ function conditionsFor(query: EventQuery) {
   return conditions;
 }
 
+const PONDER_CHECKPOINT_LENGTH = 75;
+const PONDER_BLOCK_OFFSET = 26;
+const PONDER_BLOCK_DIGITS = 16;
+
+/** Read Ponder's internal `_ponder_checkpoint` row. Public cursors are 16-digit block strings. */
+function blockFromInternalCheckpoint(checkpoint: string): bigint {
+  if (!/^\d+$/.test(checkpoint) || checkpoint.length !== PONDER_CHECKPOINT_LENGTH) {
+    throw new Error("Ponder checkpoint is invalid");
+  }
+  return BigInt(checkpoint.slice(PONDER_BLOCK_OFFSET, PONDER_BLOCK_OFFSET + PONDER_BLOCK_DIGITS));
+}
+
 async function readChainSync(): Promise<SyncStatus> {
   const database = (globalThis as { PONDER_DATABASE?: PonderDatabase }).PONDER_DATABASE;
   const qb = database?.readonlyQB;
@@ -81,7 +93,17 @@ async function readChainSync(): Promise<SyncStatus> {
   return {
     ready: app?.value?.is_ready === 1,
     upstreamId: upstreamIdFromAppMeta(app?.value),
-    chains: chainSyncWatermarks(checkpoints.rows as CheckpointRow[]),
+    chains: chainSyncWatermarks((checkpoints.rows as Array<{
+      chain_id: string | number | bigint;
+      chain_name: string;
+      latest_checkpoint: string;
+      finalized_checkpoint: string;
+    }>).map(row => ({
+      chain_id: row.chain_id,
+      chain_name: row.chain_name,
+      indexedThrough: blockFromInternalCheckpoint(row.latest_checkpoint),
+      finalizedThrough: blockFromInternalCheckpoint(row.finalized_checkpoint),
+    }) satisfies CheckpointRow)),
   };
 }
 

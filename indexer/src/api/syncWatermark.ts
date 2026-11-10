@@ -1,22 +1,17 @@
 /**
- * Per-chain indexing watermarks from Ponder's `_ponder_checkpoint`.
+ * Per-chain indexing watermarks.
  *
- * `indexedThrough` is the latest committed checkpoint block, not the newest
- * matching event. Quiet blocks still advance it. `finalizedThrough` is
- * Ponder's finalized checkpoint for that chain. Callers must not treat either
- * as a durable upper bound while `ready` is false: the first checkpoint row
- * is written before historical backfill commits.
+ * `indexedThrough` is the latest committed head, not the newest matching event.
+ * Quiet blocks still advance it. `finalizedThrough` is the durable cursor.
+ * Callers must not treat either as a durable upper bound while `ready` is false.
+ * Checkpoint strings are 16-digit zero-padded block numbers.
  */
-
-const BLOCK_NUMBER_OFFSET = 26;
-const BLOCK_NUMBER_DIGITS = 16;
-const CHECKPOINT_LENGTH = 75;
 
 export type CheckpointRow = {
   chain_id: string | number | bigint;
   chain_name: string;
-  latest_checkpoint: string;
-  finalized_checkpoint: string;
+  indexedThrough: string | bigint;
+  finalizedThrough: string | bigint;
 };
 
 export type ChainSyncWatermark = {
@@ -28,11 +23,10 @@ export type ChainSyncWatermark = {
   finalizedCheckpoint: string;
 };
 
-export function blockFromPonderCheckpoint(checkpoint: string): string {
-  if (!/^\d+$/.test(checkpoint) || checkpoint.length !== CHECKPOINT_LENGTH) {
-    throw new Error("Ponder checkpoint is invalid");
-  }
-  return BigInt(checkpoint.slice(BLOCK_NUMBER_OFFSET, BLOCK_NUMBER_OFFSET + BLOCK_NUMBER_DIGITS)).toString();
+/** Fixed width so a growing head is never a shorter checkpoint string. */
+export function checkpointFromBlock(block: bigint): string {
+  if (block < 0n) throw new Error("checkpoint block is invalid");
+  return block.toString().padStart(16, "0");
 }
 
 /** Ponder replaces `build_id` when the indexing database is rebuilt. */
@@ -46,10 +40,10 @@ export function chainSyncWatermarks(rows: CheckpointRow[]): ChainSyncWatermark[]
   return rows.map(row => ({
     chainId: BigInt(row.chain_id).toString(),
     chainName: row.chain_name,
-    indexedThrough: blockFromPonderCheckpoint(row.latest_checkpoint),
-    finalizedThrough: blockFromPonderCheckpoint(row.finalized_checkpoint),
-    indexedCheckpoint: row.latest_checkpoint,
-    finalizedCheckpoint: row.finalized_checkpoint,
+    indexedThrough: BigInt(row.indexedThrough).toString(),
+    finalizedThrough: BigInt(row.finalizedThrough).toString(),
+    indexedCheckpoint: checkpointFromBlock(BigInt(row.indexedThrough)),
+    finalizedCheckpoint: checkpointFromBlock(BigInt(row.finalizedThrough)),
   }));
 }
 

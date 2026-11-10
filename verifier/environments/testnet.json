@@ -7,7 +7,8 @@
   "chainName": "Base Sepolia",
   "chainSlug": "base-sepolia",
   "rpcUrlEnv": "COMMONALITY_TESTNET_RPC_URL",
-  "graphqlUrl": "https://commonality-indexer.onrender.com/graphql",
+  "statusUrl": "https://commonality-indexer.onrender.com/status",
+  "healthUrl": "https://commonality-indexer.onrender.com/health",
   "eventCacheUrl": "https://commonality-indexer.onrender.com",
   "appUrl": "https://testnet.commonality.works",
   "expectedHosts": [
@@ -38,7 +39,7 @@
     "blockedCid": "bafkreifzjut3te2nhyekklss27nh3k7232xplrvgnbo3wxj335rkr3v36m"
   },
   "serviceUrls": [
-    "https://commonality-indexer.onrender.com/graphql",
+    "https://commonality-indexer.onrender.com/health",
     "https://commonality-platform-api.onrender.com/health",
     "https://commonality-service-host-attesters.onrender.com/health",
     "https://commonality-service-host-workers.onrender.com/health"
@@ -75,9 +76,6 @@
     "PUBLISHED_DATA_CONTRACT_ADDRESS"
   ],
   "indexer": {
-    "maxLagBlocks": 300,
-    "requiredQueries": [
-      { "name": "meta", "query": "{ _meta { status } }" }
-    ]
+    "maxLagBlocks": 300
   }
 }

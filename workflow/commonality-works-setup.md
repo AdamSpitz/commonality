@@ -10,7 +10,7 @@ Operator notes for the `commonality.works` zone. The from-scratch move is done. 
 - The service gateway is deployed. These return 200:
   - `https://services.testnet.commonality.works/attesters/health`
   - `https://services.testnet.commonality.works/workers/health`
-  - `https://services.testnet.commonality.works/indexer/graphql`
+  - `https://services.testnet.commonality.works/indexer/health`
   - `https://services.testnet.commonality.works/platform-api/health`
 - `/cause-assist` is not in the live Worker route table (404). `VITE_CAUSE_ASSIST_URL` still points at the Render host until that route is deployed.
 - DNSLink is partial. `./scripts/setup-testnet-naming.sh --dns` is the way to finish it. Do not create those records by hand.

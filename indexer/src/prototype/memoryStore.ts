@@ -1,13 +1,10 @@
-import type { ChainSyncWatermark } from "../api/syncWatermark";
+import { checkpointFromBlock, type ChainSyncWatermark } from "../api/syncWatermark";
+
+export { checkpointFromBlock };
 import type { EventQuery, EventStore, RawEvent, SyncStatus } from "../api/eventStore";
 import type { Snapshot } from "./types";
 import { getIndexerChainName } from "../utils/chain";
 import type { ParkedSync } from "./spend";
-
-/** Fixed width so a growing head is never a shorter checkpoint string. */
-export function checkpointFromBlock(block: bigint): string {
-  return block.toString().padStart(16, "0");
-}
 
 export function rowsFromSnapshot(snapshot: Snapshot): RawEvent[] {
   return snapshot.rows.map(row => ({

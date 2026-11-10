@@ -94,12 +94,10 @@ PONDER_EPHEMERAL=true docker_compose up -d \
     indexer \
     platform-api-service
 
-# Wait for indexer to be ready by polling its GraphQL endpoint
+# Wait for indexer liveness. Readiness is /api/sync, not this probe.
 echo "Waiting for indexer to start..."
 for i in $(seq 1 90); do
-    if curl -sf -X POST -H "Content-Type: application/json" \
-        --data '{"query":"{ _meta { block { number } } }"}' \
-        http://localhost:42069/graphql > /dev/null 2>&1; then
+    if curl -sf http://localhost:42069/health > /dev/null 2>&1; then
         echo "Indexer is ready!"
         break
     fi

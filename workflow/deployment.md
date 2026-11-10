@@ -204,7 +204,7 @@ Verify after the Worker is deployed:
 ```bash
 curl https://services.testnet.commonality.works/attesters/health
 curl https://services.testnet.commonality.works/workers/health
-curl https://services.testnet.commonality.works/indexer/graphql
+curl https://services.testnet.commonality.works/indexer/health
 curl https://services.testnet.commonality.works/platform-api/health
 ```
 
@@ -434,8 +434,8 @@ The blueprint already wires:
 - `DATABASE_SCHEMA=commonality_base_sepolia_v6` for the current Base Sepolia deployment. **Keep this name** while Ponder runs. (Planned exception: the Ponder-replacement cutover deliberately mints one new schema; see `specs/tech/indexer/replace-ponder.md`.) Changing it wipes the event cache and forces a full historical `eth_getLogs` replay (this is how we accidentally spent a month of Alchemy CUs). Bump only when `indexer/schemas/events.schema.ts` column types or names are incompatible, and only with `INDEXER_ALLOW_SCHEMA_BUMP=1` so `npm run smoke-check` will pass. New indexes are compatible: platform mode creates them on startup under the schema lock (the first such deploy can sit in `CREATE INDEX` before `/ready`). Schema-lock errors are a rolling-deploy problem — keep the persistent disk — not a reason to mint `v7`.
 - `PONDER_EXPERIMENTAL_DB=platform` so normal Render redeploys of a changed Ponder build can reuse the same production schema instead of failing with "previously used by a different Ponder app".
 - `PONDER_ETH_GET_LOGS_BLOCK_RANGE=10000` for Base Sepolia on the current Alchemy PAYG key (wider windows cut catch-up `eth_getLogs` count by ~1000× vs a 10-block free-tier cap). If logs show `[commonality-indexer] eth_getLogs failed because the RPC rejected the block range or response size`, lower it to `1000` then `10`, PUT the Render env, and **deploy** (not restart only). The indexer wraps `fetch` to print that hint once; do not switch the RPC to a viem `http()` transport to “see errors” — that breaks Ponder’s rate limiter.
-- `PONDER_POLL_INTERVAL_MS=4000` on hosted chains so head-following does not poll faster than Base Sepolia block time. Base Sepolia additionally replays the cached chain head for 30s while idle (`INDEXER_IDLE_HEAD_CACHE`, on unless set to `0`). Client reads and `POST /api/indexer-wake` open a 60s fast-poll window. Do not point a health check at `/graphql` or that window stays open.
-- Monthly Alchemy capacity 429s: do not crash-loop and do not switch to `sepolia.base.org`. `indexer/start.sh` backs off (1m…6h) with a stub `/graphql`. Raise the dashboard usage limit, then the next retry resumes the same `DATABASE_SCHEMA`.
+- `PONDER_POLL_INTERVAL_MS=4000` on hosted chains so head-following does not poll faster than Base Sepolia block time. Base Sepolia additionally replays the cached chain head for 30s while idle (`INDEXER_IDLE_HEAD_CACHE`, on unless set to `0`). Client reads and `POST /api/indexer-wake` open a 60s fast-poll window. Health checks use `GET /health` and must not hit an application read.
+- Monthly Alchemy capacity 429s: do not crash-loop and do not switch to `sepolia.base.org`. `indexer/start.sh` backs off (1m…6h) with a stub `GET /health`. Raise the dashboard usage limit, then the next retry resumes the same `DATABASE_SCHEMA`.
 - `START_BLOCK` is the fallback earliest block for contracts that do not set their own `startBlock`. Newly deployed contracts should use **their deploy block**, not a replay from the original 42768673. Do not lower global `START_BLOCK` or mint a new `DATABASE_SCHEMA` to “include more history.”
 - The indexer declares a small persistent disk even though it does not store application data there. This is an intentional Render workaround, not indexer storage: Render disables zero-downtime/rolling deploys for services with disks, which gives Ponder the stop-before-start deployment behavior it needs for the exclusive `DATABASE_SCHEMA` lock. Do not remove this disk just because `/data` appears unused unless the indexer has moved to a cleaner singleton-writer deployment model.
 
@@ -575,7 +575,7 @@ The old `verifier:full-launch` supervisor has been retired; do not interpret an 
 ### Health checks
 
 - Attester and nudger services: `GET /health`
-- Indexer (once deployed): `POST /graphql { "query": "{ _meta { block { number } } }" }`
+- Indexer (once deployed): `GET /health` for liveness, `GET /status` for chain height
 - IPFS (Pinata): visit `https://gateway.pinata.cloud/ipfs/<cid>`
 - ENS: visit `https://<name>.eth.limo`
 

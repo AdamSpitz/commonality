@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict'
 import { matchRoute, proxyServiceRequest } from './service-gateway.mjs'
 
-assert.deepEqual(matchRoute('/indexer/graphql'), {
+assert.deepEqual(matchRoute('/indexer/health'), {
   service: 'indexer',
-  upstreamPath: '/graphql',
+  upstreamPath: '/health',
 })
 
 assert.deepEqual(matchRoute('/platform-api/content-submission'), {

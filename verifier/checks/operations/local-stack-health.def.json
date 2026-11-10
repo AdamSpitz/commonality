@@ -26,13 +26,10 @@
             "recoveryHint": "This check automatically runs ../scripts/services.sh --start from the verifier workspace, and if needed ../scripts/data.sh --wipe followed by ../scripts/services.sh --start. If Hardhat is still down, inspect the hardhat service logs with docker compose logs hardhat."
           },
           {
-            "name": "indexer graphql",
-            "url": "http://localhost:42069/graphql",
-            "method": "POST",
-            "headers": { "Content-Type": "application/json" },
-            "body": { "query": "{ _meta { status } }" },
+            "name": "indexer health",
+            "url": "http://localhost:42069/health",
             "expectedStatus": 200,
-            "requireJsonPath": "data._meta.status",
+            "requireJsonPath": "ok",
             "recoveryHint": "This check automatically runs ../scripts/services.sh --start from the verifier workspace, and if needed ../scripts/data.sh --wipe followed by ../scripts/services.sh --start. If the indexer is still down or stuck, inspect docker compose logs indexer."
           },
           {

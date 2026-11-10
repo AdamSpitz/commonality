@@ -17,7 +17,9 @@ test("idle cache is on for base sepolia unless disabled", () => {
 });
 
 test("client reads and the wake endpoint count; health and demand do not", () => {
-  assert.equal(requestWakesIndexer("POST", "/graphql"), true);
+  assert.equal(requestWakesIndexer("POST", "/graphql"), false);
+  assert.equal(requestWakesIndexer("GET", "/sql"), false);
+  assert.equal(requestWakesIndexer("GET", "/"), false);
   assert.equal(requestWakesIndexer("GET", "/api/events"), true);
   assert.equal(requestWakesIndexer("POST", "/api/indexer-wake"), true);
   assert.equal(requestWakesIndexer("GET", "/api/indexer-wake"), false);

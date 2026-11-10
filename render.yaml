@@ -219,7 +219,7 @@ services:
         value: "0xF7120c4Ff1F9e8A496086Bea8f016d1299F0efed"
       - key: CREATOR_CONTRACT_FACTORY_ADDRESS
         value: "0x46803715b98639772f193769350d06889E26Ff1b"
-    healthCheckPath: /graphql
+    healthCheckPath: /health
     # Intentional Render workaround: this disk is not used for indexer app state.
     # Render disables zero-downtime/rolling deploys for services with persistent
     # disks. Ponder needs that stop-before-start behavior because `ponder start`
