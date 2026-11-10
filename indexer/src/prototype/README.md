@@ -5,6 +5,10 @@ Local Docker (`indexer/start.sh`, unless `PONDER_SCRIPT` is a hosted `start` scr
 
 `--serve PORT` without `--local` still binds `127.0.0.1` unless `--host 0.0.0.0` is set, and serves the same REST routes as the Ponder indexer (`/api/events`, `/api/sync`, `/api/event-segments`, `/api/published-data`, `/api/project-read-demand`, `POST /api/indexer-wake`) plus `GET /status` and a `/graphql` stub that answers only `_meta` liveness probes. Point a client at that URL to swap readers. It does not serve `/sql` or the rest of Ponder's GraphQL schema. Segment eligibility still follows the current routes (`max(events.blockNumber)` minus confirmations), not the prototype's durable watermark. `/api/sync` reports the snapshot head and durable block; checkpoint strings are 16-digit zero-padded block numbers, not Ponder's 75-digit encoding.
 
+Non-Hardhat runs also enforce a spend guard (`INDEXER_HOURLY_CU` default 100000, `INDEXER_DAILY_CU` default 1000000, plus request ceilings). Exceeding it parks the sync loop and marks `/status` parked and `/api/sync` not ready. `INDEXER_SPEND_GUARD=0` disables it; Hardhat enables it only with `INDEXER_SPEND_GUARD=1`.
+
+A caught-up poll (chain id already checked) is `latest` plus `finalized` (or the depth header, skipped when depth is 0) and one combined `eth_getLogs`. It does not re-read the anchor or the headers it was given. At Alchemy's published weights that is 20+20+60 = 100 CU. Non-Hardhat `--local` defaults to a 12s interval (~7.2M CU/month before idle), under the 30M target. Extra header reads happen only for event-bearing blocks; a second log query happens only for children first seen in that poll.
+
 From the repository root:
 
 ```sh

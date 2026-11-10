@@ -2188,6 +2188,10 @@ Full integration revealed older SDK deployment-event assumptions: creation and d
 
 Validation: full Hardhat suite (508 passing before an additional boundary test; all six new work tests pass), SDK (585 passing), focused UI (138 tests across proposal, status, create/detail suites), UI production build, workspace typecheck (39 tasks), SDK/UI lint (warnings only), and `verifier-run automated.test-full-integration` (107 passing, one existing pending). Full Hardhat JS lint has an unrelated pre-existing unused `err` in `hardhat/scripts/deploy-incremental.js:311`; touched JS files lint clean. Changes are local and uncommitted; testnet needs redeployment of the registry/factory dependency chain, and ordinary unscoped work hashes must be replaced with beneficiary-scoped hashes.
 
+## 2026-11-09 — Raw-log steady poll trimmed to ~100 CU
+
+Cutover step 1 of [replace-ponder.md](specs/tech/indexer/replace-ponder.md), by arithmetic not live RPC. A follow-up poll now takes the `latest` and `finalized` headers it was given plus one combined `eth_getLogs`. Chain id is checked once at startup. Non-Hardhat `--local` poll default is 12s (~7.2M CU/month before idle). In-window head rewrites are no longer refused by a closing re-read. Next cutover step is the spending guard, still before any Alchemy spend or Postgres store.
+
 ## 2026-11-09 — Raw-log indexer is the local Docker process
 
 Local `indexer/start.sh` now runs the raw-log prototype unless `INDEXER_ENGINE=ponder` or the script is a hosted `start`. `GET /status` matches the SDK wait. Snapshot lives on the Ponder volume. Production cutover is not done. Remaining work: [continuity/2026-11-09-raw-log-prototype-handoff.md](continuity/2026-11-09-raw-log-prototype-handoff.md).

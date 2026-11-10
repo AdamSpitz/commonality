@@ -55,7 +55,7 @@ The plan is [specs/tech/indexer/replace-ponder.md](../specs/tech/indexer/replace
 
 **Decision 2026-11-09: clean break.** Adam chose no backward compatibility: fresh `DATABASE_SCHEMA`, replay from source start blocks, no Ponder adoption, Ponder routes/checkpoints dropped. The spec's Cutover section is rewritten accordingly. Next step: measure CU on Base Sepolia with the prototype, then build the Postgres store. Items below about adoption or Ponder checkpoint compatibility are moot.
 
-**Budget freeze, 2026-11-09:** Alchemy cap is exhausted; Adam raises it only once nothing will burn it. Hosted Ponder (`srv-d8ctfd6k1jcs73a71d2g`) is **suspended on Render**; testnet indexer reads are down until cutover. Arithmetic in the spec's Cutover step 1 shows the prototype's poll is only ~30% cheaper than Ponder at 4s; trim it before deploying.
+**Budget freeze, 2026-11-09:** Alchemy cap is exhausted; Adam raises it only once nothing will burn it. Hosted Ponder (`srv-d8ctfd6k1jcs73a71d2g`) is **suspended on Render**; testnet indexer reads are down until cutover. Cutover step 1 (trim the poll) is done in code: ~100 CU/poll, 12s non-Hardhat default. Next is the spending guard, then the replay estimate, then Postgres. Do not spend Alchemy credits to measure.
 Do not claim the production migration is implemented. Local drop-in is the current stopping point. Still outstanding:
 
 - Local Docker stack is still unproven. An isolated Hardhat node (not Docker) did prove factory-child discovery, provisional reorg drop, durable-reorg refusal, snapshot restart, and SDK `waitForIndexerToSyncToBlockNumber` via `/status`. See the prototype README. `machinery.testConfig` is now optional in that wait; a missing config used to throw on the success path and burn the timeout.

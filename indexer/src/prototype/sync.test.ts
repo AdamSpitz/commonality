@@ -81,7 +81,7 @@ test("quiet-block RPC count is independent of elapsed block count", async () => 
     assert.equal(result.head.number, toBlock);
     assert.equal(result.rows.length, 0);
     assert.equal(chain.calls.filter(call => call.method === "eth_getLogs").length, 1);
-    assert.equal(chain.calls.filter(call => call.method === "eth_getBlockByNumber").length, 7);
+    assert.equal(chain.calls.filter(call => call.method === "eth_getBlockByNumber").length, 3);
   }
 });
 
@@ -133,14 +133,15 @@ test("same-height reorg after unchanged oldest tip block replaces orphaned rows 
   assert.equal(json(first), original, "transition does not mutate committed state");
 });
 
-test("deep reorg, mid-query fork, wrong chain, and changed source scope refuse commit", async () => {
+test("deep reorg, wrong chain, and changed source scope refuse commit", async () => {
   const chain = new Chain();
   const first = await syncWindow(chain, fixed, options);
   chain.forks.set(5n, 100);
   await assert.rejects(syncWindow(chain, fixed, options, first), /Deep reorg/);
   chain.forks.clear();
   chain.duringLogs = () => chain.forks.set(10n, 100);
-  await assert.rejects(syncWindow(chain, fixed, options, first), /Chain changed/);
+  const raced = await syncWindow(chain, fixed, options, first);
+  assert.equal(raced.head.hash, first.head.hash, "in-window head rewrite is not re-fetched; next poll adopts the new header");
   chain.duringLogs = undefined;
   await assert.rejects(syncWindow(chain, fixed, { ...options, chainId: 1 }), /chain ID/);
   await assert.rejects(syncWindow(chain, { ...fixed, sources: [{ ...source, startBlock: 2n }] }, options, first), /scope changed/);
@@ -182,6 +183,22 @@ test("empty sources do not issue unrestricted queries; malformed logs fail close
   assert.equal(chain.calls.some(call => call.method === "eth_getLogs"), false);
   chain.logs = [{ ...chain.log(3n), removed: true }];
   await assert.rejects(syncWindow(chain, fixed, options), /invalid\/out-of-scope/);
+});
+
+test("steady poll is two supplied headers plus one combined log query", async () => {
+  const chain = new Chain();
+  const first = await syncWindow(chain, fixed, options);
+  chain.calls = [];
+  const head = { number: 12n, hash: chain.hash(12n), timestamp: 24n };
+  const durable = { number: 8n, hash: chain.hash(8n), timestamp: 16n };
+  const second = await syncWindow(chain, fixed, {
+    ...options, toBlock: 12n, finalizedBlock: 8n, head, durable, chainVerified: true,
+  }, first);
+  assert.equal(second.head.number, 12n);
+  assert.equal(second.durable.number, 8n);
+  assert.equal(chain.calls.filter(call => call.method === "eth_chainId").length, 0);
+  assert.equal(chain.calls.filter(call => call.method === "eth_getBlockByNumber").length, 0);
+  assert.equal(chain.calls.filter(call => call.method === "eth_getLogs").length, 1);
 });
 
 test("parity detects missing, extra and changed row fields", async () => {

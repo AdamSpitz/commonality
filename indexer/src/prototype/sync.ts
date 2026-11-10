@@ -69,6 +69,10 @@ async function scan(rpc: Rpc, sources: Source[], from: bigint, to: bigint, windo
 export type SyncOptions = {
   chainId: number; fromBlock: bigint; toBlock: bigint; finalizedBlock: bigint;
   maxBlocks?: bigint; window?: bigint;
+  /** Headers already read this poll. Steady state must not re-read them. */
+  head?: Header; durable?: Header;
+  /** Set after a startup eth_chainId check so later polls skip it. */
+  chainVerified?: boolean;
 };
 
 /** Pure snapshot transition: failures never mutate the previous committed state. */
@@ -78,7 +82,9 @@ export async function syncWindow(rpc: Rpc, catalog: Catalog, options: SyncOption
   if (fromBlock < 1n || toBlock < fromBlock || toBlock - fromBlock + 1n > (options.maxBlocks ?? 10_000n) || window < 1n) {
     throw new Error("Invalid or oversized prototype window (fromBlock must be >= 1)");
   }
-  if (Number(BigInt(await rpc.request("eth_chainId", []) as string)) !== chainId) throw new Error("RPC chain ID mismatch");
+  if (!options.chainVerified && Number(BigInt(await rpc.request("eth_chainId", []) as string)) !== chainId) {
+    throw new Error("RPC chain ID mismatch");
+  }
   const scope = createHash("sha256").update(json(catalog)).digest("hex");
   if (previous && (previous.chainId !== chainId || previous.scope !== scope || previous.fromBlock !== fromBlock)) {
     throw new Error("Snapshot scope changed; use a separate output for this experiment");
@@ -88,11 +94,12 @@ export async function syncWindow(rpc: Rpc, catalog: Catalog, options: SyncOption
   }
   const anchor = previous?.durable ?? await readHeader(rpc, fromBlock - 1n);
   if (toBlock < anchor.number || finalizedBlock < anchor.number) throw new Error("Head/finality regressed behind durable anchor");
-  const canonicalAnchor = await readHeader(rpc, anchor.number);
-  if (canonicalAnchor.hash !== anchor.hash) throw new Error("Deep reorg at durable anchor; refusing to rewrite history");
-  const head = await readHeader(rpc, toBlock);
+  const head = options.head?.number === toBlock ? options.head : await readHeader(rpc, toBlock);
   const durableNumber = finalizedBlock < toBlock ? finalizedBlock : toBlock;
-  const durable = await readHeader(rpc, durableNumber);
+  const durable = options.durable?.number === durableNumber ? options.durable : await readHeader(rpc, durableNumber);
+  if (durable.hash !== anchor.hash && durable.number === anchor.number) {
+    throw new Error("Deep reorg at durable anchor; refusing to rewrite history");
+  }
   const headers = new Map<bigint, Header>([[head.number, head], [anchor.number, anchor], [durable.number, durable]]);
   const headerFor = async (log: RawLog) => {
     const number = BigInt(log.blockNumber);
@@ -104,8 +111,10 @@ export async function syncWindow(rpc: Rpc, catalog: Catalog, options: SyncOption
   const from = anchor.number + 1n;
   const children: Child[] = (previous?.children ?? []).filter(child => child.startBlock <= anchor.number);
   const factorySources = catalog.factories.map(rule => ({ ...rule.source, events: [rule.event] }));
-  const factoryLogs = await scan(rpc, factorySources, from, toBlock, window);
-  for (const log of factoryLogs) {
+  const known = [...catalog.sources, ...children, ...factorySources];
+  const logs = await scan(rpc, known, from, toBlock, window);
+  const seenAddresses = new Set(known.map(source => source.address));
+  for (const log of logs) {
     const header = await headerFor(log);
     for (const rule of catalog.factories) {
       if (rule.source.address !== address(log.address) || header.number < rule.source.startBlock || toEventSelector(rule.event) !== log.topics[0]) continue;
@@ -116,8 +125,9 @@ export async function syncWindow(rpc: Rpc, catalog: Catalog, options: SyncOption
       }
     }
   }
+  const born = children.filter(child => !seenAddresses.has(child.address));
+  if (born.length) logs.push(...await scan(rpc, born, from, toBlock, window));
   const sources = [...catalog.sources, ...children];
-  const logs = await scan(rpc, sources, from, toBlock, window);
   const rows = new Map((previous?.rows ?? []).filter(row => BigInt(row.blockNumber) <= anchor.number).map(row => [row.id, row]));
   for (const log of logs) {
     const sourceEvents = sources.filter(source => source.address === address(log.address) && source.startBlock <= BigInt(log.blockNumber))
@@ -139,9 +149,6 @@ export async function syncWindow(rpc: Rpc, catalog: Catalog, options: SyncOption
     const existing = rows.get(row.id);
     if (existing && json(existing) !== json(row)) throw new Error("Conflicting duplicate event");
     rows.set(row.id, row);
-  }
-  for (const header of [anchor, durable, head]) {
-    if ((await readHeader(rpc, header.number)).hash !== header.hash) throw new Error("Chain changed during range collection; retry without committing");
   }
   return { version: 1, chainId, scope, fromBlock, head, durable, children,
     rows: [...rows.values()].sort((a, b) => BigInt(a.blockNumber) < BigInt(b.blockNumber) ? -1 : BigInt(a.blockNumber) > BigInt(b.blockNumber) ? 1 : a.logIndex - b.logIndex) };

@@ -2,6 +2,7 @@ import type { ChainSyncWatermark } from "../api/syncWatermark";
 import type { EventQuery, EventStore, RawEvent, SyncStatus } from "../api/eventStore";
 import type { Snapshot } from "./types";
 import { getIndexerChainName } from "../utils/chain";
+import type { ParkedSync } from "./spend";
 
 /** Fixed width so a growing head is never a shorter checkpoint string. */
 export function checkpointFromBlock(block: bigint): string {
@@ -68,7 +69,7 @@ export function syncFromSnapshot(snapshot: Snapshot | undefined, chainName: stri
 }
 
 /** In-memory EventStore over the latest committed prototype snapshot. */
-export function snapshotEventStore(current: () => Snapshot | undefined, chainName?: string): EventStore {
+export function snapshotEventStore(current: () => Snapshot | undefined, chainName?: string, parked: () => ParkedSync = () => undefined): EventStore {
   return {
     async query(query) {
       const snapshot = current();
@@ -87,7 +88,9 @@ export function snapshotEventStore(current: () => Snapshot | undefined, chainNam
       return matching.reduce((max, row) => row.blockNumber > max ? row.blockNumber : max, matching[0]!.blockNumber);
     },
     async sync() {
-      return syncFromSnapshot(current(), chainName);
+      const status = syncFromSnapshot(current(), chainName);
+      if (parked()) return { ...status, ready: false };
+      return status;
     },
   };
 }

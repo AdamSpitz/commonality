@@ -3,6 +3,7 @@ import { setTimeout as delay } from "node:timers/promises";
 import { loadCatalog } from "../src/prototype/catalog";
 import { compareWithPonder } from "../src/prototype/compare";
 import { MeteredRpc } from "../src/prototype/rpc";
+import { SpendLedger, SpendParked, spendLimitsFromEnv, type ParkedSync } from "../src/prototype/spend";
 import { readHeader, syncWindow } from "../src/prototype/sync";
 import type { Server } from "node:http";
 import { createPrototypeApp, listen } from "../src/prototype/http";
@@ -51,7 +52,9 @@ async function main() {
   const chainId = getIndexerChainId();
   const url = process.env[`PONDER_RPC_URL_${chainId}`] ?? (chainId === 31337 ? "http://localhost:8545" : undefined);
   if (!url) throw new Error("Missing configured RPC URL");
-  const rpc = new MeteredRpc(url, maxRequests);
+  const limits = spendLimitsFromEnv(process.env);
+  const ledger = limits ? new SpendLedger(limits) : undefined;
+  const rpc = new MeteredRpc(url, maxRequests, ledger);
   const idle = serving && idleHeadCacheEnabled(getIndexerChainName())
     ? new PrototypeIdleGate(
       positive(process.env.INDEXER_IDLE_HEAD_INTERVAL_MS ?? String(DEFAULT_IDLE_HEAD_INTERVAL_MS), 3_600_000),
@@ -65,10 +68,13 @@ async function main() {
   process.on("SIGINT", onStop);
   process.on("SIGTERM", onStop);
   try {
+    const startupChain = Number(BigInt(await rpc.request("eth_chainId", []) as string));
+    if (startupChain !== chainId) throw new Error("RPC chain ID mismatch");
     let snapshot = await readSnapshot(out);
+    let parked: ParkedSync;
     const current = (): Snapshot | undefined => snapshot;
     if (servePort != null) {
-      server = await listen(createPrototypeApp(current), servePort, (method, path) => idle?.note(method, path), values.host);
+      server = await listen(createPrototypeApp(current, getIndexerChainName(), () => parked), servePort, (method, path) => idle?.note(method, path), values.host);
       console.error(json({ serving: `http://${values.host}:${servePort}`, routes: ["/api/events", "/api/sync", "/api/event-segments", "/api/published-data", "/api/project-read-demand", "/api/indexer-wake", "/status", "/graphql _meta"] }));
     }
     for (let poll = 0; poll < polls && !stop; poll++) {
@@ -87,9 +93,12 @@ async function main() {
         const head = await readHeader(rpc, to === "latest" ? "latest" : BigInt(to));
         const depth = finality === "finalized" ? undefined : BigInt(finality.slice(6));
         if (depth !== undefined && depth > head.number) throw new Error("Finality depth exceeds the current head");
-        const finalized = depth === undefined ? (await readHeader(rpc, "finalized")).number : head.number - depth;
+        const durable = depth === undefined ? await readHeader(rpc, "finalized") : depth === 0n ? head : await readHeader(rpc, head.number - depth);
         const span = head.number - fromBlock + 1n;
-        const next = await syncWindow(rpc, catalog, { chainId, fromBlock, toBlock: head.number, finalizedBlock: finalized, maxBlocks: maxBlocks ?? span, window }, snapshot);
+        const next = await syncWindow(rpc, catalog, {
+          chainId, fromBlock, toBlock: head.number, finalizedBlock: durable.number, maxBlocks: maxBlocks ?? span, window,
+          head, durable, chainVerified: true,
+        }, snapshot);
         const parity = values.compare ? await compareWithPonder(values.compare, catalog, next, !values.contracts) : undefined;
         if (parity && !parity.equal) {
           console.log(json({ parity, rpcRequests: rpc.calls }));
@@ -101,7 +110,15 @@ async function main() {
           rpcRequests: Object.fromEntries(Object.entries(rpc.calls).map(([method, count]) => [method, count - (before[method] ?? 0)])),
           totalRpcRequests: rpc.calls, parity }));
         snapshot = next;
+        parked = undefined;
       } catch (error) {
+        if (error instanceof SpendParked) {
+          parked = { reason: error.reason, until: new Date(error.untilMs).toISOString() };
+          console.error(json({ poll: poll + 1, parked: parked.reason, until: parked.until }));
+          if (!serving) throw error;
+          while (!stop && Date.now() < error.untilMs) await delay(Math.min(1000, error.untilMs - Date.now()));
+          continue;
+        }
         if (!serving) throw error;
         console.error(json({ poll: poll + 1, error: error instanceof Error ? error.message : "sync failed", retry: true }));
       }

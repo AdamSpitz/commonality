@@ -1,6 +1,7 @@
 import { createServer, type Server } from "node:http";
 import { Hono } from "hono";
 import { attachRest } from "../api/restApp";
+import type { ParkedSync } from "./spend";
 import type { Snapshot } from "./types";
 import { snapshotEventStore } from "./memoryStore";
 import { getIndexerChainName } from "../utils/chain";
@@ -33,26 +34,28 @@ export function attachGraphqlCompat(app: Hono, current: () => Snapshot | undefin
 }
 
 /** Ponder's `/status` shape. The SDK waits on `result[chain].block.number`. */
-export function attachStatus(app: Hono, current: () => Snapshot | undefined, chainName: string): void {
+export function attachStatus(app: Hono, current: () => Snapshot | undefined, chainName: string, parked: () => ParkedSync = () => undefined): void {
   app.get("/status", c => {
     const snapshot = current();
     const block = snapshot
       ? { number: Number(snapshot.head.number), timestamp: Number(snapshot.head.timestamp) }
       : null;
+    const pause = parked();
     return c.json({
       [chainName]: {
         id: snapshot?.chainId ?? null,
         block,
+        ...(pause ? { parked: pause, ready: false } : {}),
       },
     });
   });
 }
 
-export function createPrototypeApp(current: () => Snapshot | undefined, chainName: string = getIndexerChainName()): Hono {
+export function createPrototypeApp(current: () => Snapshot | undefined, chainName: string = getIndexerChainName(), parked: () => ParkedSync = () => undefined): Hono {
   const app = new Hono();
-  attachRest(app, snapshotEventStore(current, chainName));
+  attachRest(app, snapshotEventStore(current, chainName, parked));
   attachGraphqlCompat(app, current, chainName);
-  attachStatus(app, current, chainName);
+  attachStatus(app, current, chainName, parked);
   return app;
 }
 

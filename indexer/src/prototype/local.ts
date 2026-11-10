@@ -26,7 +26,7 @@ export function earliestConfiguredBlock(catalog: Catalog): bigint {
 export function localServeConfig(env: NodeJS.ProcessEnv, earliest: bigint): LocalServeConfig {
   const chain = env.PONDER_CHAIN ?? "hardhat";
   const hardhat = chain === "hardhat";
-  const interval = env.PONDER_POLL_INTERVAL_MS ?? (hardhat ? "100" : "4000");
+  const interval = env.PONDER_POLL_INTERVAL_MS ?? (hardhat ? "100" : "12000");
   const window = env.PONDER_ETH_GET_LOGS_BLOCK_RANGE ?? "10000";
   if (!/^\d+$/.test(interval) || Number(interval) < 1) throw new Error("Invalid poll interval");
   if (!/^\d+$/.test(window) || Number(window) < 1) throw new Error("Invalid log window");

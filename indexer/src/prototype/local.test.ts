@@ -24,5 +24,5 @@ test("local serve starts at the earliest configured block and uses hardhat final
   const hosted = localServeConfig({ PONDER_CHAIN: "base-sepolia", INDEXER_SNAPSHOT_PATH: "/tmp/snap.json" }, 0n);
   assert.equal(hosted.fromBlock, 1n);
   assert.equal(hosted.finality, "finalized");
-  assert.equal(hosted.intervalMs, 4000);
+  assert.equal(hosted.intervalMs, 12000);
 });

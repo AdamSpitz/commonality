@@ -1,5 +1,6 @@
 import { setTimeout as delay } from "node:timers/promises";
 import { isMonthlyCapacityError } from "../rpc/monthlyCapacity";
+import { SpendLedger } from "./spend";
 import type { Rpc } from "./types";
 
 export class RpcFailure extends Error {
@@ -10,10 +11,11 @@ export class RpcFailure extends Error {
 export class MeteredRpc implements Rpc {
   readonly calls: Record<string, number> = {};
   private total = 0;
-  constructor(private readonly url: string, private readonly maxRequests = 1000) {}
+  constructor(private readonly url: string, private readonly maxRequests = 1000, private readonly spend?: SpendLedger) {}
 
   async request(method: string, params: unknown[]): Promise<unknown> {
     for (let attempt = 0; ; attempt++) {
+      this.spend?.admit(method);
       if (this.total >= this.maxRequests) throw new Error("Prototype RPC request budget exhausted");
       this.calls[method] = (this.calls[method] ?? 0) + 1;
       const id = ++this.total;
