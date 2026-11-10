@@ -26,6 +26,9 @@ export type SpendLimits = {
   dailyCu: number;
   hourlyRequests: number;
   dailyRequests: number;
+  /** Extra process-lifetime allowance used only while the loop is still behind. 0 disables it. */
+  catchupRequests: number;
+  catchupCu: number;
 };
 
 export type ParkedSync = { reason: string; until: string } | undefined;
@@ -47,22 +50,37 @@ export function spendLimitsFromEnv(env: NodeJS.ProcessEnv): SpendLimits | null {
   if (env.INDEXER_SPEND_GUARD === "0") return null;
   const hardhat = (env.PONDER_CHAIN ?? "hardhat") === "hardhat";
   if (hardhat && env.INDEXER_SPEND_GUARD !== "1") return null;
+  const catchup = env.INDEXER_CATCHUP === "1";
   return {
     hourlyCu: positive(env.INDEXER_HOURLY_CU, 100_000, "INDEXER_HOURLY_CU"),
     dailyCu: positive(env.INDEXER_DAILY_CU, 1_000_000, "INDEXER_DAILY_CU"),
     hourlyRequests: positive(env.INDEXER_HOURLY_REQUESTS, 2_000, "INDEXER_HOURLY_REQUESTS"),
     dailyRequests: positive(env.INDEXER_DAILY_REQUESTS, 40_000, "INDEXER_DAILY_REQUESTS"),
+    catchupRequests: catchup ? positive(env.INDEXER_CATCHUP_REQUESTS, 10_000, "INDEXER_CATCHUP_REQUESTS") : 0,
+    catchupCu: catchup ? positive(env.INDEXER_CATCHUP_CU, 500_000, "INDEXER_CATCHUP_CU") : 0,
   };
 }
 
-type Tick = { at: number; cu: number };
+type Tick = { at: number; cu: number; catchup: boolean };
 
 export class SpendLedger {
   private ticks: Tick[] = [];
+  private catchupRequestsUsed = 0;
+  private catchupCuUsed = 0;
   parkedUntil = 0;
   reason = "";
+  catchingUp = false;
 
-  constructor(readonly limits: SpendLimits, private now: () => number = Date.now) {}
+  readonly limits: SpendLimits;
+
+  constructor(limits: Omit<SpendLimits, "catchupRequests" | "catchupCu"> & Partial<Pick<SpendLimits, "catchupRequests" | "catchupCu">>, private now: () => number = Date.now) {
+    this.limits = { catchupRequests: 0, catchupCu: 0, ...limits };
+  }
+
+  /** While true, calls draw the extra catch-up allowance instead of the quiet hourly ceiling. */
+  setCatchingUp(on: boolean): void {
+    this.catchingUp = on && this.limits.catchupRequests > 0 && this.limits.catchupCu > 0;
+  }
 
   parked(at = this.now()): boolean {
     return at < this.parkedUntil;
@@ -74,31 +92,45 @@ export class SpendLedger {
       throw new SpendParked("Indexer spend guard is parked", this.parkedUntil, this.reason);
     }
     const cu = cuFor(method);
-    const hourly = this.ticks.filter(tick => tick.at > at - HOUR_MS);
+    const catchup = this.catchupCanCover(cu);
+    const hourly = this.ticks.filter(tick => !tick.catchup && tick.at > at - HOUR_MS);
     const daily = this.ticks.filter(tick => tick.at > at - DAY_MS);
     const hourlyCu = hourly.reduce((sum, tick) => sum + tick.cu, 0);
     const dailyCu = daily.reduce((sum, tick) => sum + tick.cu, 0);
     const breaches: string[] = [];
-    if (hourly.length + 1 > this.limits.hourlyRequests) breaches.push("hourly requests");
+    if (!catchup && hourly.length + 1 > this.limits.hourlyRequests) breaches.push("hourly requests");
     if (daily.length + 1 > this.limits.dailyRequests) breaches.push("daily requests");
-    if (hourlyCu + cu > this.limits.hourlyCu) breaches.push("hourly CU");
+    if (!catchup && hourlyCu + cu > this.limits.hourlyCu) breaches.push("hourly CU");
     if (dailyCu + cu > this.limits.dailyCu) breaches.push("daily CU");
     if (breaches.length) {
       this.reason = breaches.join(", ");
-      this.parkedUntil = at + this.waitFor(at, cu);
+      this.parkedUntil = at + this.waitFor(at, cu, catchup);
       throw new SpendParked(`Indexer spend guard parked (${this.reason})`, this.parkedUntil, this.reason);
     }
     this.ticks = daily;
-    this.ticks.push({ at, cu });
+    this.ticks.push({ at, cu, catchup });
+    if (catchup) {
+      this.catchupRequestsUsed += 1;
+      this.catchupCuUsed += cu;
+    }
   }
 
-  private waitFor(at: number, cu: number): number {
-    if (cu > this.limits.hourlyCu || 1 > this.limits.hourlyRequests) return HOUR_MS;
+  private catchupCanCover(cu: number): boolean {
+    return this.catchingUp
+      && this.catchupRequestsUsed + 1 <= this.limits.catchupRequests
+      && this.catchupCuUsed + cu <= this.limits.catchupCu;
+  }
+
+  private waitFor(at: number, cu: number, catchup: boolean): number {
     if (cu > this.limits.dailyCu || 1 > this.limits.dailyRequests) return DAY_MS;
-    const needHour = this.ticks.filter(tick => tick.at > at - HOUR_MS);
     const needDay = this.ticks.filter(tick => tick.at > at - DAY_MS);
-    const hourWait = needHour.length ? needHour[0]!.at + HOUR_MS - at : HOUR_MS;
     const dayWait = needDay.length ? needDay[0]!.at + DAY_MS - at : DAY_MS;
+    const dailyCu = needDay.reduce((sum, tick) => sum + tick.cu, 0);
+    if (needDay.length + 1 > this.limits.dailyRequests || dailyCu + cu > this.limits.dailyCu) return Math.max(dayWait, 1);
+    if (catchup) return Math.max(dayWait, 1);
+    if (cu > this.limits.hourlyCu || 1 > this.limits.hourlyRequests) return HOUR_MS;
+    const needHour = this.ticks.filter(tick => !tick.catchup && tick.at > at - HOUR_MS);
+    const hourWait = needHour.length ? needHour[0]!.at + HOUR_MS - at : HOUR_MS;
     const hourlyCu = needHour.reduce((sum, tick) => sum + tick.cu, 0);
     if (needHour.length + 1 > this.limits.hourlyRequests || hourlyCu + cu > this.limits.hourlyCu) return Math.max(hourWait, 1);
     return Math.max(dayWait, 1);

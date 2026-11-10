@@ -1,10 +1,10 @@
-# Handoff: budget raised to $70; indexer still off
+# Handoff: raw-log indexer is on; spend guard parked after catch-up
 
-Read this instead of [2026-11-10-hosted-raw-log-start-handoff.md](./2026-11-10-hosted-raw-log-start-handoff.md). Adam does not need to do anything before the next coding step. He must say yes before anyone turns the hosted indexer back on, opens a PR, or pushes.
+Read this instead of [2026-11-10-hosted-raw-log-start-handoff.md](./2026-11-10-hosted-raw-log-start-handoff.md). Adam said yes on 2026-11-10 to turn the hosted indexer on. Do not open a PR or merge unless he asks.
 
 ## Do not
 
-- Resume Render service `commonality-indexer` (`srv-d8ctfd6k1jcs73a71d2g`). It is suspended. Resuming it starts the raw-log engine, which is what we want later, but Adam has not said to turn it on.
+- Resume or redeploy `commonality-indexer` (`srv-d8ctfd6k1jcs73a71d2g`) from `master`. That branch is still the old Ponder image. The service is already running, not suspended.
 - Start Ponder. `INDEXER_ENGINE=ponder` is the old expensive loop.
 - Deploy or restart that service from this branch.
 - Point any indexer RPC at `https://sepolia.base.org`.
@@ -25,12 +25,18 @@ Branch `feature/raw-log-prototype` (not pushed). Hosted start runs the raw-log e
 
 The monthly cost note was wrong (7.2M). A 12-second quiet poll is 21.6M compute units per 30-day month before idle. `steadyStateMonthlyCu` locks that in. Indexer tests: 63 pass, 1 skipped live Postgres test.
 
+## Hosted state (2026-11-10)
+
+The service is not suspended. It is running commit `b5e5cf0140df` from `feature/raw-log-prototype`, not Ponder. Render health check is `/health`. Docker command is empty, so `start.sh` runs the raw-log engine. The service branch is the feature branch on purpose: a `master` auto-deploy would bring Ponder back. Do not point it at `master` until that branch contains this engine.
+
+The first replay parked on the quiet 2,000 hourly request ceiling. Hosted start now sets `INDEXER_CATCHUP=1`: while the cursor is more than one log window behind, calls use a separate 10,000-request / 500,000 CU allowance and do not consume the quiet hourly ceiling. They still count toward the daily ceiling. The allowance turns off once the cursor is caught up. A deploy of that change restarts the process and clears the in-memory park.
+
+Rollback is still redeploying Ponder against the old schema. Do not do that unless Adam asks.
+
 ## Next
 
-1. Wait for Adam to say the indexer can be turned on. Then resume or replace `srv-d8ctfd6k1jcs73a71d2g` with the raw-log engine, not Ponder. Watch the bill. Rollback is redeploying Ponder against the old schema, which brings back the expensive loop. Do not do that unless Adam asks.
-2. Remove the Ponder dependency only after the raw-log process is the one serving testnet. That is cutover step 7 in the spec.
-
-No PR, push, or deploy has been requested.
+1. Confirm the guard unparks and `/api/sync` becomes ready without another request burst. Watch the Alchemy bill.
+2. Remove the Ponder dependency only after that ready check. That is cutover step 7 in the spec. No PR has been opened.
 
 ## Suggested skills
 

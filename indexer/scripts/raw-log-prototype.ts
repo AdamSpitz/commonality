@@ -121,6 +121,8 @@ async function main() {
         const depth = finality === "finalized" ? undefined : BigInt(finality.slice(6));
         if (depth !== undefined && depth > head.number) throw new Error("Finality depth exceeds the current head");
         const durable = depth === undefined ? await readHeader(rpc, "finalized") : depth === 0n ? head : await readHeader(rpc, head.number - depth);
+        const behind = snapshot == null || snapshot.backfillCommitted === false || head.number - snapshot.head.number > window;
+        ledger?.setCatchingUp(behind);
         const span = head.number - fromBlock + 1n;
         const next = await syncWindow(rpc, catalog, {
           chainId, fromBlock, toBlock: head.number, finalizedBlock: durable.number, maxBlocks: maxBlocks ?? span, window,
@@ -134,6 +136,7 @@ async function main() {
         if (database) await database.commit(snapshot, next);
         else await writeSnapshot(out, next);
         console.log(json({ poll: poll + 1, fromBlock, indexedThrough: next.head.number, finalizedThrough: next.durable.number,
+          catchingUp: ledger?.catchingUp === true,
           rows: next.rows.length, children: next.children.length, elapsedMs: Date.now() - started,
           rpcRequests: Object.fromEntries(Object.entries(rpc.calls).map(([method, count]) => [method, count - (before[method] ?? 0)])),
           totalRpcRequests: rpc.calls, parity }));

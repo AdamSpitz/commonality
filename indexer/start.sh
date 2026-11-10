@@ -89,6 +89,9 @@ if [ "$PONDER_SCRIPT" = "start" ] || [ "$PONDER_SCRIPT" = "start:conceptspace" ]
   fi
   # Fresh schema on the same Postgres. Never Ponder's DATABASE_SCHEMA.
   export INDEXER_SPEND_GUARD=1
+  # Quiet hourly ceilings are too small for the one-time replay. This extra
+  # allowance applies only while the cursor is still behind, then turns off.
+  export INDEXER_CATCHUP="${INDEXER_CATCHUP:-1}"
   export INDEXER_PROTOTYPE_DATABASE_URL="${INDEXER_PROTOTYPE_DATABASE_URL:-${DATABASE_URL:-}}"
   export INDEXER_PROTOTYPE_SCHEMA="${INDEXER_PROTOTYPE_SCHEMA:-raw_log}"
   if [ -n "${DATABASE_SCHEMA:-}" ] && [ "$INDEXER_PROTOTYPE_SCHEMA" = "$DATABASE_SCHEMA" ]; then
