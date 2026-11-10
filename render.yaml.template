@@ -223,8 +223,8 @@ services:
     healthCheckPath: /health
     # Intentional Render workaround: this disk is not used for indexer app state.
     # Render disables zero-downtime/rolling deploys for services with persistent
-    # disks. Ponder needs that stop-before-start behavior because `ponder start`
-    # takes an exclusive lock on DATABASE_SCHEMA. Do not remove this just because
+    # disks. The raw-log writer needs that stop-before-start behavior because it
+    # takes a Postgres advisory lock. Do not remove this just because
     # /data looks unused; replace it only with another singleton deploy strategy.
     disk:
       name: commonality-indexer-data

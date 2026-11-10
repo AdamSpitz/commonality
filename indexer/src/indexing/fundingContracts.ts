@@ -1,4 +1,3 @@
-import { factory } from "ponder";
 import { AssuranceContractFactoryAbi } from "../../abis/AssuranceContractFactoryAbi";
 import { FixedControllerFactoryAbi } from "../../abis/FixedControllerFactoryAbi";
 import { PremintingERC1155FactoryAbi } from "../../abis/PremintingERC1155FactoryAbi";
@@ -35,6 +34,11 @@ const prospectiveRoundMaterializedEvent = ProspectiveContentRoundFactoryAbi.find
 const creatorContractCreatedEvent = CreatorAssuranceContractFactoryAbi.find(
   (item) => item.type === "event" && item.name === "CreatorContractCreated",
 )!;
+
+/** Child source discovered from a factory event. Not a Ponder helper. */
+function factory<T extends Record<string, unknown>>(value: T): T {
+  return value;
+}
 
 /** Funding contract registrations. Imported by the shared feed only. */
 export function fundingContracts(context: IndexerDeploymentContext) {

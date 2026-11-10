@@ -28,7 +28,7 @@ No business logic, no aggregation, no IPFS sync, and no user content. All entity
 
 See [specs/tech/indexer/README.md](../specs/tech/indexer/README.md) for the full explanation of what this means and why.
 
-`ponder.config.ts` is the shared feed (funding contracts included). `INDEXER_CONTRACTS=conceptspace` on that file omits funding contracts but still loads their ABIs, and the API then omits `GET /api/project-read-demand`. `npm run dev:conceptspace` uses `ponder.conceptspace.config.ts`, which does not import the funding ABIs and sets `INDEXER_CONTRACTS=conceptspace`. Alignment attestations stay on both.
+The shared feed includes funding contracts. `INDEXER_CONTRACTS=conceptspace` omits funding sources and does not load their ABIs, and the API then omits `GET /api/project-read-demand`. Alignment attestations stay on both.
 
 ## Deployment
 
@@ -46,7 +46,7 @@ For Render or other hosted environments:
 - Set `PONDER_CHAIN` to `base-sepolia` or `mainnet`.
 - Provide the matching RPC URL as `PONDER_RPC_URL_84532` or `PONDER_RPC_URL_1`. Leave `PONDER_RPC_MAX_RESPONSE_BODY_SIZE` unset or `0` so the config passes a URL string into Ponder (its rate limiter). A viem `http()` wrapper is only used when a positive body-size cap is set; that path is `custom_transport` and retries poorly against Alchemy CUPS limits.
 - Set `DATABASE_URL` and `DATABASE_SCHEMA` for Postgres-backed sync state.
-- Run with `PONDER_SCRIPT=start`. That now starts the raw-log engine on its own schema (`raw_log` unless `INDEXER_PROTOTYPE_SCHEMA` is set), not `ponder start`. `INDEXER_ENGINE=ponder` is the old escape hatch. Do not resume the suspended Render service until the replay is approved.
+- Run with `PONDER_SCRIPT=start`. That starts the raw-log engine on its own schema (`raw_log` unless `INDEXER_PROTOTYPE_SCHEMA` is set). `INDEXER_ENGINE=ponder` is refused. Do not point this service at a branch that still starts Ponder.
 - On Render, set `CHOKIDAR_USEPOLLING=true`. Ponder 0.15 builds through Vite even in
   start mode, and Render's native file-watcher limit can otherwise abort startup with
   `EMFILE: too many open files, watch '/app'`.

@@ -6,7 +6,7 @@
  * Catches:
  * - YAML syntax errors
  * - Missing rootDir or Dockerfile references
- * - Indexer env vars declared in render.yaml but not read in ponder.config.ts (and vice versa)
+ * - Indexer env vars declared in render.yaml but not read in ponderEnv.ts (and vice versa)
  * - DATABASE_SCHEMA renamed without INDEXER_ALLOW_SCHEMA_BUMP (that wipes the event cache)
  * - Cross-service URL mismatches (hardcoded URLs that don't match service names)
  *
@@ -219,17 +219,17 @@ for (const svc of render.services) {
   }
 }
 
-// 5. Indexer env var consistency with ponder.config.ts
+// 5. Indexer env var consistency with ponderEnv.ts
 process.stdout.write('\n5. Checking indexer env var consistency...\n');
 const indexerService = render.services.find(s => s.name === 'commonality-indexer');
 if (!indexerService) {
   error('No "commonality-indexer" service found in render.yaml');
 } else {
-  const ponderConfigPath = join(rootDir, 'indexer', 'ponder.config.ts');
-  if (!existsSync(ponderConfigPath)) {
-    error('indexer/ponder.config.ts not found');
+  const indexerEnvPath = join(rootDir, 'indexer', 'src', 'indexing', 'ponderEnv.ts');
+  if (!existsSync(indexerEnvPath)) {
+    error('indexer/src/indexing/ponderEnv.ts not found');
   } else {
-    const ponderContent = readFileSync(ponderConfigPath, 'utf-8');
+    const ponderContent = readFileSync(indexerEnvPath, 'utf-8');
 
     // Extract env var keys from render.yaml for the indexer service
     const renderEnvKeys = new Set(
@@ -237,7 +237,7 @@ if (!indexerService) {
         .map(e => e.key) // Include fromDatabase keys too (DATABASE_URL is declared via fromDatabase)
     );
 
-    // Extract process.env.* references from ponder.config.ts
+    // Extract process.env.* references from the indexer deployment env loader.
     const envVarRegex = /process\.env\.([A-Z_][A-Z0-9_]*)/g;
     const codeEnvKeys = new Set();
     let match;
@@ -286,22 +286,22 @@ if (!indexerService) {
     const missingInCode = [...renderEnvKeys].filter(k => !codeEnvKeys.has(k));
 
     if (missingInRender.length > 0) {
-      error(`Indexer: env vars read in ponder.config.ts but NOT declared in render.yaml: ${missingInRender.join(', ')}`);
+      error(`Indexer: env vars read in ponderEnv.ts but NOT declared in render.yaml: ${missingInRender.join(', ')}`);
     } else {
-      ok('All env vars read in ponder.config.ts are declared in render.yaml');
+      ok('All env vars read in ponderEnv.ts are declared in render.yaml');
     }
 
     if (missingInCode.length > 0) {
-      // Filter out runtime-only vars used by start.sh, not ponder.config.ts
-      const runtimeOnlyKeys = new Set(['NODE_ENV', 'PONDER_SCRIPT', 'DATABASE_SCHEMA', 'PONDER_EXPERIMENTAL_DB']);
+      // Filter out runtime-only vars used by start.sh, not ponderEnv.ts
+      const runtimeOnlyKeys = new Set(['NODE_ENV', 'PONDER_SCRIPT', 'DATABASE_SCHEMA', 'PONDER_EXPERIMENTAL_DB', 'DATABASE_URL']);
       const actualMissingInCode = missingInCode.filter(k => !runtimeOnlyKeys.has(k));
       if (actualMissingInCode.length > 0) {
-        warn(`Indexer: env vars declared in render.yaml but NOT read in ponder.config.ts: ${actualMissingInCode.join(', ')}`);
+        warn(`Indexer: env vars declared in render.yaml but NOT read in ponderEnv.ts: ${actualMissingInCode.join(', ')}`);
       } else {
-        ok('All env vars declared in render.yaml are read in ponder.config.ts (runtime-only vars: NODE_ENV, PONDER_SCRIPT, DATABASE_SCHEMA, PONDER_EXPERIMENTAL_DB)');
+        ok('All env vars declared in render.yaml are read in ponderEnv.ts (runtime-only vars excluded)');
       }
     } else {
-      ok('All env vars declared in render.yaml are read in ponder.config.ts');
+      ok('All env vars declared in render.yaml are read in ponderEnv.ts');
     }
   }
 }

@@ -49,8 +49,8 @@ function walk(entry: string): string[] {
   return [...seen];
 }
 
-test("conceptspace ponder config does not import funding ABIs", () => {
-  const files = walk(path.join(indexerRoot, "ponder.conceptspace.config.ts"));
+test("conceptspace catalog does not import funding ABIs", () => {
+  const files = walk(path.join(indexerRoot, "src/indexing/conceptspaceContracts.ts"));
   const offenders = files.filter((file) =>
     fundingAbiModules.some((name) => file.includes(name)),
   );

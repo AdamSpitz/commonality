@@ -604,7 +604,7 @@ services:
       - commonality
 
   # =============================================================================
-  # Indexer service. Local start.sh runs the raw-log prototype (INDEXER_ENGINE=ponder restores Ponder).
+  # Indexer service. Local start.sh runs the raw-log engine. INDEXER_ENGINE=ponder is refused.
   # =============================================================================
   # Persists indexer sync state to the configured COMMONALITY_DATA_DIR.
   # Wipe this directory if you want to reindex from scratch.
@@ -635,7 +635,7 @@ services:
       - PONDER_RPC_URL_31337=http://hardhat-node:8545
       # Use ephemeral database if PONDER_EPHEMERAL=true is set
       - PONDER_EPHEMERAL=${PONDER_EPHEMERAL:-false}
-      # all (default) indexes both families. conceptspace uses ponder.conceptspace.config.ts.
+      # all (default) indexes both families. conceptspace omits funding sources.
       - INDEXER_CONTRACTS=${INDEXER_CONTRACTS:-all}
       # Point to local IPFS gateway
       - IPFS_GATEWAY=http://ipfs:8080/ipfs
