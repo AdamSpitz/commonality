@@ -2199,3 +2199,7 @@ Local `indexer/start.sh` now runs the raw-log prototype unless `INDEXER_ENGINE=p
 ## 2026-11-09 — Raw-log source admission and replay arithmetic
 
 A changed catalog no longer always refuses the snapshot. A new address is backfilled from its own start; a changed start block or event set still needs an explicit coverage plan; removed addresses keep their rows. Historical inserts bump `upstreamId`. `npm run prototype --workspace=indexer -- --estimate --head N --event-blocks N` prints Alchemy CU arithmetic and does not call RPC. Factory-child backfill is excluded. Live Postgres reorg/crash and the testnet catalog estimate are still open. No Alchemy spend.
+
+## 2026-11-10 — Catalog replay estimate and live Postgres crash
+
+Ran the raw-log replay arithmetic against the Render base-sepolia manifest and a public `eth_blockNumber` (head 57053503): 1,429 log windows, 85,740 CU, plus 20 CU per event-bearing block. The old Ponder database was not queried, so that header term is unknown. Factory-child backfill is still excluded. Added `indexer/src/prototype/postgres.live.test.ts` (skipped unless `INDEXER_PROTOTYPE_TEST_DATABASE_URL` is set). A local Postgres 16 run passed: SIGKILL before commit left durable rows, a later commit dropped the provisional child, a regressed anchor was refused, and a second writer blocked on the advisory lock. Still not a production cutover. Next open cutover step is dropping `/graphql` and `/sql` together with the remaining probes and Ponder checkpoint decoding.
