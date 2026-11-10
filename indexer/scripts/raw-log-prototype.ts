@@ -8,11 +8,17 @@ import { readHeader, syncWindow } from "../src/prototype/sync";
 import type { Server } from "node:http";
 import { createPrototypeApp, listen } from "../src/prototype/http";
 import { earliestConfiguredBlock, localServeConfig } from "../src/prototype/local";
+import { openPrototypeDatabase } from "../src/prototype/postgres";
 import { lockSnapshot, readSnapshot, writeSnapshot } from "../src/prototype/store";
 import { json, type Snapshot } from "../src/prototype/types";
 import { DEFAULT_IDLE_HEAD_INTERVAL_MS, DEFAULT_IDLE_HEAD_WAKE_MS, idleHeadCacheEnabled } from "../src/rpc/idleHeadCache";
 import { PrototypeIdleGate } from "../src/prototype/idle";
 import { getIndexerChainId, getIndexerChainName } from "../src/utils/chain";
+
+function openStore() {
+  const url = process.env.INDEXER_PROTOTYPE_DATABASE_URL;
+  return url ? openPrototypeDatabase(url, process.env.INDEXER_PROTOTYPE_SCHEMA ?? "raw_log") : undefined;
+}
 
 async function main() {
   const { values } = parseArgs({ options: {
@@ -26,7 +32,7 @@ async function main() {
     help: { type: "boolean" },
   } });
   if (values.help) {
-    console.log("raw-log-prototype --from N --to N|latest --out PATH [--contracts Name,Name] [--compare INDEXER_URL] [--polls N] [--serve PORT] [--host HOST] [--finality finalized|depth:N] [--max-blocks N] [--max-requests N] [--window N] [--interval MS]\n--local --serve PORT replaces the local Ponder process: start block, poll, and finality come from the deployment env (hardhat uses depth:0 and a 100ms poll). Snapshot path is INDEXER_SNAPSHOT_PATH.\nUses existing deployment env and PONDER_RPC_URL_<chainId>. No env files are loaded automatically. Writes only a separate local snapshot; no database access.");
+    console.log("raw-log-prototype --from N --to N|latest --out PATH [--contracts Name,Name] [--compare INDEXER_URL] [--polls N] [--serve PORT] [--host HOST] [--finality finalized|depth:N] [--max-blocks N] [--max-requests N] [--window N] [--interval MS]\n--local --serve PORT replaces the local Ponder process: start block, poll, and finality come from the deployment env (hardhat uses depth:0 and a 100ms poll). Snapshot path is INDEXER_SNAPSHOT_PATH.\nUses existing deployment env and PONDER_RPC_URL_<chainId>. No env files are loaded automatically. Writes a local snapshot unless INDEXER_PROTOTYPE_DATABASE_URL is set (own schema, not Ponder's database).");
     return;
   }
   if (!values.local && (!values.from || !values.to || !values.out)) throw new Error("--from, --to, and --out are required; see --help");
@@ -62,6 +68,7 @@ async function main() {
     )
     : undefined;
   const unlock = await lockSnapshot(out);
+  let database: Awaited<ReturnType<typeof openStore>> | undefined;
   let server: Server | undefined;
   let stop = false;
   const onStop = () => { stop = true; };
@@ -70,7 +77,8 @@ async function main() {
   try {
     const startupChain = Number(BigInt(await rpc.request("eth_chainId", []) as string));
     if (startupChain !== chainId) throw new Error("RPC chain ID mismatch");
-    let snapshot = await readSnapshot(out);
+    database = await openStore();
+    let snapshot = database ? await database.load() : await readSnapshot(out);
     let parked: ParkedSync;
     const current = (): Snapshot | undefined => snapshot;
     if (servePort != null) {
@@ -104,7 +112,8 @@ async function main() {
           console.log(json({ parity, rpcRequests: rpc.calls }));
           throw new Error("Ponder parity mismatch; snapshot not committed");
         }
-        await writeSnapshot(out, next);
+        if (database) await database.commit(snapshot, next);
+        else await writeSnapshot(out, next);
         console.log(json({ poll: poll + 1, fromBlock, indexedThrough: next.head.number, finalizedThrough: next.durable.number,
           rows: next.rows.length, children: next.children.length, elapsedMs: Date.now() - started,
           rpcRequests: Object.fromEntries(Object.entries(rpc.calls).map(([method, count]) => [method, count - (before[method] ?? 0)])),
@@ -127,6 +136,7 @@ async function main() {
     process.off("SIGINT", onStop);
     process.off("SIGTERM", onStop);
     if (server) await new Promise<void>(resolve => server!.close(() => resolve()));
+    await database?.close();
     await unlock();
     console.error(json({ totalRpcRequests: rpc.calls }));
   }
