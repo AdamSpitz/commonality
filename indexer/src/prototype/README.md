@@ -7,7 +7,7 @@ Local Docker and hosted `PONDER_SCRIPT=start` (`indexer/start.sh`) run this proc
 
 Non-Hardhat runs also enforce a spend guard (`INDEXER_HOURLY_CU` default 100000, `INDEXER_DAILY_CU` default 1000000, plus request ceilings). Exceeding it parks the sync loop and marks `/status` parked and `/api/sync` not ready. `INDEXER_SPEND_GUARD=0` disables it; Hardhat enables it only with `INDEXER_SPEND_GUARD=1`.
 
-A caught-up poll (chain id already checked) is `latest` plus `finalized` (or the depth header, skipped when depth is 0) and one combined `eth_getLogs`. It does not re-read the anchor or the headers it was given. At Alchemy's published weights that is 20+20+60 = 100 CU. Non-Hardhat `--local` defaults to a 12s interval (~7.2M CU/month before idle), under the 30M target. Extra header reads happen only for event-bearing blocks; a second log query happens only for children first seen in that poll.
+A caught-up poll (chain id already checked) is `latest` plus `finalized` (or the depth header, skipped when depth is 0) and one combined `eth_getLogs`. It does not re-read the anchor or the headers it was given. At Alchemy's published weights that is 20+20+60 = 100 CU. Non-Hardhat `--local` defaults to a 12s interval (21.6M CU per 30-day month before idle: 216,000 polls × 100 CU), under the 30M target. The earlier 7.2M figure divided the 4s cost by 3 and then divided again. Extra header reads happen only for event-bearing blocks; a second log query happens only for children first seen in that poll.
 
 From the repository root:
 

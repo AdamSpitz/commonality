@@ -79,6 +79,14 @@ export function estimateReplay(input: {
   const cu = logQueries * BigInt(ALCHEMY_CU.eth_getLogs) + headerReads * BigInt(ALCHEMY_CU.eth_getBlockByNumber);
   return {
     logQueries, headerReads, cu,
-    note: "Excludes factory-child backfill, retries, and live polls. eventBearingBlocks must be supplied; it is not estimated.",
+    note: "Excludes factory-child backfill, retries, and live polls. eventBearingBlocks must be supplied; it is not estimated. Child backfill is one extra range query per new-child batch inside the window, not a second full-history scan per child.",
   };
+}
+
+/** Caught-up polls per 30-day month times CU per poll. Idle savings are not included. */
+export function steadyStateMonthlyCu(intervalMs: number, cuPerPoll: number): number {
+  if (!Number.isInteger(intervalMs) || intervalMs < 1 || !Number.isInteger(cuPerPoll) || cuPerPoll < 0) {
+    throw new Error("Monthly CU estimate needs a positive interval and a non-negative poll cost");
+  }
+  return Math.floor((30 * 24 * 60 * 60 * 1000) / intervalMs) * cuPerPoll;
 }

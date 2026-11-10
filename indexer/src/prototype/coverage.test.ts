@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { parseAbiItem, type AbiEvent } from "viem";
-import { admissionPlan, coverageOf, estimateReplay } from "./coverage";
+import { admissionPlan, coverageOf, estimateReplay, steadyStateMonthlyCu } from "./coverage";
 import { address, type Catalog } from "./types";
 
 const event = parseAbiItem("event Changed(uint256 value)") as AbiEvent;
@@ -25,4 +25,9 @@ test("replay estimate is windows times batches, not elapsed blocks", () => {
   const busy = estimateReplay({ sources: [{ startBlock: 1n }], head: 30_000n, eventBearingBlocks: 3n });
   assert.equal(busy.headerReads, 3n);
   assert.equal(busy.cu, quiet.cu + 60n);
+});
+
+test("a 12s quiet poll is 21.6M CU per 30-day month, not 7.2M", () => {
+  assert.equal(steadyStateMonthlyCu(12_000, 100), 21_600_000);
+  assert.equal(steadyStateMonthlyCu(4_000, 100), 64_800_000);
 });

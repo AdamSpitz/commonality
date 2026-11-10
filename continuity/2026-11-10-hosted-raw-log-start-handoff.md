@@ -1,5 +1,7 @@
 # Handoff: hosted start runs raw-log; do not turn the indexer back on
 
+Superseded by [2026-11-10-budget-raised-handoff.md](./2026-11-10-budget-raised-handoff.md). The "$10 raise" figure below is stale. Adam raised this month's cap to $70.
+
 Adam does not need to do anything before the next coding step. He must say yes before anyone turns the hosted indexer back on, opens a PR, or pushes.
 
 ## Do not
@@ -25,7 +27,7 @@ Live services on the same Base Sepolia key are the coherence badge worker, servi
 
 Adam is not blocked. The next agent can keep coding. Do not turn the hosted indexer on.
 
-1. Stop and tell Adam before resuming or replacing the suspended indexer. Confirm the replay would fit in the $10 raise. The spec's replay figure is log-query arithmetic only (85,740 CU of `eth_getLogs` plus 20 CU per event-bearing block; that header term was not queried). Factory-child backfill, retries, and event-block header reads are extra. If catch-up would exceed what $10 can cover, stop.
+1. Stop and tell Adam before resuming or replacing the suspended indexer. Replay itself fits a $10 raise (about 155k CU: 85,740 of `eth_getLogs` plus 69,620 for 3,481 event-bearing blocks in `commonality_base_sepolia_v6`, queried read-only, no Alchemy). Factory-child backfill is an extra in-window batch, not a second full scan. Caught-up polling at 12s is 21.6M CU/month before idle (~$11), so the $10 raise does not also cover the following months. Do not resume until Adam accepts that.
 2. Only after Adam says so: resume or replace the indexer with Ponder not running. Confirm actual RPC cost after catch-up. Rollback is redeploying Ponder against the old schema, which resumes the expensive loop, so do not do that unless Adam asks.
 3. Remove the Ponder dependency only after the raw-log process is the one serving testnet. That is cutover step 7 in the spec.
 
