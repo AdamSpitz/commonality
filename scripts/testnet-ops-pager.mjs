@@ -64,7 +64,9 @@ export function resolveConfig(env = process.env, files = {}) {
     spend: {
       capUsd: Number(pick('OPS_PAGER_ALCHEMY_CAP_USD') || 30),
       usdPerMillionCu: Number(pick('OPS_PAGER_ALCHEMY_USD_PER_MILLION_CU') || 0.525),
-      cuPerBlock: Number(pick('OPS_PAGER_ALCHEMY_CU_PER_BLOCK') || 20),
+      pollIntervalMs: Number(pick('OPS_PAGER_ALCHEMY_POLL_INTERVAL_MS') || 12_000),
+      logWindow: Number(pick('OPS_PAGER_ALCHEMY_LOG_WINDOW') || 10_000),
+      eventHeadersPerPoll: Number(pick('OPS_PAGER_ALCHEMY_EVENT_HEADERS_PER_POLL') || 0),
       baselineMonthlyCu: Number(pick('OPS_PAGER_ALCHEMY_BASELINE_MONTHLY_CU') || 10_000_000),
       threshold: Number(pick('OPS_PAGER_ALCHEMY_WARNING_FRACTION') || 0.7),
     },
@@ -194,10 +196,27 @@ export async function probeAlchemy(fetchImpl, rpcUrl, sleep) {
 }
 
 export async function probeProjectedSpend(fetchImpl, rpcUrl, head, settings = {}) {
-  const config = { capUsd: 30, usdPerMillionCu: 0.525, cuPerBlock: 20,
-    baselineMonthlyCu: 10_000_000, threshold: 0.7, ...settings }
-  const { capUsd, usdPerMillionCu, cuPerBlock, baselineMonthlyCu, threshold } = config
-  if (![capUsd, usdPerMillionCu, cuPerBlock, threshold].every((n) => Number.isFinite(n) && n > 0)
+  const config = {
+    capUsd: 30,
+    usdPerMillionCu: 0.525,
+    pollIntervalMs: 12_000,
+    logWindow: 10_000,
+    eventHeadersPerPoll: 0,
+    headerCu: 20,
+    logCu: 60,
+    headersPerPoll: 2,
+    baselineMonthlyCu: 10_000_000,
+    threshold: 0.7,
+    ...settings,
+  }
+  const {
+    capUsd, usdPerMillionCu, pollIntervalMs, logWindow, eventHeadersPerPoll,
+    headerCu, logCu, headersPerPoll, baselineMonthlyCu, threshold,
+  } = config
+  const positive = [capUsd, usdPerMillionCu, pollIntervalMs, logWindow, headerCu, logCu, headersPerPoll, threshold]
+  if (!positive.every((n) => Number.isFinite(n) && n > 0)
+    || !Number.isInteger(pollIntervalMs) || !Number.isInteger(logWindow)
+    || !Number.isInteger(eventHeadersPerPoll) || eventHeadersPerPoll < 0
     || threshold > 1 || !Number.isFinite(baselineMonthlyCu) || baselineMonthlyCu < 0) {
     return { ok: false, reason: 'Invalid Alchemy spend model configuration.' }
   }
@@ -205,6 +224,7 @@ export async function probeProjectedSpend(fetchImpl, rpcUrl, head, settings = {}
     return { ok: false, reason: 'Cannot project Alchemy spend: valid RPC head and timestamp required.' }
   }
   // A 1000-block window smooths integer-second timestamps on 200ms chains.
+  // Block rate only splits log queries when one poll spans more than the window.
   const older = await ethCall(fetchImpl, rpcUrl, 'eth_getBlockByNumber', [`0x${(head.block - 1000).toString(16)}`, false])
   const timestamp = Number.parseInt(older.body?.result?.timestamp ?? '', 16)
   const elapsed = head.timestamp - timestamp
@@ -212,11 +232,15 @@ export async function probeProjectedSpend(fetchImpl, rpcUrl, head, settings = {}
     return { ok: false, reason: 'Cannot project Alchemy spend: historical block timestamp unavailable or invalid.' }
   }
   const blocksPerSecond = 1000 / elapsed
-  const monthlyCu = blocksPerSecond * 30 * 86400 * cuPerBlock + baselineMonthlyCu
+  const blocksPerPoll = blocksPerSecond * (pollIntervalMs / 1000)
+  const logQueries = Math.max(1, Math.ceil(blocksPerPoll / logWindow))
+  const cuPerPoll = headersPerPoll * headerCu + logQueries * logCu + eventHeadersPerPoll * headerCu
+  const polls = Math.floor((30 * 24 * 60 * 60 * 1000) / pollIntervalMs)
+  const monthlyCu = polls * cuPerPoll + baselineMonthlyCu
   const projectedUsd = monthlyCu / 1_000_000 * usdPerMillionCu
   return {
     ok: projectedUsd <= capUsd * threshold,
-    reason: `Estimated 30-day Alchemy run rate $${projectedUsd.toFixed(2)} (${(monthlyCu / 1_000_000).toFixed(1)}M CU, ${blocksPerSecond.toFixed(2)} blocks/s), warning at $${(capUsd * threshold).toFixed(2)} of $${capUsd.toFixed(2)} cap. Model, not billed usage; excludes catch-up and unmodeled traffic.`,
+    reason: `Estimated 30-day Alchemy run rate $${projectedUsd.toFixed(2)} (${(monthlyCu / 1_000_000).toFixed(1)}M CU, ${blocksPerSecond.toFixed(2)} blocks/s, ${polls} polls × ${cuPerPoll} CU). Raw-log model: ${headersPerPoll} headers + ${logQueries} eth_getLogs per ${pollIntervalMs}ms poll (window ${logWindow}), plus ${eventHeadersPerPoll} assumed event-bearing headers. Model, not billed usage; excludes idle savings, catch-up, retries, and unmodeled traffic.`,
   }
 }
 

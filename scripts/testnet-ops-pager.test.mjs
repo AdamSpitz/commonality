@@ -16,7 +16,7 @@ import {
   runPager,
 } from './testnet-ops-pager.mjs'
 
-test('spend model warns on 200ms blocks but not 2s blocks', async () => {
+test('raw-log spend model does not page on block rate alone', async () => {
   for (const elapsed of [200, 2000]) {
     const result = await probeProjectedSpend(async (_url, init) => {
       const request = JSON.parse(init.body)
@@ -24,15 +24,34 @@ test('spend model warns on 200ms blocks but not 2s blocks', async () => {
       assert.deepEqual(request.params, ['0x3e8', false])
       return { status: 200, text: async () => JSON.stringify({ result: { timestamp: `0x${(5000 - elapsed).toString(16)}` } }) }
     }, 'https://example.test', { ok: true, block: 2000, timestamp: 5000 })
-    assert.equal(result.ok, elapsed === 2000)
+    assert.equal(result.ok, true)
     assert.match(result.reason, /Model, not billed usage/)
+    assert.match(result.reason, /event-bearing headers/)
   }
+})
+
+test('raw-log spend model pages when a poll exceeds the log window or assumed event headers', async () => {
+  const head = { ok: true, block: 2000, timestamp: 5000 }
+  const fetchImpl = async () => ({ status: 200, text: async () => JSON.stringify({ result: { timestamp: '0x12c0' } }) })
+  const split = await probeProjectedSpend(fetchImpl, '', head, {
+    logWindow: 1, baselineMonthlyCu: 0, capUsd: 30, threshold: 0.7,
+  })
+  assert.equal(split.ok, false)
+  assert.match(split.reason, /eth_getLogs/)
+  const quiet = await probeProjectedSpend(fetchImpl, '', head, {
+    eventHeadersPerPoll: 0, baselineMonthlyCu: 0, capUsd: 30, threshold: 0.7,
+  })
+  assert.equal(quiet.ok, true)
+  const busy = await probeProjectedSpend(fetchImpl, '', head, {
+    eventHeadersPerPoll: 500, baselineMonthlyCu: 0, capUsd: 1, threshold: 0.7,
+  })
+  assert.equal(busy.ok, false)
 })
 
 test('spend model fails closed on invalid config, missing head, and bad timestamps', async () => {
   const head = { ok: true, block: 2000, timestamp: 5000 }
   const forbidden = async () => { throw new Error('must not fetch') }
-  for (const settings of [{ capUsd: 0 }, { threshold: 2 }, { baselineMonthlyCu: -1 }, { cuPerBlock: NaN }]) {
+  for (const settings of [{ capUsd: 0 }, { threshold: 2 }, { baselineMonthlyCu: -1 }, { pollIntervalMs: 0 }, { eventHeadersPerPoll: -1 }, { logWindow: 1.5 }]) {
     assert.equal((await probeProjectedSpend(forbidden, '', head, settings)).ok, false)
   }
   for (const badHead of [null, { ok: false }, { ...head, timestamp: null }]) {

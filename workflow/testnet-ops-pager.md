@@ -25,7 +25,7 @@ Each probe is pass or fail with one sentence of why.
 4. **Public edges that users hit.** `https://testnet.commonality.works/config.json` returns 200 and chain `84532`. Platform API `/health` (`https://commonality-platform-api.onrender.com/health`) and cause-assist `/health` (`https://commonality-cause-assist.onrender.com/health`) return 200.
 5. **Private IPFS.** `commonality-published-data-ipfs` has no public URL. Probe it through Render: not suspended, and the latest deploy is `live`. Do not open a public Kubo port to make a status page.
 
-6. **Projected Alchemy spend.** Measure block rate over the latest 1000 blocks using one additional timestamp lookup on the configured archive RPC. Project 30 days of one block fetch per block plus a configurable baseline, and page above 70% of the cap. This is a steady-state model, not billed usage: catch-up, retries, and unmodeled traffic can cost more. A missing timestamp or invalid configuration fails the probe rather than silently declaring costs safe.
+6. **Projected Alchemy spend.** Measure block rate over the latest 1000 blocks using one additional timestamp lookup on the configured archive RPC. That rate does not mean one header fetch per block. The hosted indexer is the raw-log engine: each poll is two headers (`latest` and `finalized`, 20 CU each) plus one `eth_getLogs` (60 CU), default every 12s. Split that log query only when the blocks in one poll exceed `OPS_PAGER_ALCHEMY_LOG_WINDOW` (default 10,000). Add the configured event-bearing header assumption (default 0; those reads are not measured here). Project 30 days of those polls plus the baseline, and page above 70% of the cap. This is a steady-state model, not billed usage: idle savings, catch-up, retries, and unmodeled traffic are excluded. A missing timestamp or invalid configuration fails the probe rather than silently declaring costs safe.
 
 Configuration (environment locally; repository Actions variables in CI):
 
@@ -33,11 +33,13 @@ Configuration (environment locally; repository Actions variables in CI):
 | --- | --- | --- |
 | `OPS_PAGER_ALCHEMY_CAP_USD` | `30` | Monthly dashboard cap; keep synchronized manually |
 | `OPS_PAGER_ALCHEMY_USD_PER_MILLION_CU` | `0.525` | Assumed price; confirm against your billing plan |
-| `OPS_PAGER_ALCHEMY_CU_PER_BLOCK` | `20` | Alchemy `eth_getBlockByNumber` cost |
-| `OPS_PAGER_ALCHEMY_BASELINE_MONTHLY_CU` | `10000000` | Estimated workers/polls/other traffic, not a measured baseline |
+| `OPS_PAGER_ALCHEMY_POLL_INTERVAL_MS` | `12000` | Hosted raw-log poll interval (`INDEXER_POLL_INTERVAL_MS`, not the leftover 4s Ponder blueprint value) |
+| `OPS_PAGER_ALCHEMY_LOG_WINDOW` | `10000` | Blocks per `eth_getLogs` before another query is counted |
+| `OPS_PAGER_ALCHEMY_EVENT_HEADERS_PER_POLL` | `0` | Assumed extra header reads for event-bearing blocks; not measured |
+| `OPS_PAGER_ALCHEMY_BASELINE_MONTHLY_CU` | `10000000` | Estimated workers and other traffic, not a measured baseline |
 | `OPS_PAGER_ALCHEMY_WARNING_FRACTION` | `0.7` | Warning fraction of cap |
 
-Method CU source: [Alchemy cost table](https://www.alchemy.com/docs/reference/compute-unit-costs) (checked 2026-11-09). At 5 blocks/s, block fetches alone project 259.2M CU per 30 days. Also enable Alchemy's own usage alerts; this probe cannot see actual accumulated charges or plan credits.
+Method CU source: [Alchemy cost table](https://www.alchemy.com/docs/reference/compute-unit-costs) (checked 2026-11-09). Header reads are 20 CU and `eth_getLogs` is 60 CU. A quiet 12s poll is 100 CU, about 21.6M CU per 30 days before the baseline and before idle savings. The old per-block model (5 blocks/s × 20 CU) is retired; it false-paged at about 259.2M CU. `OPS_PAGER_ALCHEMY_CU_PER_BLOCK` is ignored. Also enable Alchemy's own usage alerts; this probe cannot see actual accumulated charges or plan credits. Keep `OPS_PAGER_ALCHEMY_CAP_USD` equal to the dashboard cap (it was raised above the $30 default in November 2026).
 
 ## Leave alone
 
