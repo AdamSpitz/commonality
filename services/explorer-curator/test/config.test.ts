@@ -6,7 +6,7 @@ describe('config', () => {
 
   beforeEach(() => {
     process.env.NUDGER_PRIVATE_KEY = '0x' + 'aa'.repeat(32);
-    process.env.ETHEREUM_RPC_URL = 'http://localhost:8545';
+    process.env.RPC_URL = 'http://localhost:8545';
     process.env.OPENROUTER_API_KEY = 'test-key';
     process.env.NUDGE_PUBLICATIONS_CONTRACT_ADDRESS = '0x' + 'bb'.repeat(20);
     delete process.env.EXPLORER_STREAM;

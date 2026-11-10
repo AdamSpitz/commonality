@@ -43,15 +43,19 @@ export function foldStoreKey(parts: {
   contracts: string[];
   id: string;
   version: number;
+  /** Non-empty indexer cache epoch. Omitted when unknown so older stores still hit. */
+  upstreamId?: string;
 }): string {
-  return [
+  const key = [
     'fold',
     String(parts.chainId),
     parts.eventCacheUrl,
     parts.contracts.map(contract => contract.toLowerCase()).sort().join(','),
     parts.id,
     String(parts.version),
-  ].join('::');
+  ];
+  if (parts.upstreamId) key.push(parts.upstreamId);
+  return key.join('::');
 }
 
 export function isAtOrBeforeCursor(event: FoldCursor, cursor: FoldCursor): boolean {

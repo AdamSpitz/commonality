@@ -22,8 +22,7 @@ function required(env: NodeJS.ProcessEnv, name: string): string {
 }
 
 export function loadWorkerConfig(env: NodeJS.ProcessEnv = process.env): WorkerConfig {
-  const rpcUrl = env.RPC_URL?.trim() || env.CAUSE_ASSIST_ETHEREUM_RPC_URL?.trim()
-    || env.ETHEREUM_RPC_URL?.trim();
+  const rpcUrl = env.RPC_URL?.trim() || env.CAUSE_ASSIST_ETHEREUM_RPC_URL?.trim();
   if (!rpcUrl) throw new Error('RPC_URL is required');
   const assistEnv = { ...env, CAUSE_ASSIST_ETHEREUM_RPC_URL: rpcUrl };
   return {

@@ -145,8 +145,8 @@ probe platform-api "Platform API health endpoint answered after restart." "Platf
   curl --silent --show-error --fail http://localhost:3001/health
 probe ipfs "Local IPFS gateway health endpoint answered after restart." "Local IPFS gateway health endpoint did not answer after restart." \
   curl --silent --show-error --fail http://localhost:8088/health
-probe indexer-graphql "Indexer GraphQL _meta query answered after restart." "Indexer GraphQL _meta query did not answer after restart." \
-  curl --silent --show-error --fail -X POST -H "Content-Type: application/json" --data '{"query":"{ _meta { block { number } } }"}' http://localhost:42069/graphql
+probe indexer-health "Indexer /health answered after restart." "Indexer /health did not answer after restart." \
+  curl --silent --show-error --fail http://localhost:42069/health
 probe services-url "Service URL summary command completed." "Service URL summary command failed." \
   ./scripts/services.sh --url
 

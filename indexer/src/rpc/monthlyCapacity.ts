@@ -34,7 +34,7 @@ export function operatorHintForMonthlyCapacity(): string {
   return [
     "[commonality-indexer] RPC monthly capacity limit exceeded.",
     "Further JSON-RPC calls will fail until the provider fuse is raised or the billing period resets.",
-    "start.sh will keep /graphql healthy and back off (1m → 6h) instead of crash-looping.",
+    "start.sh will keep /health green and back off (1m → 6h) instead of crash-looping.",
     "Do not point PONDER_RPC_URL_84532 at https://sepolia.base.org (pruned history).",
     "Do not bump DATABASE_SCHEMA or START_BLOCK to “fix” this — that forces a full resync and spends more CUs.",
     "See indexer/README.md (RPC budget) and workflow/deployment.md (Indexer on Render).",

@@ -1,0 +1,146 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { createPrototypeApp } from "./http";
+import type { Hex } from "viem";
+import type { Snapshot } from "./types";
+
+const publisher = ("0x" + "ab".repeat(20)) as Hex;
+const dataId = ("0x" + "11".repeat(32)) as Hex;
+const topic1 = "0x" + publisher.slice(2).padStart(64, "0");
+
+function snapshot(): Snapshot {
+  return {
+    version: 1,
+    chainId: 31337,
+    scope: "a".repeat(64),
+    upstreamId: "b".repeat(64),
+    fromBlock: 1n,
+    head: { number: 20n, hash: ("0x" + "1".repeat(64)) as Hex, timestamp: 20n },
+    durable: { number: 12n, hash: ("0x" + "2".repeat(64)) as Hex, timestamp: 12n },
+    children: [],
+    rows: [{
+      id: `31337-0x${"3".repeat(64)}-0`,
+      chainId: 31337,
+      contractAddress: ("0x" + "cd".repeat(20)) as Hex,
+      eventName: "DataPublished",
+      blockNumber: "5",
+      blockTimestamp: "5",
+      transactionHash: ("0x" + "3".repeat(64)) as Hex,
+      logIndex: 0,
+      topic0: "0x" + "4".repeat(64),
+      topic1,
+      topic2: dataId,
+      topic3: null,
+      data: "0x",
+    }, {
+      id: `31337-0x${"5".repeat(64)}-1`,
+      chainId: 31337,
+      contractAddress: ("0x" + "cd".repeat(20)) as Hex,
+      eventName: "DataPublished",
+      blockNumber: "10",
+      blockTimestamp: "10",
+      transactionHash: ("0x" + "5".repeat(64)) as Hex,
+      logIndex: 1,
+      topic0: ("0x" + "4".repeat(64)) as Hex,
+      topic1,
+      topic2: dataId,
+      topic3: null,
+      data: "0x",
+    }],
+  };
+}
+
+test("prototype serves the indexer REST routes from a snapshot", async () => {
+  const previousBlocks = process.env.EVENT_SEGMENT_BLOCKS;
+  const previousConfirmations = process.env.EVENT_SEGMENT_CONFIRMATIONS;
+  process.env.EVENT_SEGMENT_BLOCKS = "10";
+  process.env.EVENT_SEGMENT_CONFIRMATIONS = "1";
+  try {
+    const app = createPrototypeApp(() => snapshot(), "hardhat");
+    const status = await app.request("http://indexer.test/status");
+    assert.equal(status.status, 200);
+    const statusBody = await status.json() as { hardhat: { block: { number: number; timestamp: number } } };
+    assert.equal(statusBody.hardhat.block.number, 20);
+    assert.equal(statusBody.hardhat.block.timestamp, 20);
+
+    const sync = await app.request("http://indexer.test/api/sync");
+    assert.equal(sync.status, 200);
+    const syncBody = await sync.json() as { ready: boolean; upstreamId: string; chains: Array<{ indexedThrough: string; finalizedThrough: string; indexedCheckpoint: string }> };
+    assert.equal(syncBody.ready, true);
+    assert.equal(syncBody.upstreamId, "b".repeat(64));
+    assert.equal(syncBody.chains[0]?.indexedThrough, "20");
+    assert.equal(syncBody.chains[0]?.finalizedThrough, "12");
+    assert.equal(syncBody.chains[0]?.indexedCheckpoint, "0000000000000020");
+
+    const events = await app.request("http://indexer.test/api/events?chainId=31337&eventName=DataPublished");
+    const eventsBody = await events.json() as { items: Array<{ blockNumber: string }>; truncated: boolean };
+    assert.equal(eventsBody.items.length, 2);
+    assert.equal(eventsBody.items[0]?.blockNumber, "5");
+    assert.equal(eventsBody.truncated, false);
+
+    const published = await app.request(`http://indexer.test/api/published-data/${dataId}`);
+    const publishedBody = await published.json() as { status: string; publications: Array<{ publisher: string }> };
+    assert.equal(publishedBody.status, "active");
+    assert.equal(publishedBody.publications[0]?.publisher.toLowerCase(), publisher);
+
+    const health = await app.request("http://indexer.test/health");
+    assert.equal(health.status, 200);
+    const healthBody = await health.json() as { ok: boolean; ready: boolean; block: string };
+    assert.equal(healthBody.ok, true);
+    assert.equal(healthBody.ready, true);
+    assert.equal(healthBody.block, "20");
+
+    process.env.EVENT_SEGMENT_CONFIRMATIONS = "1000";
+    const manifest = await app.request("http://indexer.test/api/event-segments/manifest?chainId=31337&eventName=DataPublished");
+    const manifestBody = await manifest.json() as { segments: Array<{ fromBlock: string; count: number }> };
+    assert.equal(manifestBody.segments.length, 1);
+    assert.equal(manifestBody.segments[0]?.fromBlock, "0");
+    assert.equal(manifestBody.segments[0]?.count, 1);
+
+    const removed = await app.request("http://indexer.test/graphql", { method: "POST" });
+    assert.equal(removed.status, 404);
+    const sql = await app.request("http://indexer.test/sql");
+    assert.equal(sql.status, 404);
+  } finally {
+    if (previousBlocks == null) delete process.env.EVENT_SEGMENT_BLOCKS;
+    else process.env.EVENT_SEGMENT_BLOCKS = previousBlocks;
+    if (previousConfirmations == null) delete process.env.EVENT_SEGMENT_CONFIRMATIONS;
+    else process.env.EVENT_SEGMENT_CONFIRMATIONS = previousConfirmations;
+  }
+});
+
+test("empty prototype snapshot is not ready", async () => {
+  const app = createPrototypeApp(() => undefined, "hardhat");
+  const sync = await app.request("http://indexer.test/api/sync");
+  const body = await sync.json() as { ready: boolean; chains: unknown[] };
+  assert.equal(body.ready, false);
+  assert.deepEqual(body.chains, []);
+  const health = await app.request("http://indexer.test/health");
+  assert.equal((await health.json() as { ready: boolean }).ready, false);
+});
+
+test("public feeds and wake preflights are accessible from the UI origin", async () => {
+  const app = createPrototypeApp(() => snapshot(), "hardhat");
+  const origin = "https://testnet.commonality.works";
+  const response = await app.request("http://indexer.test/api/sync", { headers: { origin } });
+  assert.equal(response.headers.get("access-control-allow-origin"), "*");
+  const preflight = await app.request("http://indexer.test/api/indexer-wake", {
+    method: "OPTIONS",
+    headers: { origin, "access-control-request-method": "POST", "access-control-request-headers": "content-type" },
+  });
+  assert.equal(preflight.status, 204);
+  assert.equal(preflight.headers.get("access-control-allow-origin"), "*");
+  assert.match(preflight.headers.get("access-control-allow-methods") ?? "", /POST/);
+  assert.match(preflight.headers.get("access-control-allow-headers") ?? "", /content-type/);
+});
+
+test("a cursor written before historical backfill commits is not ready", async () => {
+  const partial = { ...snapshot(), backfillCommitted: false };
+  const app = createPrototypeApp(() => partial, "hardhat");
+  const sync = await app.request("http://indexer.test/api/sync");
+  assert.equal((await sync.json() as { ready: boolean }).ready, false);
+  const health = await app.request("http://indexer.test/health");
+  const body = await health.json() as { ok: boolean; ready: boolean };
+  assert.equal(body.ok, true);
+  assert.equal(body.ready, false);
+});

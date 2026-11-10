@@ -2187,3 +2187,31 @@ Third-party ordinary proposals require explicit per-project acceptance, followed
 Full integration revealed older SDK deployment-event assumptions: creation and discovery were missing projects deployed through `FixedControllerFactory`. Both now use `ProjectCreated` in addition to existing relevant event histories. New integration coverage checks scoped IDs, initiator attribution, acceptance, veto, retry, and indexed registration events.
 
 Validation: full Hardhat suite (508 passing before an additional boundary test; all six new work tests pass), SDK (585 passing), focused UI (138 tests across proposal, status, create/detail suites), UI production build, workspace typecheck (39 tasks), SDK/UI lint (warnings only), and `verifier-run automated.test-full-integration` (107 passing, one existing pending). Full Hardhat JS lint has an unrelated pre-existing unused `err` in `hardhat/scripts/deploy-incremental.js:311`; touched JS files lint clean. Changes are local and uncommitted; testnet needs redeployment of the registry/factory dependency chain, and ordinary unscoped work hashes must be replaced with beneficiary-scoped hashes.
+
+## 2026-11-09 — Raw-log steady poll trimmed to ~100 CU
+
+Cutover step 1 of [replace-ponder.md](specs/tech/indexer/replace-ponder.md), by arithmetic not live RPC. A follow-up poll now takes the `latest` and `finalized` headers it was given plus one combined `eth_getLogs`. Chain id is checked once at startup. Non-Hardhat `--local` poll default is 12s (~7.2M CU/month before idle). In-window head rewrites are no longer refused by a closing re-read. Next cutover step is the spending guard, still before any Alchemy spend or Postgres store.
+
+## 2026-11-09 — Raw-log indexer is the local Docker process
+
+Local `indexer/start.sh` now runs the raw-log prototype unless `INDEXER_ENGINE=ponder` or the script is a hosted `start`. `GET /status` matches the SDK wait. Snapshot lives on the Ponder volume. Production cutover is not done. Remaining work: [continuity/2026-11-09-raw-log-prototype-handoff.md](continuity/2026-11-09-raw-log-prototype-handoff.md).
+
+## 2026-11-09 — Raw-log source admission and replay arithmetic
+
+A changed catalog no longer always refuses the snapshot. A new address is backfilled from its own start; a changed start block or event set still needs an explicit coverage plan; removed addresses keep their rows. Historical inserts bump `upstreamId`. `npm run prototype --workspace=indexer -- --estimate --head N --event-blocks N` prints Alchemy CU arithmetic and does not call RPC. Factory-child backfill is excluded. Live Postgres reorg/crash and the testnet catalog estimate are still open. No Alchemy spend.
+
+## 2026-11-10 — Catalog replay estimate and live Postgres crash
+
+Ran the raw-log replay arithmetic against the Render base-sepolia manifest and a public `eth_blockNumber` (head 57053503): 1,429 log windows, 85,740 CU, plus 20 CU per event-bearing block. The old Ponder database was not queried, so that header term is unknown. Factory-child backfill is still excluded. Added `indexer/src/prototype/postgres.live.test.ts` (skipped unless `INDEXER_PROTOTYPE_TEST_DATABASE_URL` is set). A local Postgres 16 run passed: SIGKILL before commit left durable rows, a later commit dropped the provisional child, a regressed anchor was refused, and a second writer blocked on the advisory lock. Still not a production cutover. Next open cutover step is dropping `/graphql` and `/sql` together with the remaining probes and Ponder checkpoint decoding.
+
+## 2026-11-10 — Alchemy cap raised; do not resume Ponder
+
+Adam raised the Alchemy limit by $10 and asked a fresh agent to continue. Handoff: [continuity/2026-11-10-after-alchemy-cap-handoff.md](continuity/2026-11-10-after-alchemy-cap-handoff.md). The indexer service is still suspended. Do not resume it.
+
+## 2026-11-10 — Hosted start runs raw-log; still do not resume
+
+Hosted indexer start now runs the raw-log engine on its own schema, with the spend guard on. Readiness stays false until backfill commits. The Render service is still suspended. Handoff: [continuity/2026-11-10-hosted-raw-log-start-handoff.md](continuity/2026-11-10-hosted-raw-log-start-handoff.md). Do not resume it, open a PR, or push until Adam says the replay fits the $10 raise.
+
+## 2026-11-10 — Raw-log is serving; Ponder removal needed `pg`
+
+The hosted indexer is the raw-log engine on `feature/raw-log-prototype`, not Ponder. It is caught up and ready. The 6,935-row gap versus `commonality_base_sepolia_v6` is retired addresses outside the current manifest, not a stopped cursor. Removing Ponder dropped transitive `pg`; the image installs only `indexer/package.json`, so the removal deploy exited until `pg` was a direct dependency. Do not point the service at `master` until `master` contains this engine. Handoff: [continuity/2026-11-10-raw-log-serving-handoff.md](continuity/2026-11-10-raw-log-serving-handoff.md).

@@ -61,7 +61,7 @@ export function loadConfigFromEnv(env: NodeJS.ProcessEnv = process.env): Explore
   return {
     nudgerPrivateKey: requireFrom('EXPLORER_CURATOR_PRIVATE_KEY'),
     ethereumRpcUrl: readString(
-      ['EXPLORER_CURATOR_ETHEREUM_RPC_URL', 'ETHEREUM_RPC_URL'],
+      ['EXPLORER_CURATOR_ETHEREUM_RPC_URL', 'RPC_URL'],
       '',
     ),
     indexerUrl: readString(['EXPLORER_CURATOR_INDEXER_URL', 'INDEXER_URL'], 'http://localhost:3001'),
@@ -120,7 +120,7 @@ function readCsvEnv(name: string): string[] | undefined {
 export function loadConfig(): ExplorerCuratorConfig {
   return {
     nudgerPrivateKey: requireEnv('NUDGER_PRIVATE_KEY', process.env.NUDGER_PRIVATE_KEY) as `0x${string}`,
-    ethereumRpcUrl: requireEnv('ETHEREUM_RPC_URL', process.env.ETHEREUM_RPC_URL),
+    ethereumRpcUrl: requireEnv('RPC_URL', process.env.RPC_URL),
     indexerUrl: readStringEnv('INDEXER_URL', 'http://localhost:3001'),
     ipfsApiUrl: readStringEnv('IPFS_API', 'http://localhost:5001'),
     ipfsGatewayUrl: readStringEnv('IPFS_GATEWAY', 'http://localhost:8080'),

@@ -1,15 +1,14 @@
 import { fail, pass, readInputs } from "../lib/result.mjs";
 
-// Advisory "middle-ground processor" for the one-shot backlog (workflow/task-tiers.md).
-// It deliberately does NOT execute or route backlog items, and it does NOT write
+// Reminder that the one-shot backlog in TODO.md exists.
+// It deliberately does NOT execute backlog items, and it does NOT write
 // into Adam's inbox itself (a scheduled check silently mutating a tracked human
 // file would be surprising and churny). Instead it guards one invariant: while
 // TODO.md holds actionable items, inbox.md must keep its standing
-// "go process the backlog" reminder, so the prompt to make a processing pass is
-// always visible in Adam's inbox. If the reminder gets deleted, this surfaces it.
+// "go process the backlog" reminder. If the reminder gets deleted, this surfaces it.
 //
 // Non-gating: wired under meta.verifier-health via advisoryCheckIds, so it never
-// turns root red — it's a Tell, not an Ask.
+// turns root red.
 
 const REMINDER_ANCHOR = "<!-- backlog-reminder -->";
 

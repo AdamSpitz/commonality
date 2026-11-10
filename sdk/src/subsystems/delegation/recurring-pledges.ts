@@ -1,7 +1,7 @@
 import { type Abi, type Address, type Hash, parseEventLogs } from 'viem';
 import { type WriteClients } from '../../utils/ethereum.js';
 import { SDKMachinery } from '../../machinery.js';
-import { fetchEventsComplete, readFinalizedThrough, type RawEventFromCache } from '../../utils/eventCacheClient.js';
+import { fetchEventsComplete, indexerUpstreamId, readFinalizedThrough, type RawEventFromCache } from '../../utils/eventCacheClient.js';
 import { foldStoreKey, runResumableFold } from '../../utils/resumableFold.js';
 import {
   decodeStandingPledgeCreatedEvent,
@@ -166,6 +166,7 @@ export async function getStandingPledges(machinery: SDKMachinery): Promise<Stand
       contracts: [address],
       id: 'standing-pledges',
       version: STANDING_PLEDGES_FOLD_VERSION,
+      upstreamId: await indexerUpstreamId(machinery),
     }),
     store: machinery.foldStore,
     empty: () => new Map(),

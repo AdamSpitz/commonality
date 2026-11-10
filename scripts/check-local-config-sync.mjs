@@ -198,7 +198,7 @@ function checkViteMirror(rootEnv, viteEnv, label) {
 
 function checkLocalIdentity(env, label, { vite = false } = {}) {
   const chainId = vite ? env.VITE_CHAIN_ID : env.CHAIN_ID;
-  const rpcUrl = vite ? env.VITE_ETH_RPC_URL : env.ETHEREUM_RPC_URL;
+  const rpcUrl = vite ? env.VITE_ETH_RPC_URL : env.RPC_URL;
   const eventCacheUrl = vite ? env.VITE_EVENT_CACHE_URL : env.EVENT_CACHE_URL;
 
   if (chainId !== '31337') errors.push(`${label}: expected local chain id 31337, got ${chainId || '(missing)'}`);

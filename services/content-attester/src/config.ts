@@ -87,7 +87,7 @@ export function loadConfigFromEnv(env: NodeJS.ProcessEnv = process.env): Content
   return {
     ethereumPrivateKey: requireEnvFrom('CONTENT_ATTESTER_PRIVATE_KEY', env),
     ethereumRpcUrl: readStringFrom(
-      ['CONTENT_ATTESTER_ETHEREUM_RPC_URL', 'ETHEREUM_RPC_URL'],
+      ['CONTENT_ATTESTER_ETHEREUM_RPC_URL', 'RPC_URL'],
       env,
     ),
     alignmentAttestationsContractAddress: requireEnvFrom(
@@ -168,7 +168,7 @@ export function loadConfig(): ContentAttesterConfig {
 
   return {
     ethereumPrivateKey: requireEnv('ATTESTER_PRIVATE_KEY', process.env.ATTESTER_PRIVATE_KEY),
-    ethereumRpcUrl: requireEnv('ETHEREUM_RPC_URL', process.env.ETHEREUM_RPC_URL),
+    ethereumRpcUrl: requireEnv('RPC_URL', process.env.RPC_URL),
     alignmentAttestationsContractAddress: requireEnv(
       'ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS',
       process.env.ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS,

@@ -109,6 +109,8 @@ services:
         value: "0x3a93BAB464Cc20333076b83490DE40357094355E"
       - key: ALIGNMENT_TRUST_BOOTSTRAP_PRIVATE_KEY
         sync: false  # Secret: dedicated funded hot wallet
+      - key: ALIGNMENT_TRUST_DENYLISTED_ADDRESS
+        value: "0x2b4b8aaA91F95acc3318aB469F45D58Cd77021a3"  # Public canary (COMMONALITY_TESTNET_VERIFIER_ADDRESS). Seeds /data/denylist.txt only if that file is missing.
       - key: START_BLOCK
         value: "42768673"
       - key: STATE_FILE
@@ -217,11 +219,11 @@ services:
         value: "0xF7120c4Ff1F9e8A496086Bea8f016d1299F0efed"
       - key: CREATOR_CONTRACT_FACTORY_ADDRESS
         value: "0x46803715b98639772f193769350d06889E26Ff1b"
-    healthCheckPath: /graphql
+    healthCheckPath: /health
     # Intentional Render workaround: this disk is not used for indexer app state.
     # Render disables zero-downtime/rolling deploys for services with persistent
-    # disks. Ponder needs that stop-before-start behavior because `ponder start`
-    # takes an exclusive lock on DATABASE_SCHEMA. Do not remove this just because
+    # disks. The raw-log writer needs that stop-before-start behavior because it
+    # takes a Postgres advisory lock. Do not remove this just because
     # /data looks unused; replace it only with another singleton deploy strategy.
     disk:
       name: commonality-indexer-data
@@ -295,7 +297,7 @@ services:
         value: production
       - key: SERVICE_HOST_PORT
         value: 3000
-      - key: ETHEREUM_RPC_URL
+      - key: RPC_URL
         sync: false  # Secret: RPC provider URL (contains API key)
       - key: OPENROUTER_API_KEY
         sync: false  # Secret
@@ -445,7 +447,7 @@ services:
         sync: false  # Secret
       - key: VERIFIER_PRIVATE_KEY
         sync: false  # Secret
-      - key: ETHEREUM_RPC_URL
+      - key: RPC_URL
         sync: false  # Secret: RPC provider URL (contains API key)
       - key: BASE_RPC_URL
         sync: false  # Secret: Base mainnet RPC provider URL for on-ramp USDC polling
@@ -497,7 +499,7 @@ services:
         value: production
       - key: SERVICE_HOST_PORT
         value: 3000
-      - key: ETHEREUM_RPC_URL
+      - key: RPC_URL
         sync: false  # Secret: RPC provider URL (contains API key)
       - key: OPENROUTER_API_KEY
         sync: false  # Secret

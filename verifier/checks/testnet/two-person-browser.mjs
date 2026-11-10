@@ -70,7 +70,7 @@ function leftPadAddressTopic(address) {
 }
 
 function eventCacheUrl(config, params) {
-  const base = new URL("/api/events", config.eventCacheUrl ?? config.graphqlUrl.replace(/\/graphql\/?$/, ""));
+  const base = new URL("/api/events", config.eventCacheUrl);
   for (const [key, value] of Object.entries(params)) base.searchParams.set(key, String(value));
   return base.toString();
 }

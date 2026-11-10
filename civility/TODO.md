@@ -5,7 +5,6 @@ today is mostly that machinery with Civility copy. These items are the gap
 between that and a board of posts that passed the civility check, plus a way
 to put money on the property itself.
 
-Untagged items are **Ask**. See [task autonomy tiers](../workflow/task-tiers.md).
 When an item is done, delete it.
 
 The general "pick a property, see its board" surface lives in

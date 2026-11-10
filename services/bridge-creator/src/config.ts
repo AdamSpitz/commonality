@@ -81,7 +81,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): BridgeCreatorC
 
   return {
     nudgerPrivateKey: mediator ? requireFrom(env, mediator.signer_private_key_env) : requireFrom(env, 'BRIDGE_CREATOR_PRIVATE_KEY'),
-    ethereumRpcUrl: requireAny(env, ['BRIDGE_CREATOR_ETHEREUM_RPC_URL', 'ETHEREUM_RPC_URL']),
+    ethereumRpcUrl: requireAny(env, ['BRIDGE_CREATOR_ETHEREUM_RPC_URL', 'RPC_URL']),
     indexerUrl: readString(env, ['BRIDGE_CREATOR_INDEXER_URL', 'INDEXER_URL'], 'http://localhost:3001'),
     ipfsApiUrl: readString(env, ['BRIDGE_CREATOR_IPFS_API', 'IPFS_API'], 'http://localhost:5001'),
     ipfsGatewayUrl: readString(env, ['BRIDGE_CREATOR_IPFS_GATEWAY', 'IPFS_GATEWAY'], 'http://localhost:8080'),

@@ -24,18 +24,13 @@ async function rpcCall(url, method, params = [], timeoutMs = 5000) {
   }
 }
 
-async function graphqlQuery(url, query, timeoutMs = 5000) {
+async function getJson(url, timeoutMs = 5000) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ query }),
-      signal: controller.signal
-    });
+    const response = await fetch(url, { signal: controller.signal });
     const payload = await response.json().catch(() => null);
-    return { ok: response.ok && !payload?.errors, status: response.status, payload };
+    return { ok: response.ok, status: response.status, payload };
   } catch (error) {
     return { ok: false, error: error?.name === "AbortError" ? `Timed out after ${timeoutMs}ms` : error?.message ?? String(error) };
   } finally {
@@ -43,12 +38,14 @@ async function graphqlQuery(url, query, timeoutMs = 5000) {
   }
 }
 
-function extractIndexerBlock(meta, chainSlug) {
-  const data = meta?.payload?.data?._meta;
-  if (typeof data?.block?.number === "number") return data.block.number;
-  const status = data?.status;
-  const networkStatus = status?.[chainSlug] ?? Object.values(status ?? {})[0];
-  return typeof networkStatus?.block?.number === "number" ? networkStatus.block.number : null;
+function extractIndexerBlock(status, chainSlug) {
+  const payload = status?.payload;
+  if (!payload || typeof payload !== "object") return null;
+  const named = payload[chainSlug];
+  const chain = named && typeof named === "object"
+    ? named
+    : Object.values(payload).find((value) => value && typeof value === "object" && value.block);
+  return typeof chain?.block?.number === "number" ? chain.block.number : null;
 }
 
 // Navigate a dot path (e.g. "canary.count") into the GraphQL response `data`
@@ -57,9 +54,9 @@ function extractIndexerBlock(meta, chainSlug) {
 // that _meta.block.number caught up, but that a real indexed application value
 // actually advanced — so an indexer that reports a caught-up block number
 // without having processed the burst's events cannot pass.
-function readNumberAtPath(graphqlResponse, dotPath) {
+function readNumberAtPath(response, dotPath) {
   const segments = String(dotPath ?? "").split(".").filter(Boolean);
-  let node = graphqlResponse?.payload?.data;
+  let node = response?.payload;
   for (const segment of segments) {
     if (node === null || typeof node !== "object") return null;
     node = node?.[segment];
@@ -71,17 +68,17 @@ function renderReport({ params, before, eventBurst, afterMine, samples, problems
   const lines = [
     "# Indexer lag burst probe",
     "",
-    "Guarded local-stack probe that advances the local chain by a small burst of blocks, then polls the indexer _meta block until it catches up or breaches the configured lag budget.",
+    "Guarded local-stack probe that advances the local chain by a small burst of blocks, then polls indexer /status until it catches up or breaches the configured lag budget.",
     "",
     `- RPC URL: ${params.rpcUrl}`,
-    `- GraphQL URL: ${params.graphqlUrl}`,
+    `- Status URL: ${params.statusUrl}`,
     `- Burst blocks: ${params.burstBlocks}`,
     `- Max lag blocks: ${params.maxLagBlocks}`,
     `- Polls: ${params.pollCount} every ${params.pollIntervalMs}ms`
   ];
   if (params.dataCanary) {
     lines.push(
-      `- Data canary: query \`${params.dataCanary.graphqlQuery}\` at \`${params.dataCanary.resultPath}\`, required increase ≥ ${params.dataCanary.minIncrease ?? 1}`
+      `- Data canary: \`${params.dataCanary.resultPath}\` on ${params.statusUrl}, required increase ≥ ${params.dataCanary.minIncrease ?? 1}`
     );
   }
   if (params.eventBurstCommand) {
@@ -148,18 +145,18 @@ function runEventBurstCommand(command, timeoutMs) {
 }
 
 async function sample(params) {
-  const [rpc, meta] = await Promise.all([
+  const [rpc, status] = await Promise.all([
     rpcCall(params.rpcUrl, "eth_blockNumber", [], params.timeoutPerRequestMs),
-    graphqlQuery(params.graphqlUrl, "{ _meta { status } }", params.timeoutPerRequestMs)
+    getJson(params.statusUrl, params.timeoutPerRequestMs)
   ]);
   const chainBlock = rpc.ok ? Number.parseInt(rpc.result, 16) : null;
-  const indexerBlock = meta.ok ? extractIndexerBlock(meta, params.chainSlug) : null;
+  const indexerBlock = status.ok ? extractIndexerBlock(status, params.chainSlug) : null;
   const lag = Number.isFinite(chainBlock) && Number.isFinite(indexerBlock) ? chainBlock - indexerBlock : null;
-  return { rpc, meta, chainBlock, indexerBlock, lag };
+  return { rpc, status, chainBlock, indexerBlock, lag };
 }
 
 async function sampleCanary(params) {
-  const response = await graphqlQuery(params.graphqlUrl, params.dataCanary.graphqlQuery, params.timeoutPerRequestMs);
+  const response = await getJson(params.statusUrl, params.timeoutPerRequestMs);
   if (!response.ok) return { ok: false, value: null, response };
   const value = readNumberAtPath(response, params.dataCanary.resultPath);
   return { ok: Number.isFinite(value), value, response };
@@ -169,7 +166,7 @@ emit(async () => {
   const params = {
     requireEnv: "COMMONALITY_VERIFIER_ALLOW_E2E_STACK",
     rpcUrl: "http://127.0.0.1:8545",
-    graphqlUrl: "http://localhost:42069/graphql",
+    statusUrl: "http://localhost:42069/status",
     chainSlug: "foundry",
     burstBlocks: 20,
     maxLagBlocks: 5,
@@ -191,9 +188,6 @@ emit(async () => {
   const canaryMinIncrease = Number(params.dataCanary?.minIncrease ?? 1);
   const canaryConfigProblems = requestedCanary
     ? [
-        ...(typeof params.dataCanary?.graphqlQuery === "string" && params.dataCanary.graphqlQuery.trim().length > 0
-          ? []
-          : ["Data canary is configured but missing a non-empty `graphqlQuery`."]),
         ...(typeof params.dataCanary?.resultPath === "string" && params.dataCanary.resultPath.trim().length > 0
           ? []
           : ["Data canary is configured but missing a non-empty `resultPath`."]),
@@ -202,7 +196,7 @@ emit(async () => {
     : [];
   const useCanary = requestedCanary && canaryConfigProblems.length === 0;
   const canaryParams = useCanary
-    ? { graphqlQuery: params.dataCanary.graphqlQuery, resultPath: params.dataCanary.resultPath, minIncrease: canaryMinIncrease }
+    ? { resultPath: params.dataCanary.resultPath, minIncrease: canaryMinIncrease }
     : null;
 
   const requestedEventBurst = params.eventBurstCommand !== null && params.eventBurstCommand !== undefined;
@@ -219,7 +213,7 @@ emit(async () => {
   const before = await sample(params);
   const problems = [...canaryConfigProblems, ...eventBurstConfigProblems];
   if (!Number.isFinite(before.chainBlock)) problems.push("RPC eth_blockNumber was not usable before the burst.");
-  if (!Number.isFinite(before.indexerBlock)) problems.push("Indexer GraphQL _meta block was not usable before the burst.");
+  if (!Number.isFinite(before.indexerBlock)) problems.push("Indexer /status block was not usable before the burst.");
 
   let canary = null;
   if (useCanary) {
@@ -257,7 +251,7 @@ emit(async () => {
 
   const final = samples.at(-1) ?? afterMine;
   if (!Number.isFinite(final.chainBlock)) problems.push("RPC eth_blockNumber was not usable after the burst.");
-  if (!Number.isFinite(final.indexerBlock)) problems.push("Indexer GraphQL _meta block was not usable after the burst.");
+  if (!Number.isFinite(final.indexerBlock)) problems.push("Indexer /status block was not usable after the burst.");
   if (Number.isFinite(final.lag) && final.lag > params.maxLagBlocks) {
     problems.push(`Indexer lag ${final.lag} blocks exceeds ${params.maxLagBlocks}-block budget after burst.`);
   }

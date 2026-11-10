@@ -60,7 +60,7 @@ const services = {
   ]),
 
   'commonality-service-host-attesters': () => block([
-    ['ETHEREUM_RPC_URL', get('BASE_SEPOLIA_RPC_URL')],
+    ['RPC_URL', get('BASE_SEPOLIA_RPC_URL')],
     ['OPENROUTER_API_KEY', get('OPENROUTER_API_KEY')],
     ['IMPLICATION_ATTESTER_PRIVATE_KEY', get('IMPLICATION_ATTESTER_PRIVATE_KEY')],
     ['IMPLICATION_ATTESTER_TRUSTED_FINDER_KEY', get('IMPLICATION_ATTESTER_TRUSTED_FINDER_KEY')],
@@ -73,7 +73,7 @@ const services = {
   ]),
 
   'commonality-platform-api': () => block([
-    ['ETHEREUM_RPC_URL', get('BASE_SEPOLIA_RPC_URL')],
+    ['RPC_URL', get('BASE_SEPOLIA_RPC_URL')],
     ['VERIFIER_PRIVATE_KEY', get('VERIFIER_PRIVATE_KEY')],
     ['X_API_BEARER_TOKEN', get('X_API_BEARER_TOKEN')],
     ['YOUTUBE_API_KEY', get('YOUTUBE_API_KEY')],
@@ -85,7 +85,7 @@ const services = {
   ]),
 
   'commonality-service-host-workers': () => block([
-    ['ETHEREUM_RPC_URL', get('BASE_SEPOLIA_RPC_URL')],
+    ['RPC_URL', get('BASE_SEPOLIA_RPC_URL')],
     ['OPENROUTER_API_KEY', get('OPENROUTER_API_KEY')],
     ['CONTENT_FINDER_ATTESTER_FINDER_KEY', get('CONTENT_FINDER_ATTESTER_FINDER_KEY')],
     ['IMPLICATION_FINDER_ATTESTER_FINDER_KEY', get('IMPLICATION_FINDER_ATTESTER_FINDER_KEY')],

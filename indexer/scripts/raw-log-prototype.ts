@@ -1,0 +1,172 @@
+import { parseArgs } from "node:util";
+import { setTimeout as delay } from "node:timers/promises";
+import { loadCatalog } from "../src/prototype/catalog";
+import { coverageOf, estimateReplay } from "../src/prototype/coverage";
+import { compareWithPonder } from "../src/prototype/compare";
+import { MeteredRpc } from "../src/prototype/rpc";
+import { SpendLedger, SpendParked, spendLimitsFromEnv, type ParkedSync } from "../src/prototype/spend";
+import { readHeader, syncWindow } from "../src/prototype/sync";
+import type { Server } from "node:http";
+import { createPrototypeApp, listen } from "../src/prototype/http";
+import { earliestConfiguredBlock, hostedStoreConfig, localServeConfig } from "../src/prototype/local";
+import { openPrototypeDatabase } from "../src/prototype/postgres";
+import { lockSnapshot, readSnapshot, writeSnapshot } from "../src/prototype/store";
+import { json, type Snapshot } from "../src/prototype/types";
+import { DEFAULT_IDLE_HEAD_INTERVAL_MS, DEFAULT_IDLE_HEAD_WAKE_MS, idleHeadCacheEnabled } from "../src/rpc/idleHeadCache";
+import { PrototypeIdleGate } from "../src/prototype/idle";
+import { getIndexerChainId, getIndexerChainName } from "../src/utils/chain";
+
+function openStore() {
+  const url = process.env.INDEXER_PROTOTYPE_DATABASE_URL;
+  return url ? openPrototypeDatabase(url, process.env.INDEXER_PROTOTYPE_SCHEMA ?? "raw_log") : undefined;
+}
+
+async function main() {
+  const { values } = parseArgs({ options: {
+    from: { type: "string" }, to: { type: "string" }, out: { type: "string" },
+    contracts: { type: "string" }, compare: { type: "string" },
+    polls: { type: "string", default: "1" }, interval: { type: "string", default: "4000" },
+    "max-blocks": { type: "string", default: "10000" }, "max-requests": { type: "string", default: "1000" },
+    window: { type: "string", default: "10000" }, finality: { type: "string", default: "finalized" },
+    serve: { type: "string" }, host: { type: "string", default: "127.0.0.1" },
+    local: { type: "boolean" }, hosted: { type: "boolean" }, estimate: { type: "boolean" }, head: { type: "string" },
+    "event-blocks": { type: "string", default: "0" },
+    help: { type: "boolean" },
+  } });
+  if (values.help) {
+    console.log("raw-log-prototype --from N --to N|latest --out PATH [--contracts Name,Name] [--compare INDEXER_URL] [--polls N] [--serve PORT] [--host HOST] [--finality finalized|depth:N] [--max-blocks N] [--max-requests N] [--window N] [--interval MS]\n--estimate --head N [--window N] [--event-blocks N] prints an Alchemy CU replay estimate and does not call RPC.\n--local --serve PORT replaces the local Ponder process: start block, poll, and finality come from the deployment env (hardhat uses depth:0 and a 100ms poll). Snapshot path is INDEXER_SNAPSHOT_PATH.\n--hosted --local --serve PORT is the Render start path: own schema on DATABASE_URL, spend guard forced on, not Ponder's DATABASE_SCHEMA.\nUses existing deployment env and PONDER_RPC_URL_<chainId>. No env files are loaded automatically. Writes a local snapshot unless INDEXER_PROTOTYPE_DATABASE_URL is set (own schema, not Ponder's database).");
+    return;
+  }
+  if (values.estimate) {
+    if (!values.head || !/^\d+$/.test(values.head)) throw new Error("--estimate requires --head N");
+    const catalog = await loadCatalog(values.contracts?.split(","));
+    const window = BigInt(values.window ?? "10000");
+    console.log(json(estimateReplay({
+      sources: coverageOf(catalog), head: BigInt(values.head), window,
+      eventBearingBlocks: BigInt(values["event-blocks"] ?? "0"),
+    })));
+    return;
+  }
+  if (!values.local && (!values.from || !values.to || !values.out)) throw new Error("--from, --to, and --out are required; see --help");
+  const positive = (value: string, max: number) => {
+    if (!/^\d+$/.test(value) || Number(value) < 1 || Number(value) > max) throw new Error("Invalid numeric option");
+    return Number(value);
+  };
+  const catalog = await loadCatalog(values.contracts?.split(","));
+  const local = values.local ? localServeConfig(process.env, earliestConfiguredBlock(catalog)) : undefined;
+  const fromBlock = local ? local.fromBlock : BigInt(positive(values.from!, Number.MAX_SAFE_INTEGER));
+  const maxBlocks = local ? undefined : BigInt(positive(values["max-blocks"], 100_000));
+  const serving = values.serve != null || local != null;
+  const polls = serving ? Number.POSITIVE_INFINITY : positive(values.polls, 100);
+  const servePort = serving ? positive(values.serve ?? "42069", 65535) : undefined;
+  const interval = local ? local.intervalMs : positive(values.interval, 60_000);
+  const window = local ? local.window : BigInt(positive(values.window, 100_000));
+  const maxRequests = local ? local.maxRequests : positive(values["max-requests"], 100_000);
+  const finality = local ? local.finality : values.finality;
+  const out = local ? local.out : values.out!;
+  const to = local ? "latest" : values.to!;
+  if (finality !== "finalized" && !/^depth:\d+$/.test(finality ?? "")) throw new Error("Invalid finality policy");
+  if (values.host !== "127.0.0.1" && values.host !== "0.0.0.0") throw new Error("Host must be 127.0.0.1 or 0.0.0.0");
+  const chainId = getIndexerChainId();
+  const url = process.env[`PONDER_RPC_URL_${chainId}`] ?? (chainId === 31337 ? "http://localhost:8545" : undefined);
+  if (!url) throw new Error("Missing configured RPC URL");
+  if (values.hosted) {
+    const hosted = hostedStoreConfig(process.env);
+    process.env.INDEXER_PROTOTYPE_DATABASE_URL = hosted.url;
+    process.env.INDEXER_PROTOTYPE_SCHEMA = hosted.schema;
+    process.env.INDEXER_SPEND_GUARD = "1";
+  }
+  const limits = spendLimitsFromEnv(process.env);
+  if (values.hosted && !limits) throw new Error("Hosted raw-log start requires the spend guard");
+  const ledger = limits ? new SpendLedger(limits) : undefined;
+  const rpc = new MeteredRpc(url, maxRequests, ledger);
+  const idle = serving && idleHeadCacheEnabled(getIndexerChainName())
+    ? new PrototypeIdleGate(
+      positive(process.env.INDEXER_IDLE_HEAD_INTERVAL_MS ?? String(DEFAULT_IDLE_HEAD_INTERVAL_MS), 3_600_000),
+      positive(process.env.INDEXER_IDLE_HEAD_WAKE_MS ?? String(DEFAULT_IDLE_HEAD_WAKE_MS), 3_600_000),
+    )
+    : undefined;
+  const unlock = await lockSnapshot(out);
+  let database: Awaited<ReturnType<typeof openStore>> | undefined;
+  let server: Server | undefined;
+  let stop = false;
+  const onStop = () => { stop = true; };
+  process.on("SIGINT", onStop);
+  process.on("SIGTERM", onStop);
+  try {
+    const startupChain = Number(BigInt(await rpc.request("eth_chainId", []) as string));
+    if (startupChain !== chainId) throw new Error("RPC chain ID mismatch");
+    database = await openStore();
+    let snapshot = database ? await database.load() : await readSnapshot(out);
+    let parked: ParkedSync;
+    const current = (): Snapshot | undefined => snapshot;
+    if (servePort != null) {
+      server = await listen(createPrototypeApp(current, getIndexerChainName(), () => parked), servePort, (method, path) => idle?.note(method, path), values.host);
+      console.error(json({ serving: `http://${values.host}:${servePort}`, routes: ["/api/events", "/api/sync", "/api/event-segments", "/api/published-data", "/api/project-read-demand", "/api/indexer-wake", "/status", "/health"] }));
+    }
+    for (let poll = 0; poll < polls && !stop; poll++) {
+      if (poll && idle && !idle.fast()) {
+        await idle.wait(idle.idleIntervalMs);
+        if (!idle.fast()) {
+          console.log(json({ poll: poll + 1, skipped: "idle", indexedThrough: snapshot?.head.number, totalRpcRequests: rpc.calls }));
+          continue;
+        }
+      } else if (poll) {
+        await (idle ? idle.wait(interval) : delay(interval));
+      }
+      const before = { ...rpc.calls };
+      const started = Date.now();
+      try {
+        const head = await readHeader(rpc, to === "latest" ? "latest" : BigInt(to));
+        const depth = finality === "finalized" ? undefined : BigInt(finality.slice(6));
+        if (depth !== undefined && depth > head.number) throw new Error("Finality depth exceeds the current head");
+        const durable = depth === undefined ? await readHeader(rpc, "finalized") : depth === 0n ? head : await readHeader(rpc, head.number - depth);
+        const behind = snapshot == null || snapshot.backfillCommitted === false || head.number - snapshot.head.number > window;
+        ledger?.setCatchingUp(behind);
+        const span = head.number - fromBlock + 1n;
+        const next = await syncWindow(rpc, catalog, {
+          chainId, fromBlock, toBlock: head.number, finalizedBlock: durable.number, maxBlocks: maxBlocks ?? span, window,
+          head, durable, chainVerified: true,
+        }, snapshot);
+        const parity = values.compare ? await compareWithPonder(values.compare, catalog, next, !values.contracts) : undefined;
+        if (parity && !parity.equal) {
+          console.log(json({ parity, rpcRequests: rpc.calls }));
+          throw new Error("Ponder parity mismatch; snapshot not committed");
+        }
+        if (database) await database.commit(snapshot, next);
+        else await writeSnapshot(out, next);
+        console.log(json({ poll: poll + 1, fromBlock, indexedThrough: next.head.number, finalizedThrough: next.durable.number,
+          catchingUp: ledger?.catchingUp === true,
+          rows: next.rows.length, children: next.children.length, elapsedMs: Date.now() - started,
+          rpcRequests: Object.fromEntries(Object.entries(rpc.calls).map(([method, count]) => [method, count - (before[method] ?? 0)])),
+          totalRpcRequests: rpc.calls, parity }));
+        snapshot = next;
+        parked = undefined;
+      } catch (error) {
+        if (error instanceof SpendParked) {
+          parked = { reason: error.reason, until: new Date(error.untilMs).toISOString() };
+          console.error(json({ poll: poll + 1, parked: parked.reason, until: parked.until }));
+          if (!serving) throw error;
+          while (!stop && Date.now() < error.untilMs) await delay(Math.min(1000, error.untilMs - Date.now()));
+          continue;
+        }
+        if (!serving) throw error;
+        const message = error instanceof Error ? error.message : "sync failed";
+        if (/monthly capacity/.test(message)) throw error;
+        console.error(json({ poll: poll + 1, error: message, retry: true }));
+      }
+    }
+  } finally {
+    process.off("SIGINT", onStop);
+    process.off("SIGTERM", onStop);
+    if (server) await new Promise<void>(resolve => server!.close(() => resolve()));
+    await database?.close();
+    await unlock();
+    console.error(json({ totalRpcRequests: rpc.calls }));
+  }
+}
+
+main().catch(error => {
+  console.error(error instanceof Error ? error.message : "Prototype failed");
+  process.exitCode = 1;
+});

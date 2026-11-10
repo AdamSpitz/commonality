@@ -80,7 +80,7 @@ export function assertIndexerContractPartition(names: readonly string[]): void {
   for (const name of [...conceptspaceNames, ...fundingNames]) {
     if (!seen.has(name)) {
       throw new Error(
-        `Indexer contract "${name}" is classified but not registered in ponder.config.ts.`,
+        `Indexer contract "${name}" is classified but not registered in the indexer catalog.`,
       );
     }
   }

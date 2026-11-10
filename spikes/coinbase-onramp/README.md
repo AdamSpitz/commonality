@@ -5,7 +5,7 @@
 
 This is the single load-bearing test called for in
 [`specs/tech/bridges.md` → "On-ramp provider selection"](../../specs/tech/bridges.md)
-and item **(Ask) — plain fiat on-ramp provider** in [`inbox.md`](../../inbox.md).
+and the plain fiat on-ramp provider item in [`inbox.md`](../../inbox.md).
 Everything else about Coinbase Onramp (Base/USDC support, fees, callbacks,
 compliance) is already known to pass on paper; this is the one thing no vendor
 documents, so we confirm it by hand.
@@ -64,7 +64,7 @@ npm run watch      # step 3 — polls until USDC arrives (or `npm run balance` f
 ### Reading the result
 
 - **USDC balance goes above 0 at that address → GO.** Coinbase Onramp is
-  confirmed for our architecture. Record it in `bridges.md` and close the (Ask).
+  confirmed for our architecture. Record it in `bridges.md` and close the inbox item.
 - **Coinbase won't accept the destination address, or funds never arrive →
   NO-GO.** Capture the exact error/behavior and fall back to spiking Stripe
   (note: Stripe's own address validation may also balk at an undeployed

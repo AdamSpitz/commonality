@@ -220,11 +220,11 @@ services:
         sync: false  # from-env: BENEFICIARY_ESCROW_ADDRESS
       - key: CREATOR_CONTRACT_FACTORY_ADDRESS
         sync: false  # from-env: CREATOR_CONTRACT_FACTORY_ADDRESS
-    healthCheckPath: /graphql
+    healthCheckPath: /health
     # Intentional Render workaround: this disk is not used for indexer app state.
     # Render disables zero-downtime/rolling deploys for services with persistent
-    # disks. Ponder needs that stop-before-start behavior because `ponder start`
-    # takes an exclusive lock on DATABASE_SCHEMA. Do not remove this just because
+    # disks. The raw-log writer needs that stop-before-start behavior because it
+    # takes a Postgres advisory lock. Do not remove this just because
     # /data looks unused; replace it only with another singleton deploy strategy.
     disk:
       name: commonality-indexer-data
@@ -298,7 +298,7 @@ services:
         value: production
       - key: SERVICE_HOST_PORT
         value: 3000
-      - key: ETHEREUM_RPC_URL
+      - key: RPC_URL
         sync: false  # Secret: RPC provider URL (contains API key)
       - key: OPENROUTER_API_KEY
         sync: false  # Secret
@@ -448,7 +448,7 @@ services:
         sync: false  # Secret
       - key: VERIFIER_PRIVATE_KEY
         sync: false  # Secret
-      - key: ETHEREUM_RPC_URL
+      - key: RPC_URL
         sync: false  # Secret: RPC provider URL (contains API key)
       - key: BASE_RPC_URL
         sync: false  # Secret: Base mainnet RPC provider URL for on-ramp USDC polling
@@ -500,7 +500,7 @@ services:
         value: production
       - key: SERVICE_HOST_PORT
         value: 3000
-      - key: ETHEREUM_RPC_URL
+      - key: RPC_URL
         sync: false  # Secret: RPC provider URL (contains API key)
       - key: OPENROUTER_API_KEY
         sync: false  # Secret

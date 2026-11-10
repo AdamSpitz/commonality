@@ -1,6 +1,6 @@
 {
   "id": "testnet.indexer",
-  "description": "Guarded deployed testnet indexer check: GraphQL _meta responds and is not too far behind the configured RPC.",
+  "description": "Guarded deployed testnet indexer check: GET /status responds and is not too far behind the configured RPC.",
   "trigger": { "type": "manual" },
   "retention": { "keep": 5, "keepDays": 30 },
   "command": ["node", "checks/testnet/indexer.mjs"],

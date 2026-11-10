@@ -25,7 +25,7 @@ Copy `.env.example` to `.env` and configure:
 
 ```bash
 # Ethereum
-ETHEREUM_RPC_URL=http://localhost:8545
+RPC_URL=http://localhost:8545
 ATTESTER_PRIVATE_KEY=0x...  # Private key for signing transactions
 IMPLICATIONS_CONTRACT_ADDRESS=0x...  # Address of Implications contract
 
@@ -216,7 +216,7 @@ The implication attester is not deployed as a standalone Render service anymore.
 
 Configure its environment through the service-host attesters Render service, using `scripts/generate-render-secrets.mjs` as the source of the per-service secret block. The important values remain:
 
-- `ETHEREUM_RPC_URL`: target-network RPC URL
+- `RPC_URL`: target-network RPC URL
 - `ATTESTER_PRIVATE_KEY`: private key for the attester wallet (secret)
 - `IMPLICATIONS_CONTRACT_ADDRESS`: deployed Implications contract address
 - `OPENROUTER_API_KEY`: OpenRouter API key

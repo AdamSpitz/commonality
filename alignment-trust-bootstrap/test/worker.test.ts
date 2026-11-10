@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict';
+import { mkdtemp, readFile, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { describe, it } from 'mocha';
 import type { Address } from 'viem';
-import { parseDenylist } from '../src/policy.js';
+import { ensureDenylistFile, loadDenylist, parseDenylist } from '../src/policy.js';
 import { admitAttesters, reconcileDenylist, type TrustWriter } from '../src/worker.js';
 
 const SERVICE = '0x1111111111111111111111111111111111111111' as Address;
@@ -40,5 +43,19 @@ describe('alignment trust bootstrap policy', () => {
     assert.deepEqual(Array.from(parseDenylist(`# spam\n${ALICE}\n`)), [ALICE]);
     assert.deepEqual(Array.from(parseDenylist(JSON.stringify([BOB]))), [BOB]);
     assert.throws(() => parseDenylist('not-an-address'), /invalid denylist address/);
+  });
+
+  it('seeds a missing denylist and leaves an existing file alone', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'alignment-denylist-'));
+    const missing = join(dir, 'denylist.txt');
+    assert.equal(await ensureDenylistFile(missing, undefined), 'absent');
+    assert.equal(await ensureDenylistFile(missing, ALICE), 'seeded');
+    assert.deepEqual(Array.from(await loadDenylist(missing)), [ALICE]);
+    assert.equal(await ensureDenylistFile(missing, BOB), 'exists');
+    assert.deepEqual(Array.from(await loadDenylist(missing)), [ALICE]);
+    const emptied = join(dir, 'empty.txt');
+    await writeFile(emptied, '');
+    assert.equal(await ensureDenylistFile(emptied, ALICE), 'exists');
+    assert.equal(await readFile(emptied, 'utf8'), '');
   });
 });

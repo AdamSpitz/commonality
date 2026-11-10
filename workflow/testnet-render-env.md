@@ -2,6 +2,12 @@
 
 Copy these non-secret values into Render `sync: false` fields when the dashboard asks for them. Secrets/private keys still come from `.env.secrets` and `deployments/operator-addresses.env`. For Render *API* operations (logs, env updates, restart) source gitignored `.env.render` (`RENDER_API_KEY`). See [deployment.md](./deployment.md).
 
+## RPC naming and migration (2026-11-09)
+
+`RPC_URL` is the canonical generic backend chain endpoint. It replaces `ETHEREUM_RPC_URL` in code, generated secrets, and deployment templates. Before deploying this change, copy the existing secret value to `RPC_URL` on the service-host bundles and platform API (and in local gitignored env files). The old generic name is no longer read. No dashboard secrets are migrated by a git change. Keep the old dashboard key until rollout succeeds, then remove it. Deploy/resume only with operator approval.
+
+Chain-specific source settings (`BASE_SEPOLIA_RPC_URL`, `MAINNET_RPC_URL`, Ponder's chain-ID keys) and explicit per-service overrides remain distinct; they are not extra names for the generic default.
+
 ## Indexer (`commonality-indexer`)
 
 `PONDER_RPC_URL_84532` is `sync: false`. Paste the Alchemy (or other archive-capable) Base Sepolia URL from `.env` / `BASE_SEPOLIA_RPC_URL`. `scripts/generate-render-secrets.mjs` emits this block. Public `https://sepolia.base.org` prunes below ~45_000_000 and will crash the indexer while `START_BLOCK` is 42768673. After changing the URL, trigger a deploy (`deploy_only` is enough), not only a restart. See [deployment.md](./deployment.md#indexer-on-render).

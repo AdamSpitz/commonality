@@ -35,8 +35,8 @@
             "maxLatencyMs": 1000
           },
           {
-            "name": "indexer graphql",
-            "url": "http://localhost:42069/graphql",
+            "name": "indexer health",
+            "url": "http://localhost:42069/health",
             "expectedStatus": 200,
             "maxLatencyMs": 1000
           }

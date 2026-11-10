@@ -22,9 +22,15 @@ if [ -f /workspace/.env ]; then
 fi
 
 PONDER_SCRIPT="${PONDER_SCRIPT:-dev:no-ui}"
-# INDEXER_CONTRACTS=conceptspace uses ponder.conceptspace.config.ts so funding
-# ABI modules are not loaded. The default shared feed is unchanged.
-PONDER_SCRIPT="$(node /app/selectPonderScript.mjs "$PONDER_SCRIPT" "${INDEXER_CONTRACTS:-all}")"
+# INDEXER_CONTRACTS=conceptspace omits funding sources. There is no Ponder process.
+if [ "${INDEXER_ENGINE:-}" = "ponder" ]; then
+  echo "INDEXER_ENGINE=ponder has been removed; refusing to start the old per-block engine" >&2
+  exit 1
+fi
+case "$PONDER_SCRIPT" in
+  start|start:conceptspace) HOSTED=1 ;;
+  *) HOSTED=0 ;;
+esac
 FLAG_PATH="${INDEXER_RPC_BUDGET_FLAG_PATH:-/tmp/commonality-rpc-monthly-capacity}"
 
 if [ -d /data ] && [ -w /data ]; then
@@ -48,14 +54,11 @@ write_backoff() {
   echo "$1" > "$BACKOFF_PATH"
 }
 
-# Hosted `ponder start` crash-loops on Alchemy monthly-capacity 429s (even
-# eth_chainId). Keep the container alive with a stub /graphql and wait; do not
-# bump DATABASE_SCHEMA or switch to sepolia.base.org.
-if [ "$PONDER_SCRIPT" = "start" ]; then
+run_with_capacity_parking() {
   while true; do
     rm -f "$FLAG_PATH"
     set +e
-    npm run "$PONDER_SCRIPT"
+    "$@"
     code=$?
     set -e
     if [ -f "$FLAG_PATH" ]; then
@@ -74,6 +77,31 @@ if [ "$PONDER_SCRIPT" = "start" ]; then
     rm -f "$BACKOFF_PATH"
     exit "$code"
   done
+}
+
+# Hosted start used to crash-loop on Alchemy monthly-capacity 429s. Keep the
+# container alive with a stub /health and wait. Do not open the old Ponder
+# schema or switch to sepolia.base.org.
+if [ "$HOSTED" = 1 ]; then
+  # Fresh schema on the same Postgres. Never the old Ponder DATABASE_SCHEMA.
+  export INDEXER_SPEND_GUARD=1
+  # Quiet hourly ceilings are too small for the one-time replay. This extra
+  # allowance applies only while the cursor is still behind, then turns off.
+  export INDEXER_CATCHUP="${INDEXER_CATCHUP:-1}"
+  export INDEXER_PROTOTYPE_DATABASE_URL="${INDEXER_PROTOTYPE_DATABASE_URL:-${DATABASE_URL:-}}"
+  export INDEXER_PROTOTYPE_SCHEMA="${INDEXER_PROTOTYPE_SCHEMA:-raw_log}"
+  if [ -n "${DATABASE_SCHEMA:-}" ] && [ "$INDEXER_PROTOTYPE_SCHEMA" = "$DATABASE_SCHEMA" ]; then
+    echo "Refusing to open Ponder DATABASE_SCHEMA; hosted raw-log needs its own fresh schema" >&2
+    exit 1
+  fi
+  # Render still sets the old 4s Ponder interval. Hosted raw-log defaults to 12s
+  # unless INDEXER_POLL_INTERVAL_MS is set.
+  export PONDER_POLL_INTERVAL_MS="${INDEXER_POLL_INTERVAL_MS:-12000}"
+  export INDEXER_SNAPSHOT_PATH="${INDEXER_SNAPSHOT_PATH:-/tmp/raw-log-snapshot.json}"
+  mkdir -p "$(dirname "$INDEXER_SNAPSHOT_PATH")"
+  run_with_capacity_parking npm run prototype -- --hosted --local --serve "${PORT:-42069}" --host 0.0.0.0
 fi
 
-exec npm run "$PONDER_SCRIPT"
+export INDEXER_SNAPSHOT_PATH="${INDEXER_SNAPSHOT_PATH:-/app/.ponder/raw-log-snapshot.json}"
+mkdir -p "$(dirname "$INDEXER_SNAPSHOT_PATH")"
+exec npm run prototype -- --local --serve "${PORT:-42069}" --host 0.0.0.0

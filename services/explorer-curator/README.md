@@ -37,7 +37,7 @@ This service implements the two-tier LLM architecture from the [explorer spec](.
 | Variable | Required | Default | Description |
 |---|---|---|---|
 | `NUDGER_PRIVATE_KEY` | Yes | — | Ethereum private key for the nudger address |
-| `ETHEREUM_RPC_URL` | Yes | — | RPC URL for the chain |
+| `RPC_URL` | Yes | — | RPC URL for the chain |
 | `NUDGE_PUBLICATIONS_CONTRACT_ADDRESS` | Yes | — | Address of the NudgePublications contract |
 | `OPENROUTER_API_KEY` | Yes | — | API key for LLM calls |
 | `INDEXER_URL` | No | `http://localhost:3001` | Indexer URL |

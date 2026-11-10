@@ -2,7 +2,7 @@
 
 Status: **active plan** (filed 2026-10-28). Work the steps in order. Each step is its own feature branch and PR into `dev` (see [branching](/workflow/branching.md)). Check a step off here in the same PR that finishes it. When every step is checked, delete this plan's item from [`/TODO.md`](/TODO.md), keep the "Ideas for later" section, and update [README.md § Fold Versioning and Upgrades](./README.md#fold-versioning-and-upgrades) so it describes the new state.
 
-Autonomy: Adam has approved steps 1–5 as **Tell** ([tiers](/workflow/task-tiers.md)). Do them, then leave a Tell Report in [`/inbox.md`](/inbox.md). **Breaking backward compatibility is explicitly allowed.** That covers contract event signatures, the `/api/events` API, SDK function signatures, and the stored accumulator format. Local data can be wiped and reindexed at any time (`./scripts/data.sh --wipe`). Do **not** redeploy testnet or touch mainnet as part of this plan. If a step changes contracts, add a separate (Tell) item to `/TODO.md` for the testnet redeploy instead.
+**Breaking backward compatibility is explicitly allowed.** That covers contract event signatures, the `/api/events` API, SDK function signatures, and the stored accumulator format. Local data can be wiped and reindexed at any time (`./scripts/data.sh --wipe`). Do **not** redeploy testnet or touch mainnet as part of this plan. If a step changes contracts, add a separate item to `/TODO.md` for the testnet redeploy instead.
 
 The ideas in "Ideas for later" are **not** approved. Do not build them.
 

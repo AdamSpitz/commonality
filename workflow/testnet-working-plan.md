@@ -79,7 +79,7 @@ Earlier the same day: 502 crash loop (public prune) then HTTP 200 with lag fail;
 - `GET /v1/logs` needs `ownerId` + `resource` (service id). Env list: `GET /v1/services/{id}/env-vars`. Single var: `PUT /v1/services/{id}/env-vars/{KEY}` `{"value":"..."}`. Env change needs **deploy_only**, not only restart.
 - Ad-hoc scripts in `tmp/render-indexer-*.sh` and `tmp/watch-indexer-*.sh` — disposable; do not commit.
 
-**Item 5 done (2026-09-06 ~00:49 UTC).** Adam added a proxied CNAME `causestarter.testnet` → `brown-racial-sailfish-957.mypinata.cloud` (same as the other UIs). `https://causestarter.testnet.commonality.works` HTTP 200, title Commonality, CID `QmRBAj9Wrsr9k7Kj5fu5AeqE2xWwagbCiMZmd4s6S7dvFp`. `testnet.dns` **9 hosts pass** (TLS `*.testnet.commonality.works`). `testnet.http` 13 URLs pass. `testnet.app-shell` 9 URLs pass. `testnet.website-journeys` **pass** 24 URLs (~39s) on retry; first run failed Commonality `/` with empty body (cold lazy chunk), `/#/` already rendered. Do not raise the 180s timeout. Pinata dedicated-gateway Host Origins still a leftover dashboard add if CORS to that host is needed; Worker path is serving.
+**Item 5 done (2026-09-06 ~00:49 UTC).** Adam added a proxied CNAME `causestarter.testnet` → `brown-racial-sailfish-957.mypinata.cloud` (same as the other UIs). `https://causestarter.testnet.commonality.works` HTTP 200, title Commonality, CID `QmRBAj9Wrsr9k7Kj5fu5AeqE2xWwagbCiMZmd4s6S7dvFp`. `testnet.dns` **9 hosts pass** (TLS `*.testnet.commonality.works`). `testnet.http` 13 URLs pass. `testnet.app-shell` 9 URLs pass. `testnet.website-journeys` **pass** 24 URLs (~39s) on retry; first run failed Commonality `/` with empty body (cold lazy chunk), `/#/` already rendered. Do not raise the 180s timeout. Pinata dedicated-gateway Host Origins for `https://causestarter.testnet.commonality.works` added by Adam (2026-11-06). Worker path is serving.
 
 **Commonality AI wiring (2026-09-07):** IPFS `buildRuntimeConfig` now emits `VITE_CAUSE_ASSIST_URL` and `VITE_IMPLICATION_ATTESTER_URL`. `setup-env.sh` no longer lets `operator-addresses.env` overwrite Sepolia public identities. Live republish is item 7.
 
@@ -93,27 +93,26 @@ Earlier the same day: 502 crash loop (public prune) then HTTP 200 with lag fail;
 
 From testnet-prep / inbox — stop and Ask if you hit them:
 
-- Cloudflare zone / DNSLink / `services.testnet.commonality.works` gateway (UIs already work via the UI gateway; this is leftover naming/ops).
+- Cloudflare leftovers: zone and service gateway are up. `/cause-assist` is not routed; DNSLink is partial (`./scripts/setup-testnet-naming.sh --dns`). UIs already work via the UI gateway.
 - 2-of-3 Safe for contract-admin.
 - `COMMONALITY_TESTNET_VERIFIER_PRIVATE_KEY` canary is funded and used for item 6. Live `VERIFIER_ADDRESS` (`0xE486…`) is still 0 ETH. Nightly flag is item 9 — Ask, do not set.
 - Sponsored-gas live UI walk: [sponsored-gas-live-trace.md](./sponsored-gas-live-trace.md).
-- Alignment-trust bootstrap: generate wallets, fund `ALIGNMENT_TRUST_BOOTSTRAP_ADDRESS`, Render secrets, denylist canary — never the checked-in local key.
 - Alchemy (or other archive RPC) **monthly CU fuse**: 2026-09-19 hit “Monthly capacity limit exceeded” again (indexer crash-looping `eth_chainId`). Do not switch to `sepolia.base.org`. Do not bump `DATABASE_SCHEMA`. Raise the dashboard usage limit, then resume the indexer. Hosted backoff lives in `indexer/start.sh` once that commit is on `master`.
 - Implication attester / content attester / beat agent funded (0.005 ETH each). Channel signer `VERIFIER_ADDRESS` `0xE486…` still 0 ETH **by design** (off-chain signatures; funder skips it).
 
 ## Next
 
-Do these in order unless Adam names a different one. Each item is a session-sized chunk. Tag is the [autonomy tier](./task-tiers.md) for that slice.
+Do these in order unless Adam names a different one. Each item is a session-sized chunk.
 
-1. **[x] (Tell) Re-probe and write what is actually down.** 2026-09-05 morning run: 502 crash loop. Afternoon run after RPC fix: HTTP pass, indexer fail on lag. Snapshot in Current state.
+1. **[x] Re-probe and write what is actually down.** 2026-09-05 morning run: 502 crash loop. Afternoon run after RPC fix: HTTP pass, indexer fail on lag. Snapshot in Current state.
 
-2. **[x] (Tell) Make the Render indexer stay up / catch up.** Crash loop done. 10k live `dep-dae48qgou94c73976610` / `53417ecc` after $30 Alchemy cap. `testnet.indexer` **pass** 46429137 lag 0 (~16:42 UTC).
+2. **[x] Make the Render indexer stay up / catch up.** Crash loop done. 10k live `dep-dae48qgou94c73976610` / `53417ecc` after $30 Alchemy cap. `testnet.indexer` **pass** 46429137 lag 0 (~16:42 UTC).
 
-3. **[x] (Tell) Get read-only testnet smoke boring.** 2026-09-05 ~16:46 UTC: `dns`/`http`/`rpc`/`indexer`/`app-shell`/`contracts` pass. `app-config` still fails because the official attester has never published; Adam: that is an idle default, not a lab blocker — do not dummy-attest to clear it. Wrapper exit 1 is that canary. Retry once on IPFS/Cloudflare aborts before treating a site as broken. If a site is still dead, follow [deployment.md](./deployment.md) / `./scripts/deploy-testnet.sh` only for that domain — do not republish all eight “for luck.”
+3. **[x] Get read-only testnet smoke boring.** 2026-09-05 ~16:46 UTC: `dns`/`http`/`rpc`/`indexer`/`app-shell`/`contracts` pass. `app-config` still fails because the official attester has never published; Adam: that is an idle default, not a lab blocker — do not dummy-attest to clear it. Wrapper exit 1 is that canary. Retry once on IPFS/Cloudflare aborts before treating a site as broken. If a site is still dead, follow [deployment.md](./deployment.md) / `./scripts/deploy-testnet.sh` only for that domain — do not republish all eight “for luck.”
 
-4. **[x] (Tell) Browser journeys on the happy paths.** 2026-09-05 ~18:32 UTC: `testnet.website-journeys` **pass** (22 URLs). Historical LazyGiving `/#/projects` IPFS junk CID is tolerated in the check; SDK no longer treats non-CIDs as metadata.
+4. **[x] Browser journeys on the happy paths.** 2026-09-05 ~18:32 UTC: `testnet.website-journeys` **pass** (22 URLs). Historical LazyGiving `/#/projects` IPFS junk CID is tolerated in the check; SDK no longer treats non-CIDs as metadata.
 
-5. **[x] (Tell) Commonality on testnet hostname.** Live at `https://causestarter.testnet.commonality.works` (2026-09-06). DNS CNAME by Adam; Worker route + IPNS + CORS already in. Journeys pass including `/` and `/#/`.
+5. **[x] Commonality on testnet hostname.** Live at `https://causestarter.testnet.commonality.works` (2026-09-06). DNS CNAME by Adam; Worker route + IPNS + CORS already in. Journeys pass including `/` and `/#/`.
 
    **Done when:** `https://causestarter.testnet.commonality.works` loads over HTTPS (same Worker path as the others), platform-api CORS allows that origin, and `./scripts/verifier-testnet.sh --browser` includes it (dns/http/app-shell/journeys). Pinata Host Origins is a dashboard step — if you cannot add it, note in inbox and keep going (Worker uses `gateway.pinata.cloud` + key, dedicated-gateway origins are leftover).
 
@@ -138,15 +137,15 @@ Do these in order unless Adam names a different one. Each item is a session-size
 
    Stop if you hit Cloudflare zone login, Pinata billing, or missing `CLOUDFLARE_API_TOKEN` / `PINATA_JWT` — inbox, don’t paper over.
 
-6. **[x] (Tell) Two-person write path, one mutation canary.** 2026-09-06: `onchain-to-indexer` + `published-data` fresh pass from `0x6295d57…`. Commonality config points at the same indexer; a second client sees both the attestation and the CID-first publication. No “cannot see each other’s stuff” bug on that path. Alignment-trust bootstrap still missing (human leftover). Wrapper `--mutation` still exits 1 because of `app-config` + `alignment-trust`.
+6. **[x] Two-person write path, one mutation canary.** 2026-09-06: `onchain-to-indexer` + `published-data` fresh pass from `0x6295d57…`. Commonality config points at the same indexer; a second client sees both the attestation and the CID-first publication. No “cannot see each other’s stuff” bug on that path. Alignment-trust bootstrap still missing (human leftover). Wrapper `--mutation` still exits 1 because of `app-config` + `alignment-trust`.
 
-7. **[x] (Tell) Commonality HTTP AI on the IPFS bundle.** 2026-09-07: CID `QmVCS23i3j6KqM7YECwiKvGNdAQMf8n6dasdr6R8RvA2Uv`. Live `config.json` has `VITE_CAUSE_ASSIST_URL=https://commonality-cause-assist.onrender.com`, `VITE_IMPLICATION_ATTESTER_URL=https://commonality-service-host-attesters.onrender.com/implication-attester`, trusted attester `0x021b3C…`. Do not dummy-attest. Do not start beat-finder without Ask. Human leftover: try suggest/atomize in the browser (CORS reflects Origin).
+7. **[x] Commonality HTTP AI on the IPFS bundle.** 2026-09-07: CID `QmVCS23i3j6KqM7YECwiKvGNdAQMf8n6dasdr6R8RvA2Uv`. Live `config.json` has `VITE_CAUSE_ASSIST_URL=https://commonality-cause-assist.onrender.com`, `VITE_IMPLICATION_ATTESTER_URL=https://commonality-service-host-attesters.onrender.com/implication-attester`, trusted attester `0x021b3C…`. Do not dummy-attest. Do not start beat-finder unless Adam asks. Human leftover: try suggest/atomize in the browser (CORS reflects Origin).
 
-8. **[x] (Tell) Unblock the journeys that will fail as soon as someone tries them.** 2026-09-08: ETH-vs-USDZZZ test lookups and E2E verifier-key mixup. See Current state. Do not dummy-attest; do not fund live `VERIFIER_ADDRESS`.
+8. **[x] Unblock the journeys that will fail as soon as someone tries them.** 2026-09-08: ETH-vs-USDZZZ test lookups and E2E verifier-key mixup. See Current state. Do not dummy-attest; do not fund live `VERIFIER_ADDRESS`.
 
-9. **[x] (Tell) Nightly mutation flag.** 2026-09-30: Adam said to skip the “green for a few days” wait. `scripts/verifier-nightly-deep-cadence.sh` exports `COMMONALITY_VERIFIER_NIGHTLY_ALLOW_TESTNET_MUTATION=1` after sourcing env files. A line in `.env` does not survive `stack.fresh-seeded`, which rewrites that file for the localhost profile. The wrapper adds only `testnet.onchain-to-indexer`, and only when `COMMONALITY_TESTNET_VERIFIER_PRIVATE_KEY` is set.
+9. **[x] Nightly mutation flag.** 2026-09-30: Adam said to skip the “green for a few days” wait. `scripts/verifier-nightly-deep-cadence.sh` exports `COMMONALITY_VERIFIER_NIGHTLY_ALLOW_TESTNET_MUTATION=1` after sourcing env files. A line in `.env` does not survive `stack.fresh-seeded`, which rewrites that file for the localhost profile. The wrapper adds only `testnet.onchain-to-indexer`, and only when `COMMONALITY_TESTNET_VERIFIER_PRIVATE_KEY` is set.
 
-10. **[x] (Tell) Two-person lab LLM overlay.** 2026-09-09 browser re-run: two Chromium contexts share live Commonality config; lab A/B wallets are generate-wallets roles (`COMMONALITY_TESTNET_LAB_A_*` / `_B_*`); lab A `attestAlignment` `0x4764d91e…` indexed. Deterministic `testnet.two-person-browser` is on `--browser`. Live cause-assist `/health` showed OpenRouter URL + DeepSeek while only `XAI_API_KEY` was filled — 401. Headless still cannot Privy-connect.
+10. **[x] Two-person lab LLM overlay.** 2026-09-09 browser re-run: two Chromium contexts share live Commonality config; lab A/B wallets are generate-wallets roles (`COMMONALITY_TESTNET_LAB_A_*` / `_B_*`); lab A `attestAlignment` `0x4764d91e…` indexed. Deterministic `testnet.two-person-browser` is on `--browser`. Live cause-assist `/health` showed OpenRouter URL + DeepSeek while only `XAI_API_KEY` was filled — 401. Headless still cannot Privy-connect.
 
 Item 9 is on in `scripts/verifier-nightly-deep-cadence.sh`. Item 10 is the LLM overlay so Adam/Sam are not the first two clients. **Do not start job 3 (mass activity on testnet).** Scale drills stay local (`gen:medium` / `gen:large`).
 
@@ -164,7 +163,7 @@ Item 9 is on in `scripts/verifier-nightly-deep-cadence.sh`. Item 10 is the LLM o
 - Compare branches to `dev`. See [branching.md](./branching.md).
 - Prefer `./scripts/verifier-testnet.sh` over ad-hoc curls; it loads secrets and opt-ins.
 - Render API: `set -a; source .env.render; set +a`. Never print the key. Never commit `.env.render`.
-- Wipe local data if you need a local repro; do not wipe or redeploy testnet contracts without Ask.
+- Wipe local data if you need a local repro; do not wipe or redeploy testnet contracts unless Adam asks.
 - Human custody (keys, faucets, Render billing, Safe, Privy dashboard): stop and put a short note in [../inbox.md](../inbox.md).
 - When a Next item is done, check it off, update Current state, and leave the next unchecked item obvious.
 

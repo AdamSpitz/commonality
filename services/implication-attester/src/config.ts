@@ -71,7 +71,7 @@ export function loadConfigFromEnv(env: NodeJS.ProcessEnv = process.env): Atteste
   return {
     ethereumPrivateKey: requireEnvFrom('IMPLICATION_ATTESTER_PRIVATE_KEY', env),
     ethereumRpcUrl: readStringFrom(
-      ['IMPLICATION_ATTESTER_ETHEREUM_RPC_URL', 'ETHEREUM_RPC_URL'],
+      ['IMPLICATION_ATTESTER_ETHEREUM_RPC_URL', 'RPC_URL'],
       env,
     ),
     implicationsContractAddress: requireEnvFrom('IMPLICATIONS_CONTRACT_ADDRESS', env),

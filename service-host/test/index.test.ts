@@ -146,7 +146,7 @@ describe("service host", () => {
 	it("builds the bundled service config from environment variables", () => {
 		const config = loadServiceHostConfigFromEnv({
 			SERVICE_HOST_PORT: "3011",
-			ETHEREUM_RPC_URL: "http://rpc.example",
+			RPC_URL: "http://rpc.example",
 			INDEXER_URL: "http://indexer.example",
 			IPFS_API: "http://ipfs-api.example",
 			IPFS_GATEWAY: "http://ipfs-gateway.example",
@@ -194,7 +194,7 @@ describe("service host", () => {
 	it("does not require non-enabled service env vars for an attester-only bundle", () => {
 		const config = loadServiceHostConfigFromEnv({
 			SERVICE_HOST_PORT: "3011",
-			ETHEREUM_RPC_URL: "http://rpc.example",
+			RPC_URL: "http://rpc.example",
 			OPENROUTER_API_KEY: "openrouter-key",
 			IMPLICATIONS_CONTRACT_ADDRESS: "0ximplications",
 			IMPLICATION_ATTESTER_PRIVATE_KEY: "0ximplication",
@@ -224,7 +224,7 @@ describe("service host", () => {
 	it("does not require attester-only env vars for a non-attester bundle", () => {
 		const config = loadServiceHostConfigFromEnv({
 			SERVICE_HOST_PORT: "3011",
-			ETHEREUM_RPC_URL: "http://rpc.example",
+			RPC_URL: "http://rpc.example",
 			INDEXER_URL: "http://indexer.example",
 			IPFS_API: "http://ipfs-api.example",
 			IPFS_GATEWAY: "http://ipfs-gateway.example",
@@ -272,7 +272,7 @@ describe("service host", () => {
 			SERVICE_HOST_PORT: "3011",
 			SERVICE_HOST_INSTANCES:
 				"content-attester-neutral,content-attester-left-eval-right",
-			ETHEREUM_RPC_URL: "http://rpc.example",
+			RPC_URL: "http://rpc.example",
 			OPENROUTER_API_KEY: "openrouter-key",
 			ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS: "0xalignment",
 			ALIGNMENT_TOPIC_STATEMENT_CID: "bafybeig",
@@ -306,7 +306,7 @@ describe("service host", () => {
 			SERVICE_HOST_PORT: "3011",
 			SERVICE_HOST_INSTANCES:
 				"content-attester-primary,content-attester-secondary",
-			ETHEREUM_RPC_URL: "http://rpc.example",
+			RPC_URL: "http://rpc.example",
 			OPENROUTER_API_KEY: "openrouter-key",
 			ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS: "0xalignment",
 			ALIGNMENT_TOPIC_STATEMENT_CID: "bafybeig",
@@ -333,7 +333,7 @@ describe("service host", () => {
 			SERVICE_HOST_PORT: "3011",
 			SERVICE_HOST_INSTANCES:
 				"content-attester-neutral,content-attester-left-eval-right",
-			ETHEREUM_RPC_URL: "http://rpc.example",
+			RPC_URL: "http://rpc.example",
 			OPENROUTER_API_KEY: "openrouter-key",
 			ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS: "0xalignment",
 			ALIGNMENT_TOPIC_STATEMENT_CID: "bafybeig",
@@ -358,7 +358,7 @@ describe("service host", () => {
 			SERVICE_HOST_PORT: "3011",
 			SERVICE_HOST_INSTANCES:
 				"content-attester-neutral,content-attester-secondary",
-			ETHEREUM_RPC_URL: "http://rpc.example",
+			RPC_URL: "http://rpc.example",
 			OPENROUTER_API_KEY: "openrouter-key",
 			ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS: "0xalignment",
 			ALIGNMENT_TOPIC_STATEMENT_CID: "bafybeig",
@@ -383,7 +383,7 @@ describe("service host", () => {
 		const config = loadServiceHostConfigFromEnv({
 			SERVICE_HOST_PORT: "3011",
 			SERVICE_HOST_INSTANCES: "content-attester-neutral",
-			ETHEREUM_RPC_URL: "http://rpc.example",
+			RPC_URL: "http://rpc.example",
 			OPENROUTER_API_KEY: "openrouter-key",
 			ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS: "0xalignment",
 			ALIGNMENT_TOPIC_STATEMENT_CID: "bafybeig",
@@ -410,7 +410,7 @@ describe("service host", () => {
 			IMPLICATION_GRAPH_NUDGER_ENABLED: "false",
 			BRIDGE_CREATOR_ENABLED: "false",
 			EXPLORER_CURATOR_ENABLED: "false",
-			ETHEREUM_RPC_URL: "http://rpc.example",
+			RPC_URL: "http://rpc.example",
 			OPENROUTER_API_KEY: "openrouter-key",
 			ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS: "0xalignment",
 			ALIGNMENT_TOPIC_STATEMENT_CID: "bafybeig",
@@ -499,7 +499,7 @@ describe("service host", () => {
 		const config = loadServiceHostConfigFromEnv({
 			SERVICE_HOST_PORT: "3011",
 			SERVICE_HOST_INSTANCES: "beat-agent-us-politics,beat-agent-local-news",
-			ETHEREUM_RPC_URL: "http://rpc.example",
+			RPC_URL: "http://rpc.example",
 			OPENROUTER_API_KEY: "openrouter-key",
 			ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS: "0xalignment",
 			ALIGNMENT_TOPIC_STATEMENT_CID: "bafybeig",
@@ -596,7 +596,7 @@ describe("service host", () => {
 			() =>
 				loadServiceHostConfigFromEnv({
 					SERVICE_HOST_INSTANCES: "unknown-service-foo",
-					ETHEREUM_RPC_URL: "http://rpc.example",
+					RPC_URL: "http://rpc.example",
 				}),
 			/Cannot derive service kind/,
 		);
@@ -607,7 +607,7 @@ describe("service host", () => {
 			SERVICE_HOST_PORT: "3011",
 			SERVICE_HOST_INSTANCES:
 				"content-attester-neutral,implication-graph-nudger",
-			ETHEREUM_RPC_URL: "http://rpc.example",
+			RPC_URL: "http://rpc.example",
 			OPENROUTER_API_KEY: "openrouter-key",
 			ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS: "0xalignment",
 			ALIGNMENT_TOPIC_STATEMENT_CID: "bafybeig",

@@ -34,14 +34,16 @@ disk at `/data`. Generate its dedicated wallet with
 `node scripts/generate-wallets.mjs`, fund `ALIGNMENT_TRUST_BOOTSTRAP_ADDRESS`
 with the normal `scripts/fund-base-sepolia-wallets.mjs` distribution, and paste
 the worker block printed by `node scripts/generate-render-secrets.mjs` into its
-Render Environment tab. Never substitute the checked-in Hardhat #8 key.
+Render Environment tab. That block is the private key and RPC URL only.
+`ALIGNMENT_TRUST_DENYLISTED_ADDRESS` is a public canary, set in `render.yaml`.
+On startup, if `/data/denylist.txt` is missing, the worker writes that address
+into it and does not overwrite the file afterward. Never substitute the
+checked-in Hardhat #8 key.
 
-Use the Render Shell for the worker's controls:
+Use the Render Shell only to pause or to edit the denylist after the seed exists:
 
 ```sh
 touch /data/PAUSED
-# Keep ALIGNMENT_TRUST_DENYLISTED_ADDRESS from deployments/operator-addresses.env
-# in this one-address-per-line file. Comments are allowed.
 vi /data/denylist.txt
 rm /data/PAUSED
 ```

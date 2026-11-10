@@ -32,7 +32,7 @@ The artifact names the environment variable containing the signer key; it never 
 
 ```bash
 BRIDGE_CREATOR_MEDIATOR_CONFIG_PATH=./my-mediator.json \
-OPENROUTER_API_KEY=... ETHEREUM_RPC_URL=... \
+OPENROUTER_API_KEY=... RPC_URL=... \
 NUDGE_PUBLICATIONS_CONTRACT_ADDRESS=... MY_MEDIATOR_PRIVATE_KEY=... \
 npm start --workspace=@commonality/bridge-creator
 ```

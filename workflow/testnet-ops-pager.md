@@ -25,6 +25,20 @@ Each probe is pass or fail with one sentence of why.
 4. **Public edges that users hit.** `https://testnet.commonality.works/config.json` returns 200 and chain `84532`. Platform API `/health` (`https://commonality-platform-api.onrender.com/health`) and cause-assist `/health` (`https://commonality-cause-assist.onrender.com/health`) return 200.
 5. **Private IPFS.** `commonality-published-data-ipfs` has no public URL. Probe it through Render: not suspended, and the latest deploy is `live`. Do not open a public Kubo port to make a status page.
 
+6. **Projected Alchemy spend.** Measure block rate over the latest 1000 blocks using one additional timestamp lookup on the configured archive RPC. Project 30 days of one block fetch per block plus a configurable baseline, and page above 70% of the cap. This is a steady-state model, not billed usage: catch-up, retries, and unmodeled traffic can cost more. A missing timestamp or invalid configuration fails the probe rather than silently declaring costs safe.
+
+Configuration (environment locally; repository Actions variables in CI):
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `OPS_PAGER_ALCHEMY_CAP_USD` | `30` | Monthly dashboard cap; keep synchronized manually |
+| `OPS_PAGER_ALCHEMY_USD_PER_MILLION_CU` | `0.525` | Assumed price; confirm against your billing plan |
+| `OPS_PAGER_ALCHEMY_CU_PER_BLOCK` | `20` | Alchemy `eth_getBlockByNumber` cost |
+| `OPS_PAGER_ALCHEMY_BASELINE_MONTHLY_CU` | `10000000` | Estimated workers/polls/other traffic, not a measured baseline |
+| `OPS_PAGER_ALCHEMY_WARNING_FRACTION` | `0.7` | Warning fraction of cap |
+
+Method CU source: [Alchemy cost table](https://www.alchemy.com/docs/reference/compute-unit-costs) (checked 2026-11-09). At 5 blocks/s, block fetches alone project 259.2M CU per 30 days. Also enable Alchemy's own usage alerts; this probe cannot see actual accumulated charges or plan credits.
+
 ## Leave alone
 
 - Do not add HTTP health servers to the three workers for this. Their pause is invisible on purpose; Alchemy and indexer lag are the outside signals.

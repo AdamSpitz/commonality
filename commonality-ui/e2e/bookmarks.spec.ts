@@ -49,19 +49,15 @@ async function waitForWalletBookmarkWrite(page: Page, slug: string, present: boo
   const indexerUrl = process.env.INDEXER_URL ?? 'http://localhost:42069'
   const deadline = Date.now() + 60_000
   while (Date.now() < deadline) {
-    const res = await page.request.post(`${indexerUrl}/graphql`, {
-      data: {
-        query: `{ mutableRefss(where: { name: "bookmarked-causes" }, limit: 20) { items { value } } }`,
-      },
-    }).catch(() => null)
+    const res = await page.request.get(`${indexerUrl}/api/events?eventName=RefUpdated&limit=50`).catch(() => null)
     const body = res && res.ok()
-      ? await res.json() as { data?: { mutableRefss?: { items?: Array<{ value: string }> } } }
+      ? await res.json() as { items?: Array<{ data?: string | null }> }
       : null
-    const items = body?.data?.mutableRefss?.items ?? []
-    if (items.some((item) => documentHasSlug(item.value, slug, present))) return
+    const items = body?.items ?? []
+    if (items.some((item) => documentHasSlug(item.data ?? '', slug, present))) return
     await page.waitForTimeout(1_000)
   }
-  // Indexer GraphQL may lag or be down; the reconnect assertions still check the outcome.
+  // The event cache may lag or be down; the reconnect assertions still check the outcome.
   await page.waitForTimeout(15_000)
 }
 

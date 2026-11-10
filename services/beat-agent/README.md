@@ -149,7 +149,7 @@ Run locally with `npm run dev --workspace=@commonality/beat-agent` after setting
 Core runtime configuration:
 
 - `BEAT_AGENT_BEAT_ID`, `BEAT_AGENT_NAME`, `BEAT_AGENT_PRIVATE_KEY`, `BEAT_AGENT_PAYMENT_ADDRESS`
-- `BEAT_AGENT_ETHEREUM_RPC_URL` (or `ETHEREUM_RPC_URL`), `ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS`, `ALIGNMENT_TOPIC_STATEMENT_CID`
+- `BEAT_AGENT_ETHEREUM_RPC_URL` (or `RPC_URL`), `ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS`, `ALIGNMENT_TOPIC_STATEMENT_CID`
 - `OPENROUTER_API_KEY`, optional `BEAT_AGENT_OPENROUTER_MODEL` / `OPENROUTER_MODEL`, and either `BEAT_AGENT_PROMPT_TEMPLATE` or `BEAT_AGENT_PROMPT_TEMPLATE_FILE`
 - Optional `BEAT_AGENT_PLATFORM_API_URL` for `/context/local` lookups by `contentUrl` or, for non-URL submissions, by `contentCanonicalId`
 - Optional `BEAT_AGENT_MEMORY_FILE` for reading beat-memory's JSON memory during attestation; optional `BEAT_AGENT_EVALUATION_LOG_FILE` for JSONL paid-evaluation logs

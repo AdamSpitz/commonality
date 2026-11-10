@@ -91,7 +91,8 @@ const baseConfig = (baseUrl) => ({
   name: "known-bad-testnet",
   chainId: 84532,
   rpcUrlEnv: "COMMONALITY_TESTNET_RPC_URL",
-  graphqlUrl: `${baseUrl}/graphql`,
+  statusUrl: `${baseUrl}/status`,
+  eventCacheUrl: baseUrl,
   appUrl: `${baseUrl}/`,
   appUrls: [`${baseUrl}/`],
   expectedHosts: [],
@@ -113,7 +114,7 @@ const cannedCases = {
     config: (baseUrl) => ({ ...baseConfig(baseUrl), indexer: { maxLagBlocks: 10 } }),
     routes: {
       "/rpc": { headers: { "content-type": "application/json" }, body: rpcBody("0x3e8") },
-      "/graphql": { headers: { "content-type": "application/json" }, body: JSON.stringify({ data: { _meta: { status: { "base-sepolia": { id: 84532, block: { number: 1 } } } } } }) }
+      "/status": { headers: { "content-type": "application/json" }, body: JSON.stringify({ "base-sepolia": { id: 84532, block: { number: 1 } } }) }
     }
   },
   "blank-app-shell": {
