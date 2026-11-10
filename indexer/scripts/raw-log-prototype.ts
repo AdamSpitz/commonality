@@ -8,7 +8,7 @@ import { SpendLedger, SpendParked, spendLimitsFromEnv, type ParkedSync } from ".
 import { readHeader, syncWindow } from "../src/prototype/sync";
 import type { Server } from "node:http";
 import { createPrototypeApp, listen } from "../src/prototype/http";
-import { earliestConfiguredBlock, localServeConfig } from "../src/prototype/local";
+import { earliestConfiguredBlock, hostedStoreConfig, localServeConfig } from "../src/prototype/local";
 import { openPrototypeDatabase } from "../src/prototype/postgres";
 import { lockSnapshot, readSnapshot, writeSnapshot } from "../src/prototype/store";
 import { json, type Snapshot } from "../src/prototype/types";
@@ -29,12 +29,12 @@ async function main() {
     "max-blocks": { type: "string", default: "10000" }, "max-requests": { type: "string", default: "1000" },
     window: { type: "string", default: "10000" }, finality: { type: "string", default: "finalized" },
     serve: { type: "string" }, host: { type: "string", default: "127.0.0.1" },
-    local: { type: "boolean" }, estimate: { type: "boolean" }, head: { type: "string" },
+    local: { type: "boolean" }, hosted: { type: "boolean" }, estimate: { type: "boolean" }, head: { type: "string" },
     "event-blocks": { type: "string", default: "0" },
     help: { type: "boolean" },
   } });
   if (values.help) {
-    console.log("raw-log-prototype --from N --to N|latest --out PATH [--contracts Name,Name] [--compare INDEXER_URL] [--polls N] [--serve PORT] [--host HOST] [--finality finalized|depth:N] [--max-blocks N] [--max-requests N] [--window N] [--interval MS]\n--estimate --head N [--window N] [--event-blocks N] prints an Alchemy CU replay estimate and does not call RPC.\n--local --serve PORT replaces the local Ponder process: start block, poll, and finality come from the deployment env (hardhat uses depth:0 and a 100ms poll). Snapshot path is INDEXER_SNAPSHOT_PATH.\nUses existing deployment env and PONDER_RPC_URL_<chainId>. No env files are loaded automatically. Writes a local snapshot unless INDEXER_PROTOTYPE_DATABASE_URL is set (own schema, not Ponder's database).");
+    console.log("raw-log-prototype --from N --to N|latest --out PATH [--contracts Name,Name] [--compare INDEXER_URL] [--polls N] [--serve PORT] [--host HOST] [--finality finalized|depth:N] [--max-blocks N] [--max-requests N] [--window N] [--interval MS]\n--estimate --head N [--window N] [--event-blocks N] prints an Alchemy CU replay estimate and does not call RPC.\n--local --serve PORT replaces the local Ponder process: start block, poll, and finality come from the deployment env (hardhat uses depth:0 and a 100ms poll). Snapshot path is INDEXER_SNAPSHOT_PATH.\n--hosted --local --serve PORT is the Render start path: own schema on DATABASE_URL, spend guard forced on, not Ponder's DATABASE_SCHEMA.\nUses existing deployment env and PONDER_RPC_URL_<chainId>. No env files are loaded automatically. Writes a local snapshot unless INDEXER_PROTOTYPE_DATABASE_URL is set (own schema, not Ponder's database).");
     return;
   }
   if (values.estimate) {
@@ -70,7 +70,14 @@ async function main() {
   const chainId = getIndexerChainId();
   const url = process.env[`PONDER_RPC_URL_${chainId}`] ?? (chainId === 31337 ? "http://localhost:8545" : undefined);
   if (!url) throw new Error("Missing configured RPC URL");
+  if (values.hosted) {
+    const hosted = hostedStoreConfig(process.env);
+    process.env.INDEXER_PROTOTYPE_DATABASE_URL = hosted.url;
+    process.env.INDEXER_PROTOTYPE_SCHEMA = hosted.schema;
+    process.env.INDEXER_SPEND_GUARD = "1";
+  }
   const limits = spendLimitsFromEnv(process.env);
+  if (values.hosted && !limits) throw new Error("Hosted raw-log start requires the spend guard");
   const ledger = limits ? new SpendLedger(limits) : undefined;
   const rpc = new MeteredRpc(url, maxRequests, ledger);
   const idle = serving && idleHeadCacheEnabled(getIndexerChainName())
@@ -141,7 +148,9 @@ async function main() {
           continue;
         }
         if (!serving) throw error;
-        console.error(json({ poll: poll + 1, error: error instanceof Error ? error.message : "sync failed", retry: true }));
+        const message = error instanceof Error ? error.message : "sync failed";
+        if (/monthly capacity/.test(message)) throw error;
+        console.error(json({ poll: poll + 1, error: message, retry: true }));
       }
     }
   } finally {

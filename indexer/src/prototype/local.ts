@@ -9,6 +9,24 @@ export type LocalServeConfig = {
   out: string;
 };
 
+export type HostedStoreConfig = { url: string; schema: string };
+
+/**
+ * Hosted raw-log start. Uses the indexer Postgres URL but never Ponder's schema.
+ * The spend guard cannot be turned off on this path.
+ */
+export function hostedStoreConfig(env: NodeJS.ProcessEnv): HostedStoreConfig {
+  const url = env.INDEXER_PROTOTYPE_DATABASE_URL || env.DATABASE_URL || "";
+  if (!url) throw new Error("Hosted raw-log start requires DATABASE_URL; it will not adopt a snapshot file or Ponder tables");
+  const schema = env.INDEXER_PROTOTYPE_SCHEMA || "raw_log";
+  if (!/^[a-z][a-z0-9_]{0,62}$/.test(schema)) throw new Error("Invalid prototype schema name");
+  if (env.DATABASE_SCHEMA && schema === env.DATABASE_SCHEMA) {
+    throw new Error("Refusing to open Ponder DATABASE_SCHEMA; hosted raw-log needs its own fresh schema");
+  }
+  if (env.INDEXER_SPEND_GUARD === "0") throw new Error("Hosted raw-log start cannot disable the spend guard");
+  return { url, schema };
+}
+
 /** Earliest configured source, clamped to the sync loop's block-1 anchor. */
 export function earliestConfiguredBlock(catalog: Catalog): bigint {
   const starts = [

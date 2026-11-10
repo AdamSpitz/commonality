@@ -46,7 +46,7 @@ For Render or other hosted environments:
 - Set `PONDER_CHAIN` to `base-sepolia` or `mainnet`.
 - Provide the matching RPC URL as `PONDER_RPC_URL_84532` or `PONDER_RPC_URL_1`. Leave `PONDER_RPC_MAX_RESPONSE_BODY_SIZE` unset or `0` so the config passes a URL string into Ponder (its rate limiter). A viem `http()` wrapper is only used when a positive body-size cap is set; that path is `custom_transport` and retries poorly against Alchemy CUPS limits.
 - Set `DATABASE_URL` and `DATABASE_SCHEMA` for Postgres-backed sync state.
-- Run with `PONDER_SCRIPT=start` so the container uses `ponder start` instead of dev mode.
+- Run with `PONDER_SCRIPT=start`. That now starts the raw-log engine on its own schema (`raw_log` unless `INDEXER_PROTOTYPE_SCHEMA` is set), not `ponder start`. `INDEXER_ENGINE=ponder` is the old escape hatch. Do not resume the suspended Render service until the replay is approved.
 - On Render, set `CHOKIDAR_USEPOLLING=true`. Ponder 0.15 builds through Vite even in
   start mode, and Render's native file-watcher limit can otherwise abort startup with
   `EMFILE: too many open files, watch '/app'`.

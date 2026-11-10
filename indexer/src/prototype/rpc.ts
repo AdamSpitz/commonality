@@ -1,5 +1,5 @@
 import { setTimeout as delay } from "node:timers/promises";
-import { isMonthlyCapacityError } from "../rpc/monthlyCapacity";
+import { isMonthlyCapacityError, recordMonthlyCapacityHit } from "../rpc/monthlyCapacity";
 import { SpendLedger } from "./spend";
 import type { Rpc } from "./types";
 
@@ -31,7 +31,10 @@ export class MeteredRpc implements Rpc {
         throw new Error(`RPC ${method} transport failed`);
       }
       const text = await response.text();
-      if (isMonthlyCapacityError(text)) throw new Error("RPC monthly capacity exhausted; prototype stopped");
+      if (isMonthlyCapacityError(text)) {
+        recordMonthlyCapacityHit();
+        throw new Error("RPC monthly capacity exhausted; prototype stopped");
+      }
       let body: { id?: number; error?: { message?: string; code?: number }; result?: unknown };
       try { body = JSON.parse(text); } catch {
         if (response.status === 429 || response.status >= 500) body = {};

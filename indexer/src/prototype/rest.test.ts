@@ -115,4 +115,17 @@ test("empty prototype snapshot is not ready", async () => {
   const body = await sync.json() as { ready: boolean; chains: unknown[] };
   assert.equal(body.ready, false);
   assert.deepEqual(body.chains, []);
+  const health = await app.request("http://indexer.test/health");
+  assert.equal((await health.json() as { ready: boolean }).ready, false);
+});
+
+test("a cursor written before historical backfill commits is not ready", async () => {
+  const partial = { ...snapshot(), backfillCommitted: false };
+  const app = createPrototypeApp(() => partial, "hardhat");
+  const sync = await app.request("http://indexer.test/api/sync");
+  assert.equal((await sync.json() as { ready: boolean }).ready, false);
+  const health = await app.request("http://indexer.test/health");
+  const body = await health.json() as { ok: boolean; ready: boolean };
+  assert.equal(body.ok, true);
+  assert.equal(body.ready, false);
 });

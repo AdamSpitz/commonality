@@ -34,7 +34,7 @@ export function createPrototypeApp(current: () => Snapshot | undefined, chainNam
     const pause = parked();
     return c.json({
       ok: true,
-      ready: snapshot != null && pause == null,
+      ready: snapshot != null && snapshot.backfillCommitted !== false && pause == null,
       parked: pause != null,
       block: snapshot ? snapshot.head.number.toString() : null,
     });

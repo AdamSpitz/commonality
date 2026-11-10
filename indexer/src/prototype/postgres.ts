@@ -59,7 +59,8 @@ export function schemaDdl(schema: string): string[] {
       durable_hash text NOT NULL,
       durable_timestamp numeric NOT NULL,
       upstream_id text,
-      coverage jsonb
+      coverage jsonb,
+      backfill_committed boolean NOT NULL DEFAULT false
     )`,
     `CREATE TABLE IF NOT EXISTS ${name}.events (
       id text PRIMARY KEY,
@@ -88,11 +89,24 @@ export function schemaDdl(schema: string): string[] {
   ];
 }
 
+/** Refuse a schema that already holds Ponder's tables. Creating our tables beside them is not a fresh schema. */
+export async function assertFreshSchema(db: Sql, schema: string): Promise<void> {
+  const name = quoteIdent(schema);
+  const found = await db.query(
+    `SELECT table_name FROM information_schema.tables
+     WHERE table_schema = $1 AND table_name IN ('_ponder_meta', '_ponder_checkpoint')`,
+    [name],
+  );
+  if (found.rows.length) throw new Error("Refusing to open a schema that already has Ponder tables");
+}
+
 export async function ensureSchema(db: Sql, schema: string): Promise<void> {
+  await assertFreshSchema(db, schema);
   for (const statement of schemaDdl(schema)) await db.query(statement);
   const name = quoteIdent(schema);
   await db.query(`ALTER TABLE ${name}.sync_state ADD COLUMN IF NOT EXISTS upstream_id text`);
   await db.query(`ALTER TABLE ${name}.sync_state ADD COLUMN IF NOT EXISTS coverage jsonb`);
+  await db.query(`ALTER TABLE ${name}.sync_state ADD COLUMN IF NOT EXISTS backfill_committed boolean NOT NULL DEFAULT false`);
 }
 
 function headerParams(header: Header): [string, string, string] {
@@ -129,14 +143,15 @@ export async function commitSnapshot(db: Sql, schema: string, previous: Snapshot
     await db.query(
       `INSERT INTO ${name}.sync_state (
         id, chain_id, scope, from_block, head_number, head_hash, head_timestamp,
-        durable_number, durable_hash, durable_timestamp, upstream_id, coverage
-      ) VALUES (true,$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11::jsonb)
+        durable_number, durable_hash, durable_timestamp, upstream_id, coverage, backfill_committed
+      ) VALUES (true,$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11::jsonb,$12)
       ON CONFLICT (id) DO UPDATE SET
         chain_id = EXCLUDED.chain_id, scope = EXCLUDED.scope, from_block = EXCLUDED.from_block,
         head_number = EXCLUDED.head_number, head_hash = EXCLUDED.head_hash, head_timestamp = EXCLUDED.head_timestamp,
         durable_number = EXCLUDED.durable_number, durable_hash = EXCLUDED.durable_hash, durable_timestamp = EXCLUDED.durable_timestamp,
-        upstream_id = EXCLUDED.upstream_id, coverage = EXCLUDED.coverage`,
-      [next.chainId, next.scope, next.fromBlock.toString(), headNumber, headHash, headTimestamp, durableNumber, durableHash, durableTimestamp, next.upstreamId ?? null, next.coverage ? JSON.stringify(next.coverage, (_, value) => typeof value === "bigint" ? value.toString() : value) : null],
+        upstream_id = EXCLUDED.upstream_id, coverage = EXCLUDED.coverage,
+        backfill_committed = EXCLUDED.backfill_committed`,
+      [next.chainId, next.scope, next.fromBlock.toString(), headNumber, headHash, headTimestamp, durableNumber, durableHash, durableTimestamp, next.upstreamId ?? null, next.coverage ? JSON.stringify(next.coverage, (_, value) => typeof value === "bigint" ? value.toString() : value) : null, next.backfillCommitted === true],
     );
     await db.query("COMMIT");
   } catch (error) {
@@ -152,7 +167,7 @@ function asHeader(number: unknown, hash: unknown, timestamp: unknown, label: str
 
 export async function loadSnapshot(db: Sql, schema: string): Promise<Snapshot | undefined> {
   const name = quoteIdent(schema);
-  const state = await db.query(`SELECT chain_id, scope, from_block::text, head_number::text, head_hash, head_timestamp::text, durable_number::text, durable_hash, durable_timestamp::text, upstream_id, coverage FROM ${name}.sync_state`);
+  const state = await db.query(`SELECT chain_id, scope, from_block::text, head_number::text, head_hash, head_timestamp::text, durable_number::text, durable_hash, durable_timestamp::text, upstream_id, coverage, backfill_committed FROM ${name}.sync_state`);
   const row = state.rows[0];
   if (!row) return undefined;
   const events = await db.query(`SELECT id, chain_id, contract_address, event_name, block_number::text, block_timestamp::text, transaction_hash, log_index, topic0, topic1, topic2, topic3, data FROM ${name}.events ORDER BY block_number, log_index`);
@@ -187,6 +202,7 @@ export async function loadSnapshot(db: Sql, schema: string): Promise<Snapshot | 
       events: child.events as Child["events"],
       creationHash: String(child.creation_hash) as Child["creationHash"],
     })),
+    backfillCommitted: row.backfill_committed === true,
     coverage: Array.isArray(row.coverage) ? row.coverage.map(item => {
       const source = item as { address: string; startBlock: string; selectors: string[] };
       return { address: source.address as Child["address"], startBlock: BigInt(source.startBlock), selectors: source.selectors as Child["creationHash"][] };

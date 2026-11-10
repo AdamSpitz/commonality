@@ -16,10 +16,17 @@ test("meter counts retries, stops at hard budget, and does not retry monthly exh
     assert.equal(await rpc.request("eth_chainId", []), "0x1");
     assert.deepEqual(rpc.calls, { eth_chainId: 2 });
     await assert.rejects(rpc.request("eth_chainId", []), /budget exhausted/);
+    const flag = process.env.INDEXER_RPC_BUDGET_FLAG_PATH;
+    process.env.INDEXER_RPC_BUDGET_FLAG_PATH = "/tmp/commonality-rpc-monthly-capacity-test-flag";
     globalThis.fetch = async () => { calls++; return new Response('{"error":{"message":"monthly capacity limit exceeded"}}', { status: 429 }); };
     calls = 0;
     await assert.rejects(new MeteredRpc("https://example.invalid/secret").request("eth_getLogs", []), /monthly capacity/);
     assert.equal(calls, 1);
+    const { readFileSync, rmSync } = await import("node:fs");
+    assert.match(readFileSync(process.env.INDEXER_RPC_BUDGET_FLAG_PATH, "utf8"), /T/);
+    rmSync(process.env.INDEXER_RPC_BUDGET_FLAG_PATH);
+    if (flag == null) delete process.env.INDEXER_RPC_BUDGET_FLAG_PATH;
+    else process.env.INDEXER_RPC_BUDGET_FLAG_PATH = flag;
   } finally { globalThis.fetch = previous; }
 });
 

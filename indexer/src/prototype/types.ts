@@ -25,6 +25,11 @@ export type Snapshot = {
   head: Header; durable: Header; rows: EventRow[]; children: Child[];
   /** Addresses already backfilled. Absent on snapshots written before source admission. */
   coverage?: SourceCoverage[];
+  /**
+   * False while a cursor exists but historical backfill has not committed.
+   * Absent means a snapshot written before this flag; those are treated as committed.
+   */
+  backfillCommitted?: boolean;
 };
 export type Rpc = { request(method: string, params: unknown[]): Promise<unknown> };
 

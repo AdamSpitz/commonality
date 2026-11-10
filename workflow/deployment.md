@@ -429,7 +429,7 @@ Set these indexer env vars in the Render dashboard:
 
 The blueprint already wires:
 
-- `PONDER_SCRIPT=start` so hosted deployments use `ponder start`
+- `PONDER_SCRIPT=start` so hosted deployments enter `start.sh`. That script now runs the raw-log engine (spend guard on, schema `raw_log`, not Ponder's `DATABASE_SCHEMA`) unless `INDEXER_ENGINE=ponder`. Do not resume the suspended indexer until Adam approves the replay.
 - `DATABASE_URL` from the managed Postgres database
 - `DATABASE_SCHEMA=commonality_base_sepolia_v6` for the current Base Sepolia deployment. **Keep this name** while Ponder runs. (Planned exception: the Ponder-replacement cutover deliberately mints one new schema; see `specs/tech/indexer/replace-ponder.md`.) Changing it wipes the event cache and forces a full historical `eth_getLogs` replay (this is how we accidentally spent a month of Alchemy CUs). Bump only when `indexer/schemas/events.schema.ts` column types or names are incompatible, and only with `INDEXER_ALLOW_SCHEMA_BUMP=1` so `npm run smoke-check` will pass. New indexes are compatible: platform mode creates them on startup under the schema lock (the first such deploy can sit in `CREATE INDEX` before `/ready`). Schema-lock errors are a rolling-deploy problem — keep the persistent disk — not a reason to mint `v7`.
 - `PONDER_EXPERIMENTAL_DB=platform` so normal Render redeploys of a changed Ponder build can reuse the same production schema instead of failing with "previously used by a different Ponder app".
@@ -455,7 +455,7 @@ Do **not** mint a fresh `DATABASE_SCHEMA` (`v7`, …) to get a green deploy. Tha
 
 The indexer is upgradeable in place because it stores only the raw `events` table. Handler/ABI/address-list changes reuse the same schema (`PONDER_EXPERIMENTAL_DB=platform`). Wipe only when the onchainTable shape is incompatible, and then set `INDEXER_ALLOW_SCHEMA_BUMP=1` for smoke-check.
 
-For local Docker development, the same image still defaults to `PONDER_SCRIPT=dev:no-ui` and `PONDER_CHAIN=hardhat`, but `start.sh` runs the raw-log prototype instead of Ponder unless `INDEXER_ENGINE=ponder`. Hosted `ponder start` is unchanged.
+For local Docker development, the same image still defaults to `PONDER_SCRIPT=dev:no-ui` and `PONDER_CHAIN=hardhat`, and `start.sh` runs the raw-log prototype instead of Ponder unless `INDEXER_ENGINE=ponder`. Hosted `start` uses that same engine against a fresh schema. Resuming the suspended Render service is still a separate decision.
 
 ---
 

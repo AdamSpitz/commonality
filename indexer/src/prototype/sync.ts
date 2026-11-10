@@ -185,6 +185,6 @@ export async function syncWindow(rpc: Rpc, catalog: Catalog, options: SyncOption
   const upstreamId = historical || !/^[0-9a-f]{64}$/.test(previous?.upstreamId ?? "")
     ? randomBytes(32).toString("hex") : previous!.upstreamId;
   const committedFrom = previous && previous.fromBlock < fromBlock ? previous.fromBlock : fromBlock;
-  return { version: 1, chainId, scope, fromBlock: committedFrom, upstreamId, coverage, head, durable, children,
+  return { version: 1, chainId, scope, fromBlock: committedFrom, upstreamId, coverage, backfillCommitted: true, head, durable, children,
     rows: [...rows.values()].sort((a, b) => BigInt(a.blockNumber) < BigInt(b.blockNumber) ? -1 : BigInt(a.blockNumber) > BigInt(b.blockNumber) ? 1 : a.logIndex - b.logIndex) };
 }

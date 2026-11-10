@@ -2207,3 +2207,7 @@ Ran the raw-log replay arithmetic against the Render base-sepolia manifest and a
 ## 2026-11-10 — Alchemy cap raised; do not resume Ponder
 
 Adam raised the Alchemy limit by $10 and asked a fresh agent to continue. Handoff: [continuity/2026-11-10-after-alchemy-cap-handoff.md](continuity/2026-11-10-after-alchemy-cap-handoff.md). The indexer service is still suspended. Do not resume it.
+
+## 2026-11-10 — Hosted start runs raw-log; still do not resume
+
+Hosted indexer start now runs the raw-log engine on its own schema, with the spend guard on. Readiness stays false until backfill commits. The Render service is still suspended. Handoff: [continuity/2026-11-10-hosted-raw-log-start-handoff.md](continuity/2026-11-10-hosted-raw-log-start-handoff.md). Do not resume it, open a PR, or push until Adam says the replay fits the $10 raise.
