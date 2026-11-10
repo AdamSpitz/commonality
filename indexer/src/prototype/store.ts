@@ -1,4 +1,4 @@
-import { open, readFile, rename, unlink } from "node:fs/promises";
+import { open, readFile, rename, stat, unlink } from "node:fs/promises";
 import { dirname } from "node:path";
 import { json, type Child, type EventRow, type Header, type Snapshot } from "./types";
 
@@ -80,8 +80,7 @@ export async function writeSnapshot(path: string, snapshot: Snapshot): Promise<v
   }
 }
 
-function lockHeldByLiveProcess(pid: number): boolean {
-  if (pid === process.pid) return true;
+function processAlive(pid: number): boolean {
   try {
     process.kill(pid, 0);
     return true;
@@ -90,7 +89,22 @@ function lockHeldByLiveProcess(pid: number): boolean {
   }
 }
 
-/** A lock left by a killed process (Render keeps /tmp across crash restarts). */
+/** Wall-clock start, from /proc. Undefined off Linux or if the process is gone. */
+async function processStartMs(pid: number): Promise<number | undefined> {
+  try {
+    const statText = await readFile(`/proc/${pid}/stat`, "utf8");
+    const afterComm = statText.slice(statText.lastIndexOf(")") + 2);
+    const ticks = Number(afterComm.split(" ")[19]);
+    if (!Number.isFinite(ticks)) return undefined;
+    const btime = Number((await readFile("/proc/stat", "utf8")).match(/^btime (\d+)$/m)?.[1]);
+    if (!Number.isFinite(btime)) return undefined;
+    return btime * 1000 + ticks * 10;
+  } catch {
+    return undefined;
+  }
+}
+
+/** A lock left by a killed process. Render keeps /tmp across crash restarts, and a new container can reuse the recorded PID. */
 async function staleSnapshotLock(lock: string): Promise<boolean> {
   let text: string;
   try {
@@ -100,8 +114,11 @@ async function staleSnapshotLock(lock: string): Promise<boolean> {
     throw error;
   }
   const pid = Number(text.trim());
-  if (!Number.isInteger(pid) || pid <= 0) return true;
-  return !lockHeldByLiveProcess(pid);
+  if (!Number.isInteger(pid) || pid <= 0 || !processAlive(pid)) return true;
+  const started = await processStartMs(pid);
+  if (started == null) return false;
+  const lockMtime = (await stat(lock)).mtimeMs;
+  return started > lockMtime + 1000;
 }
 
 export async function lockSnapshot(path: string): Promise<() => Promise<void>> {
