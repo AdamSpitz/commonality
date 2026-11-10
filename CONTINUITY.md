@@ -2211,3 +2211,7 @@ Adam raised the Alchemy limit by $10 and asked a fresh agent to continue. Handof
 ## 2026-11-10 — Hosted start runs raw-log; still do not resume
 
 Hosted indexer start now runs the raw-log engine on its own schema, with the spend guard on. Readiness stays false until backfill commits. The Render service is still suspended. Handoff: [continuity/2026-11-10-hosted-raw-log-start-handoff.md](continuity/2026-11-10-hosted-raw-log-start-handoff.md). Do not resume it, open a PR, or push until Adam says the replay fits the $10 raise.
+
+## 2026-11-10 — Raw-log is serving; Ponder removal needed `pg`
+
+The hosted indexer is the raw-log engine on `feature/raw-log-prototype`, not Ponder. It is caught up and ready. The 6,935-row gap versus `commonality_base_sepolia_v6` is retired addresses outside the current manifest, not a stopped cursor. Removing Ponder dropped transitive `pg`; the image installs only `indexer/package.json`, so the removal deploy exited until `pg` was a direct dependency. Do not point the service at `master` until `master` contains this engine. Handoff: [continuity/2026-11-10-raw-log-serving-handoff.md](continuity/2026-11-10-raw-log-serving-handoff.md).
