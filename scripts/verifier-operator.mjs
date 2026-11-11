@@ -4,7 +4,7 @@ import { execFileSync, spawnSync } from "node:child_process";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { affectedChecks, fingerprintFiles, formatDuration, freshnessFor, presentationFor, profileFor, summarizeProfiles } from "./lib/verifier-operator.mjs";
+import { affectedChecks, filesNewerThan, fingerprintFiles, formatDuration, freshnessFor, presentationFor, profileFor, summarizeProfiles } from "./lib/verifier-operator.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const workspace = path.resolve(repoRoot, process.env.VERIFIER_WORKSPACE ?? "verifier");
@@ -58,13 +58,20 @@ function changedFiles(base) {
   return [...files].sort();
 }
 
-function filesChangedSince(timestamp) {
-  const files = new Set(changedFiles("HEAD"));
+function commitsSince(timestamp) {
+  const commits = [];
   try {
-    const committed = git(["log", `--since=${timestamp}`, "--name-only", "--format="]);
-    committed.split("\n").map((line) => line.trim()).filter(Boolean).forEach((file) => files.add(file));
+    const log = git(["log", `--since=${timestamp}`, "--name-only", "--pretty=format:COMMIT:%cI"]);
+    let current = null;
+    for (const line of log.split("\n")) {
+      if (line.startsWith("COMMIT:")) {
+        if (current) commits.push(current);
+        current = { at: line.slice("COMMIT:".length).trim(), files: [] };
+      } else if (current && line.trim()) current.files.push(line.trim());
+    }
+    if (current) commits.push(current);
   } catch { /* working-tree changes still provide a conservative answer */ }
-  return [...files];
+  return commits;
 }
 
 function fallbackBase() {
@@ -87,12 +94,18 @@ function viewLabels(checks, policy) {
 
 
 async function viewPresentation(checks, defs, policy) {
+  const results = new Map();
+  await Promise.all(checks.map(async (id) => results.set(id, await latestResult(id))));
+  const timestamps = [...results.values()].map((result) => result?.timestamp).filter(Boolean).sort();
+  const commits = timestamps.length ? commitsSince(timestamps[0]) : [];
+  const dirty = changedFiles("HEAD");
+  const rules = policy.changeRules ?? [];
   const out = {};
   for (const id of checks) {
-    const result = await latestResult(id);
+    const result = results.get(id);
     const profile = profileFor(id, defs.get(id), policy);
     const relevantChanges = result?.timestamp
-      ? affectedChecks(filesChangedSince(result.timestamp), policy.changeRules ?? []).checks.includes(id)
+      ? affectedChecks(filesNewerThan(result.timestamp, { dirty, commits }), rules).checks.includes(id)
       : false;
     out[id] = presentationFor(result, profile, freshnessFor(result, { codeChanged: relevantChanges }));
   }

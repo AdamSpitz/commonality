@@ -1,6 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { affectedChecks, formatDuration, freshnessFor, pathMatches, presentationFor, profileFor, summarizeProfiles } from "./verifier-operator.mjs";
+import { affectedChecks, filesNewerThan, formatDuration, freshnessFor, pathMatches, presentationFor, profileFor, summarizeProfiles } from "./verifier-operator.mjs";
+
+test("a shared commit log invalidates only results older than the commit", () => {
+  const commits = [{ at: "2026-09-02T00:00:00Z", files: ["ui/a.ts"] }];
+  const dirty = ["verifier/x.json"];
+  assert.deepEqual(filesNewerThan("2026-09-03T00:00:00Z", { dirty, commits }), ["verifier/x.json"]);
+  assert.deepEqual(filesNewerThan("2026-09-01T00:00:00Z", { dirty, commits }).sort(), ["ui/a.ts", "verifier/x.json"]);
+  assert.deepEqual(filesNewerThan(undefined, { dirty, commits }), ["verifier/x.json"]);
+});
 
 test("maps changed paths to checks and reports unmapped paths", () => {
   const result = affectedChecks(["indexer/src/a.ts", "mystery.txt"], [
