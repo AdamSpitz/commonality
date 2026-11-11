@@ -25,11 +25,8 @@ The policy, human labels, costs, path ownership, and milestone campaigns live in
 [`operator-policy.json`](./operator-policy.json). See
 [`OPERATOR-OVERHAUL.md`](./OPERATOR-OVERHAUL.md) for the design and rollout.
 
-To browse the dashboard interactively: `npm run verifier:tree`. It opens on four
-task-oriented tabs: **Current work**, **Where we stand**, **Milestone**, and the
-advanced **All checks** DAG. Press `1`–`4` or Left/Right to switch views. Each
-ordinary view contains only the checks relevant to its question; `a` runs that
-view's contextual action when it has one. `j`/`k` move, `r` reruns the selected
+To browse the dashboard interactively: `npm run verifier:tree`. It opens on the
+complete check DAG (rooted at `root`). `j`/`k` move, `r` reruns the selected
 check, `d` toggles the details pane between a check's report artifact and its
 findings JSON, and `Tab` focuses the details pane so `j`/`k` scroll it. Press `c`
 for the legacy commands/debug menu.
@@ -57,8 +54,8 @@ work?** (tests, builds, live-stack and testnet behavior). `facet.product` means
 usability, and human/LLM judgment). `facet.docs` asks whether the documentation
 coheres, `facet.security` covers contracts and trust boundaries, and
 `meta.verifier-health` asks whether the evidence system itself is trustworthy.
-These names are maintainer vocabulary; ordinary use should start with the three
-actions above, not by running individual facets.
+These names are maintainer vocabulary. The dashboard is the full DAG; the three
+commands above are the non-interactive equivalents, not separate screens.
 
 ## Command cheat-sheet
 

@@ -1,6 +1,7 @@
 {
   "id": "meta.verifier-health",
-  "description": "Can we trust the verifier? Covers liveness, flakiness, coverage gaps, and known-bad fixtures that prove checks still catch their intended failures.",
+  "name": "Can we trust the verifier?",
+  "description": "Covers liveness, flakiness, coverage gaps, and known-bad fixtures that prove checks still catch their intended failures.",
   "trigger": {
     "type": "onInputChange",
     "debounceMinutes": 5

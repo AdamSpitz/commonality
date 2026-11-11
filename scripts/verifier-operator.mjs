@@ -85,14 +85,6 @@ function labelFor(id, def, policy) {
   return policy.checkOverrides?.[id]?.label ?? policy.conclusions?.find((item) => item.id === id)?.label ?? def?.description ?? id;
 }
 
-function viewLabels(checks, policy) {
-  return Object.fromEntries(checks.map((id) => [
-    id,
-    policy.checkOverrides?.[id]?.label ?? policy.conclusions?.find((item) => item.id === id)?.label ?? id,
-  ]));
-}
-
-
 async function viewPresentation(checks, defs, policy) {
   const results = new Map();
   await Promise.all(checks.map(async (id) => results.set(id, await latestResult(id))));
@@ -245,12 +237,12 @@ async function view(args, policy, defs) {
       return changedFiles(checkBase).some((file) => affectedChecks([file], policy.changeRules ?? []).checks.includes(id));
     });
     const suffix = affected.unmapped.length ? `; ${affected.unmapped.length} unmapped path(s)` : "";
-    console.log(JSON.stringify({ checks, labels: viewLabels(checks, policy), presentation: await viewPresentation(checks, defs, policy), summary: `${files.length} changed path(s) · ${checks.length} relevant check(s)${suffix}` }));
+    console.log(JSON.stringify({ checks, presentation: await viewPresentation(checks, defs, policy), summary: `${files.length} changed path(s) · ${checks.length} relevant check(s)${suffix}` }));
     return;
   }
   if (name === "where-we-stand") {
     const checks = [...new Set([...(policy.focus.checks ?? []), "validation.pr", "meta.verifier-health"])];
-    console.log(JSON.stringify({ checks, labels: viewLabels(checks, policy), presentation: await viewPresentation(checks, defs, policy), summary: `${policy.focus.label} · stored evidence only` }));
+    console.log(JSON.stringify({ checks, presentation: await viewPresentation(checks, defs, policy), summary: `${policy.focus.label} · stored evidence only` }));
     return;
   }
   if (name === "milestone") {
@@ -258,12 +250,12 @@ async function view(args, policy, defs) {
     const milestone = policy.milestones?.[milestoneName];
     if (!milestone) throw new Error(`Unknown milestone '${milestoneName}'`);
     const checks = milestone.checks ?? [];
-    console.log(JSON.stringify({ checks, labels: viewLabels(checks, policy), presentation: await viewPresentation(checks, defs, policy), summary: `${milestone.label} · required evidence and campaign preview` }));
+    console.log(JSON.stringify({ checks, presentation: await viewPresentation(checks, defs, policy), summary: `${milestone.label} · required evidence and campaign preview` }));
     return;
   }
   if (name === "all-checks") {
     const checks = [...defs.keys()];
-    console.log(JSON.stringify({ checks: ["root"], labels: viewLabels(checks, policy), presentation: await viewPresentation(checks, defs, policy), summary: "Complete evidence DAG · advanced view" }));
+    console.log(JSON.stringify({ checks: ["root"], presentation: await viewPresentation(checks, defs, policy), summary: "Complete evidence DAG" }));
     return;
   }
   throw new Error(`Unknown view '${name}'`);
