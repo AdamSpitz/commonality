@@ -1,9 +1,22 @@
 {
   "id": "operations.local-stack-health",
   "description": "Cheap unguarded canary for the local Dockerized stack. Probes representative RPC, indexer, API, and UI endpoints. If the stack is down, it starts it automatically and may wipe ephemeral local data if startup is still unhealthy.",
-  "trigger": { "type": "cron", "everyMinutes": 60 },
-  "retention": { "keep": 10, "keepDays": 30 },
-  "command": ["node", "checks/operations/local-stack-health.mjs"],
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 45
+  },
+  "trigger": {
+    "type": "cron",
+    "everyMinutes": 60
+  },
+  "retention": {
+    "keep": 10,
+    "keepDays": 30
+  },
+  "command": [
+    "node",
+    "checks/operations/local-stack-health.mjs"
+  ],
   "inputs": [
     {
       "kind": "params",
@@ -12,15 +25,28 @@
         "autoStartOnFailure": true,
         "allowDestructiveRecovery": true,
         "recoveryCommandTimeoutMs": 600000,
-        "startCommand": ["../scripts/services.sh", "--start"],
-        "wipeCommand": ["../scripts/data.sh", "--wipe"],
+        "startCommand": [
+          "../scripts/services.sh",
+          "--start"
+        ],
+        "wipeCommand": [
+          "../scripts/data.sh",
+          "--wipe"
+        ],
         "services": [
           {
             "name": "hardhat rpc",
             "url": "http://localhost:8545/",
             "method": "POST",
-            "headers": { "Content-Type": "application/json" },
-            "body": { "jsonrpc": "2.0", "id": 1, "method": "eth_blockNumber", "params": [] },
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "body": {
+              "jsonrpc": "2.0",
+              "id": 1,
+              "method": "eth_blockNumber",
+              "params": []
+            },
             "expectedStatus": 200,
             "requireJsonPath": "result",
             "recoveryHint": "This check automatically runs ../scripts/services.sh --start from the verifier workspace, and if needed ../scripts/data.sh --wipe followed by ../scripts/services.sh --start. If Hardhat is still down, inspect the hardhat service logs with docker compose logs hardhat."
@@ -50,5 +76,7 @@
     }
   ],
   "timeoutMs": 1800000,
-  "display": { "preferredArtifact": "local-stack-health.md" }
+  "display": {
+    "preferredArtifact": "local-stack-health.md"
+  }
 }

@@ -1,6 +1,10 @@
 {
   "id": "review.newcomer.touched-surface",
   "description": "Attest that a fresh cold-start newcomer report exists for the touched surface.",
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 300
+  },
   "trigger": {
     "type": "manual"
   },

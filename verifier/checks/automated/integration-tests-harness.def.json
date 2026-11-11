@@ -1,15 +1,31 @@
 {
   "id": "automated.integration-tests-harness",
   "description": "Run the integration-test harness unit suite: npm run integration-tests:test:harness:raw.",
-  "trigger": { "type": "manual" },
-  "retention": { "keep": 3, "keepDays": 14 },
-  "command": ["node", "checks/automated/run-command-check.mjs"],
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 300
+  },
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 3,
+    "keepDays": 14
+  },
+  "command": [
+    "node",
+    "checks/automated/run-command-check.mjs"
+  ],
   "inputs": [
     {
       "kind": "params",
       "data": {
         "label": "npm run integration-tests:test:harness:raw",
-        "command": ["npm", "run", "integration-tests:test:harness:raw"],
+        "command": [
+          "npm",
+          "run",
+          "integration-tests:test:harness:raw"
+        ],
         "commandTimeoutMs": 120000,
         "cwd": ".."
       }

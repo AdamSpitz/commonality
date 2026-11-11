@@ -1,6 +1,10 @@
 {
   "id": "review.demo-dry-run",
   "description": "Attest that a fresh demo dry-run / whole-system narrative report exists.",
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 300
+  },
   "trigger": {
     "type": "manual"
   },

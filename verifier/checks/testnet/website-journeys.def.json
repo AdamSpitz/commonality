@@ -1,12 +1,33 @@
 {
   "id": "testnet.website-journeys",
   "description": "Guarded deployed website browser smoke journeys against configured *.testnet.commonality.works app URLs.",
-  "trigger": { "type": "manual" },
-  "retention": { "keep": 5, "keepDays": 30 },
-  "command": ["node", "checks/testnet/website-journeys.mjs"],
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 300
+  },
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 5,
+    "keepDays": 30
+  },
+  "command": [
+    "node",
+    "checks/testnet/website-journeys.mjs"
+  ],
   "inputs": [
-    { "kind": "file", "path": "environments/testnet.json", "as": "testnetConfig" },
-    { "kind": "params", "data": { "guardPolicy": "Requires COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1 and COMMONALITY_VERIFIER_ENABLE_TESTNET_BROWSER_JOURNEYS=1; non-mutating Chromium smoke over all configured app URLs." } }
+    {
+      "kind": "file",
+      "path": "environments/testnet.json",
+      "as": "testnetConfig"
+    },
+    {
+      "kind": "params",
+      "data": {
+        "guardPolicy": "Requires COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1 and COMMONALITY_VERIFIER_ENABLE_TESTNET_BROWSER_JOURNEYS=1; non-mutating Chromium smoke over all configured app URLs."
+      }
+    }
   ],
   "timeoutMs": 180000
 }

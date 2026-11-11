@@ -1,6 +1,10 @@
 {
   "id": "automated.ui-e2e-funding",
   "description": "Run UI Playwright LazyGiving/content-funding/delegation specs.",
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 300
+  },
   "trigger": {
     "type": "manual"
   },

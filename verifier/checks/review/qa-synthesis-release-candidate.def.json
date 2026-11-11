@@ -1,6 +1,10 @@
 {
   "id": "review.qa-synthesis.release-candidate",
   "description": "Attest that a fresh release-candidate QA synthesis report exists.",
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 300
+  },
   "trigger": {
     "type": "manual"
   },

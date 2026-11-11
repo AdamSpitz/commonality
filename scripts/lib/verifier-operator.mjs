@@ -50,19 +50,11 @@ export function formatCompactDuration(seconds) {
   return `~${Math.ceil(seconds / 60)}m`;
 }
 
-function formatMinutes(minutes) {
-  if (minutes < 60) return `${minutes}m`;
-  if (minutes < 1440) return `${Math.floor(minutes / 60)}h`;
-  return `${Math.floor(minutes / 1440)}d`;
-}
-
-export function freshnessFor(result, { now = Date.now(), maxAgeMinutes = 10080, codeChanged = false } = {}) {
-  if (!result?.timestamp) return { stale: false, reasons: [] };
+export function freshnessFor(result, { now = Date.now(), codeChanged = false } = {}) {
+  if (!result?.timestamp) return { stale: false, changed: false, reasons: [], ageMinutes: null };
   const ageMinutes = Math.max(0, Math.floor((now - Date.parse(result.timestamp)) / 60000));
-  const reasons = [];
-  if (Number.isFinite(maxAgeMinutes) && ageMinutes > maxAgeMinutes) reasons.push(`last run is ${formatMinutes(ageMinutes)} old (limit ${formatMinutes(maxAgeMinutes)})`);
-  if (codeChanged) reasons.push("relevant code changed since this run");
-  return { stale: reasons.length > 0, reasons, ageMinutes, maxAgeMinutes };
+  const reasons = codeChanged ? ["relevant code changed since this run"] : [];
+  return { stale: false, changed: codeChanged, reasons, ageMinutes };
 }
 
 export function presentationFor(result, profile, freshness) {

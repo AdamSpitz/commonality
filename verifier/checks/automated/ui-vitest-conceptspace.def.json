@@ -1,6 +1,10 @@
 {
   "id": "automated.ui-vitest-conceptspace",
   "description": "Run UI Vitest ConceptSpace tests.",
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 300
+  },
   "trigger": {
     "type": "manual"
   },

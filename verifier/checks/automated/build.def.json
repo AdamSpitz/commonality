@@ -1,6 +1,10 @@
 {
   "id": "automated.build",
   "description": "Run the project build/typecheck feedback loop: npm run build:raw.",
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 300
+  },
   "trigger": {
     "type": "manual"
   },

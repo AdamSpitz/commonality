@@ -94,8 +94,7 @@ async function viewPresentation(checks, defs, policy) {
     const relevantChanges = result?.timestamp
       ? affectedChecks(filesChangedSince(result.timestamp), policy.changeRules ?? []).checks.includes(id)
       : false;
-    const maxAgeMinutes = policy.checkOverrides?.[id]?.maxAgeMinutes ?? policy.defaultMaxAgeMinutes ?? 10080;
-    out[id] = presentationFor(result, profile, freshnessFor(result, { maxAgeMinutes, codeChanged: relevantChanges }));
+    out[id] = presentationFor(result, profile, freshnessFor(result, { codeChanged: relevantChanges }));
   }
   return out;
 }

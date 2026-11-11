@@ -1,6 +1,10 @@
 {
   "id": "automated.hardhat-contracts",
   "description": "Runs the full Hardhat smart-contract test suite as a separately visible contract-safety signal (also included indirectly in npm run test:fast:raw).",
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 300
+  },
   "trigger": {
     "type": "manual"
   },

@@ -1,6 +1,6 @@
 # Verifier design & philosophy
 
-The *why* behind this workspace. For how to **run** it, see [`README.md`](./README.md); for what's **left to build**, see [`PLAN.md`](./PLAN.md). Per-check behavior is documented in the `*.def.json` files under [`checks/`](./checks/), which are the source of truth.
+The *why* behind this workspace. For anything else, see [`README.md`](./README.md).
 
 ## The overarching goal
 
@@ -92,7 +92,7 @@ Use a manual validation pass when conventional tests pass but we still need inte
 
 - Leaf checks read the live project/system. Cheap leaves should use `cron`; expensive/manual/LLM leaves are intentionally `manual` unless their definition says otherwise.
 - Deterministic inner nodes use `onInputChange` — they rerun automatically when a child result changes while `verifier-scheduler` is running. `root` is `onInputChange` too, so the **rollup** follows refreshed facets; the narrative LLM is skipped unless `COMMONALITY_VERIFIER_ALLOW_LLM=1` (set by `verifier:root`). Without the scheduler, `onInputChange` does not fire on its own; a manual `verifier-run <id>` still updates descendants' inputs for the next run.
-- Supervisors use `freshness.requiredMaxAgeMinutes` to turn old non-failing child results into `uncertain` — the warning that evidence is old enough to consider refreshing.
+- Age is not a status. The tree colors the age label from measured (or estimated) rerun cost. Supervisors do not turn an old pass into `uncertain` just because a clock expired.
 - `meta.report-currency` is a **manual legacy heuristic**. It is not a root input and only runs explicitly through `verifier:currency:heuristic`. The intent-based operator uses deterministic path rules, the dirty tree, and per-check baselines instead.
 - Standing LLM-judgment leaves call `pi` with `xai` or `opencode-go` only (`verifier/llm-routing.json`). A chat session can supply the JSON envelope via `npm run verifier:llm -- <id> --response-file …` and that stored Result is as real as a `pi` run.
 - `meta.liveness` runs every 30 minutes and warns when scheduled checks have gone silent or overdue.

@@ -1,9 +1,21 @@
 {
   "id": "operations.indexer-lag",
   "description": "Guarded local-stack probe that optionally runs a configured local event-burst command, mines a short burst of blocks, and verifies the indexer /status catches up within a block-lag budget. Optionally also requires a numeric JSON canary on that status body to advance, so a caught-up block without the burst's events cannot pass.",
-  "trigger": { "type": "manual" },
-  "retention": { "keep": 5, "keepDays": 30 },
-  "command": ["node", "checks/operations/indexer-lag.mjs"],
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 1200
+  },
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 5,
+    "keepDays": 30
+  },
+  "command": [
+    "node",
+    "checks/operations/indexer-lag.mjs"
+  ],
   "inputs": [
     {
       "kind": "params",
@@ -24,5 +36,7 @@
     }
   ],
   "timeoutMs": 30000,
-  "display": { "preferredArtifact": "indexer-lag.md" }
+  "display": {
+    "preferredArtifact": "indexer-lag.md"
+  }
 }

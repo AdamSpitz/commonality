@@ -1,12 +1,33 @@
 {
   "id": "coverage.workflows",
   "description": "Verify the in-scope UI workflow inventory (Commonality, Civility, Common Sense Majority) maps each required workflow to a workflow-clarity check, objective smoke, and existing surface files.",
-  "trigger": { "type": "cron", "everyMinutes": 720 },
-  "retention": { "keep": 10, "keepDays": 30 },
-  "command": ["node", "checks/coverage/workflows.mjs"],
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 2
+  },
+  "trigger": {
+    "type": "cron",
+    "everyMinutes": 720
+  },
+  "retention": {
+    "keep": 10,
+    "keepDays": 30
+  },
+  "command": [
+    "node",
+    "checks/coverage/workflows.mjs"
+  ],
   "inputs": [
-    { "kind": "file", "path": "coverage/workflows.json", "as": "workflowsInventory" },
-    { "kind": "file", "path": "../specs/product/ui-domains.md", "as": "uiDomainsDoc" }
+    {
+      "kind": "file",
+      "path": "coverage/workflows.json",
+      "as": "workflowsInventory"
+    },
+    {
+      "kind": "file",
+      "path": "../specs/product/ui-domains.md",
+      "as": "uiDomainsDoc"
+    }
   ],
   "timeoutMs": 30000
 }

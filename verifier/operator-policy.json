@@ -22,7 +22,6 @@
     { "id": "meta.verifier-health", "label": "The verification system is catching its own failures" }
   ],
   "hiddenByDefault": ["known-bad.*", "coverage.*"],
-  "defaultMaxAgeMinutes": 10080,
   "costProfiles": {
     "instant": { "label": "instant", "estimatedSeconds": 2, "tokens": "none", "autoSafe": true },
     "short": { "label": "under a minute", "estimatedSeconds": 45, "tokens": "none", "autoSafe": true },

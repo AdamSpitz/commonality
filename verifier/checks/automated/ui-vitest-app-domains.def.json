@@ -1,6 +1,10 @@
 {
   "id": "automated.ui-vitest-app-domains",
   "description": "Run UI Vitest app shell, docs, domain, and routing tests.",
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 300
+  },
   "trigger": {
     "type": "manual"
   },

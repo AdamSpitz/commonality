@@ -1,11 +1,28 @@
 {
   "id": "coverage.testing-plan",
   "description": "Verify that the big testing plan's major sections and explicit release-confidence dimensions are represented in the verifier coverage inventory.",
-  "trigger": { "type": "cron", "everyMinutes": 720 },
-  "retention": { "keep": 10, "keepDays": 30 },
-  "command": ["node", "checks/coverage/testing-plan.mjs"],
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 2
+  },
+  "trigger": {
+    "type": "cron",
+    "everyMinutes": 720
+  },
+  "retention": {
+    "keep": 10,
+    "keepDays": 30
+  },
+  "command": [
+    "node",
+    "checks/coverage/testing-plan.mjs"
+  ],
   "inputs": [
-    { "kind": "file", "path": "coverage/testing-plan-items.json", "as": "testingPlanItems" }
+    {
+      "kind": "file",
+      "path": "coverage/testing-plan-items.json",
+      "as": "testingPlanItems"
+    }
   ],
   "timeoutMs": 30000
 }

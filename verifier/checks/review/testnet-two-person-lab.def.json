@@ -1,10 +1,22 @@
 {
   "id": "review.testnet-two-person-lab",
   "description": "LLM/chat judgment of whether the live Base Sepolia Commonality lab is usable as a two-person shared world. Prefer two independent browser or HTTP sessions. Wallet-injected dual-signer walks are skipped unless this chat actually has two funded wallets. Manual; chat-session path via npm run verifier:llm.",
+  "expense": {
+    "llm": "expensive",
+    "estimatedSeconds": 600
+  },
   "cost": "llm",
-  "trigger": { "type": "manual" },
-  "retention": { "keep": 5, "keepDays": 90 },
-  "command": ["node", "checks/review/testnet-two-person-lab.mjs"],
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 5,
+    "keepDays": 90
+  },
+  "command": [
+    "node",
+    "checks/review/testnet-two-person-lab.mjs"
+  ],
   "inputs": [
     {
       "kind": "params",
@@ -14,7 +26,11 @@
         "surface": "Commonality testnet two-person lab"
       }
     },
-    { "kind": "file", "path": "environments/testnet.json", "as": "testnetConfig" }
+    {
+      "kind": "file",
+      "path": "environments/testnet.json",
+      "as": "testnetConfig"
+    }
   ],
   "timeoutMs": 930000,
   "display": {

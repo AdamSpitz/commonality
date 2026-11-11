@@ -245,16 +245,13 @@
         "label": "meta.verifier-health",
         "rollup": {
           "type": "anyFail"
-        },
-        "freshness": {
-          "requiredMaxAgeMinutes": 10080,
-          "byRoleMinutes": {
-            "verifier-review": 43200,
-            "automation-candidates": 43200
-          }
         }
       }
     }
   ],
-  "timeoutMs": 30000
+  "timeoutMs": 30000,
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 2
+  }
 }

@@ -1,6 +1,10 @@
 {
   "id": "automated.integration-tests",
   "description": "Runs the full cross-package integration-test suite, including the local on-chain/indexer paths that are too expensive for the fast PR harness.",
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 300
+  },
   "trigger": {
     "type": "manual"
   },

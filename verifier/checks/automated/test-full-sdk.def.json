@@ -1,6 +1,10 @@
 {
   "id": "automated.test-full-sdk",
   "description": "Run the SDK test suite: npm run sdk:test:raw.",
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 300
+  },
   "trigger": {
     "type": "manual"
   },

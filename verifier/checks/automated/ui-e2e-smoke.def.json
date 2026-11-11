@@ -1,6 +1,10 @@
 {
   "id": "automated.ui-e2e-smoke",
   "description": "Run UI Playwright smoke/routing specs.",
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 300
+  },
   "trigger": {
     "type": "manual"
   },

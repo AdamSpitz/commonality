@@ -1,6 +1,10 @@
 {
   "id": "operations.page-load-timing",
   "description": "Builds representative UI domain pages, serves them locally, and enforces a browser page-load timing budget as a stronger UX-performance signal than bundle size alone.",
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 300
+  },
   "trigger": {
     "type": "manual"
   },
@@ -30,10 +34,22 @@
           "maxNetworkIdleMs": 5000
         },
         "targets": [
-          { "name": "commonality", "path": "/commonality/" },
-          { "name": "lazyGiving", "path": "/lazyGiving/" },
-          { "name": "content-funding", "path": "/content-funding/" },
-          { "name": "tally", "path": "/tally/" }
+          {
+            "name": "commonality",
+            "path": "/commonality/"
+          },
+          {
+            "name": "lazyGiving",
+            "path": "/lazyGiving/"
+          },
+          {
+            "name": "content-funding",
+            "path": "/content-funding/"
+          },
+          {
+            "name": "tally",
+            "path": "/tally/"
+          }
         ]
       }
     }

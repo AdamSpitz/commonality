@@ -1,6 +1,10 @@
 {
   "id": "automated.ui-e2e-conceptspace",
   "description": "Run UI Playwright ConceptSpace/Subjectiv specs.",
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 300
+  },
   "trigger": {
     "type": "manual"
   },

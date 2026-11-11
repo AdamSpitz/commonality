@@ -1,24 +1,62 @@
 {
   "id": "functionality.operations",
   "description": "Functionality subfacet: operational resilience and performance-budget backstops. Intermediate rollup keeps operations checks on a small branch beneath facet.functionality.",
-  "trigger": { "type": "onInputChange", "debounceMinutes": 1 },
-  "retention": { "keep": 10, "keepDays": 30 },
-  "command": ["node", "checks/supervisor.mjs"],
+  "trigger": {
+    "type": "onInputChange",
+    "debounceMinutes": 1
+  },
+  "retention": {
+    "keep": 10,
+    "keepDays": 30
+  },
+  "command": [
+    "node",
+    "checks/supervisor.mjs"
+  ],
   "inputs": [
-    { "kind": "check", "id": "operations.degradation-canary", "role": "operations" },
-    { "kind": "check", "id": "operations.performance-source-canary", "role": "operations" },
-    { "kind": "check", "id": "operations.performance-budget", "role": "operations" },
-    { "kind": "check", "id": "operations.page-load-timing", "role": "operations" },
-    { "kind": "check", "id": "operations.seeded-stack-latency", "role": "operations" },
-    { "kind": "check", "id": "operations.indexer-lag", "role": "operations" },
+    {
+      "kind": "check",
+      "id": "operations.degradation-canary",
+      "role": "operations"
+    },
+    {
+      "kind": "check",
+      "id": "operations.performance-source-canary",
+      "role": "operations"
+    },
+    {
+      "kind": "check",
+      "id": "operations.performance-budget",
+      "role": "operations"
+    },
+    {
+      "kind": "check",
+      "id": "operations.page-load-timing",
+      "role": "operations"
+    },
+    {
+      "kind": "check",
+      "id": "operations.seeded-stack-latency",
+      "role": "operations"
+    },
+    {
+      "kind": "check",
+      "id": "operations.indexer-lag",
+      "role": "operations"
+    },
     {
       "kind": "params",
       "data": {
         "label": "functionality.operations",
-        "rollup": { "type": "anyFail" },
-        "freshness": { "requiredMaxAgeMinutes": 10080 }
+        "rollup": {
+          "type": "anyFail"
+        }
       }
     }
   ],
-  "timeoutMs": 30000
+  "timeoutMs": 30000,
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 2
+  }
 }

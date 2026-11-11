@@ -1,6 +1,10 @@
 {
   "id": "automated.test-full-integration",
   "description": "Run the full integration test suite (on-chain + indexer paths): npm run integration-tests:raw.",
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 300
+  },
   "trigger": {
     "type": "manual"
   },

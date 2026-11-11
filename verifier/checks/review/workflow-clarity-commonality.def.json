@@ -1,6 +1,10 @@
 {
   "id": "review.workflow-clarity.commonality",
   "description": "Standing gating LLM-judgment leaf: judges whether Commonality exposes a clear path to start or retrieve a cause and then sign, fund, or inspect work in cause context.",
+  "expense": {
+    "llm": "expensive",
+    "estimatedSeconds": 600
+  },
   "cost": "llm",
   "trigger": {
     "type": "manual"

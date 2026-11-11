@@ -1,6 +1,10 @@
 {
   "id": "review.founder-e2e.commonality",
   "description": "Founder-authored E2E LLM check of Commonality. The spec is Adam's own description of the landing page, Start Cause, cause-page roles, cause board, project page, and contributing — stored verbatim in checks/review/founder-e2e/commonality.md and not rewritten. The model looks at the built surface and reports whether it more-or-less matches, plus independent user-judgment notes.",
+  "expense": {
+    "llm": "expensive",
+    "estimatedSeconds": 600
+  },
   "cost": "llm",
   "trigger": {
     "type": "manual"

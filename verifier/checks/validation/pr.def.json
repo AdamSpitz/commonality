@@ -1,23 +1,83 @@
 {
   "id": "validation.pr",
   "description": "PR/change-local validation rollup over cheap deterministic feedback loops.",
-  "trigger": { "type": "onInputChange", "debounceMinutes": 1 },
-  "retention": { "keep": 10, "keepDays": 30 },
-  "command": ["node", "checks/validation/pr.mjs"],
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 2
+  },
+  "trigger": {
+    "type": "onInputChange",
+    "debounceMinutes": 1
+  },
+  "retention": {
+    "keep": 10,
+    "keepDays": 30
+  },
+  "command": [
+    "node",
+    "checks/validation/pr.mjs"
+  ],
   "inputs": [
-    { "kind": "check", "id": "automated.lint", "role": "required" },
-    { "kind": "check", "id": "automated.build", "role": "required" },
-    { "kind": "check", "id": "automated.test-fast", "role": "required" },
-    { "kind": "check", "id": "automated.hardhat-contracts", "role": "required" },
-    { "kind": "check", "id": "review.security.slither", "role": "required" },
-    { "kind": "check", "id": "automated.indexer-integrity-canaries", "role": "required" },
-    { "kind": "check", "id": "ai-fixtures.deterministic", "role": "required" },
-    { "kind": "check", "id": "review.page-links", "role": "required" },
-    { "kind": "check", "id": "review.nav-target-reachability", "role": "required" },
-    { "kind": "check", "id": "review.copy-encoding", "role": "required" },
-    { "kind": "check", "id": "functionality.civility-policy-surfaces", "role": "required" },
-    { "kind": "check", "id": "automated.seed-implication-regression", "role": "optional" },
-    { "kind": "params", "data": { "requiredFreshMinutes": 1440, "optionalFreshMinutes": 1440 } }
+    {
+      "kind": "check",
+      "id": "automated.lint",
+      "role": "required"
+    },
+    {
+      "kind": "check",
+      "id": "automated.build",
+      "role": "required"
+    },
+    {
+      "kind": "check",
+      "id": "automated.test-fast",
+      "role": "required"
+    },
+    {
+      "kind": "check",
+      "id": "automated.hardhat-contracts",
+      "role": "required"
+    },
+    {
+      "kind": "check",
+      "id": "review.security.slither",
+      "role": "required"
+    },
+    {
+      "kind": "check",
+      "id": "automated.indexer-integrity-canaries",
+      "role": "required"
+    },
+    {
+      "kind": "check",
+      "id": "ai-fixtures.deterministic",
+      "role": "required"
+    },
+    {
+      "kind": "check",
+      "id": "review.page-links",
+      "role": "required"
+    },
+    {
+      "kind": "check",
+      "id": "review.nav-target-reachability",
+      "role": "required"
+    },
+    {
+      "kind": "check",
+      "id": "review.copy-encoding",
+      "role": "required"
+    },
+    {
+      "kind": "check",
+      "id": "functionality.civility-policy-surfaces",
+      "role": "required"
+    },
+    {
+      "kind": "check",
+      "id": "automated.seed-implication-regression",
+      "role": "optional"
+    }
   ],
   "timeoutMs": 30000
 }

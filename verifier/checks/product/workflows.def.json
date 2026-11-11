@@ -45,12 +45,13 @@
         "label": "product.workflows",
         "rollup": {
           "type": "anyFail"
-        },
-        "freshness": {
-          "requiredMaxAgeMinutes": 10080
         }
       }
     }
   ],
-  "timeoutMs": 30000
+  "timeoutMs": 30000,
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 2
+  }
 }

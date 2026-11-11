@@ -1,6 +1,10 @@
 {
   "id": "review.real-ui.touched-domain",
   "description": "Attest that a fresh adversarial real-UI report exists for the touched domain.",
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 300
+  },
   "trigger": {
     "type": "manual"
   },
