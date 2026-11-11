@@ -145,7 +145,7 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "@adamspitz/verifier": "^0.1.1",
+    "@adamspitz/verifier": "file:../verifier",
     "husky": "^9.1.7",
     "madge": "^8.0.0",
     "markdown-link-check": "^3.14.2",
