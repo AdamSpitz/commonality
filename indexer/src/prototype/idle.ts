@@ -28,7 +28,13 @@ export class PrototypeIdleGate {
     return this.now() < this.fastUntil;
   }
 
-  wait(ms: number): Promise<void> {
+  /**
+   * Idle sleeps are interruptible so a reader does not wait out the idle gap.
+   * The fast-poll interval must not be: a reader every few seconds was
+   * aborting the 12s sleep and burning the daily CU ceiling.
+   */
+  wait(ms: number, options?: { interruptible?: boolean }): Promise<void> {
+    const interruptible = options?.interruptible !== false;
     return new Promise(resolve => {
       const done = () => {
         clearTimeout(timer);
@@ -36,7 +42,7 @@ export class PrototypeIdleGate {
         resolve();
       };
       const timer = setTimeout(done, ms);
-      this.waiters.push(done);
+      if (interruptible) this.waiters.push(done);
     });
   }
 }
