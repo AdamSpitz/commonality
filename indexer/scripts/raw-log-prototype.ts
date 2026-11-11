@@ -112,7 +112,7 @@ async function main() {
           continue;
         }
       } else if (poll) {
-        await (idle ? idle.wait(interval) : delay(interval));
+        await (idle ? idle.wait(interval, { interruptible: false }) : delay(interval));
       }
       const before = { ...rpc.calls };
       const started = Date.now();

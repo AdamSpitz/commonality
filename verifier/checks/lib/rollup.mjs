@@ -52,7 +52,7 @@ export function withFreshness(workers, freshness) {
 
 export function statusOf(worker) {
   if (!worker.result) return "missing";
-  if (worker.freshness?.stale && !["fail", "error"].includes(worker.result.status)) return "uncertain";
+  if (worker.freshness?.stale && !["fail", "error", "skipped"].includes(worker.result.status)) return "uncertain";
   return worker.result.status;
 }
 
@@ -171,7 +171,7 @@ export function classificationParts(classification) {
 
 export function advisoryParts(advisoryWorkers) {
   const counts = statusCounts(advisoryWorkers);
-  return ["pass", "fail", "uncertain", "error", "missing"]
+  return ["pass", "fail", "uncertain", "error", "skipped", "missing"]
     .filter((statusName) => counts[statusName])
     .map((statusName) => `${counts[statusName]} advisory ${statusName}`)
     .join(", ");
@@ -179,7 +179,7 @@ export function advisoryParts(advisoryWorkers) {
 
 export function makeSummary(label, status, workers, counts, classification, advisoryWorkers) {
   if (workers.length === 0 && advisoryWorkers.length === 0) return `${label}: no child checks configured.`;
-  const parts = ["pass", "fail", "uncertain", "error", "missing"]
+  const parts = ["pass", "fail", "uncertain", "error", "skipped", "missing"]
     .filter((statusName) => counts[statusName])
     .map((statusName) => `${counts[statusName]} ${statusName}`)
     .join(", ");

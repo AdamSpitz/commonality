@@ -45,7 +45,7 @@ function rollup(children) {
   const considered = children.filter((child) => child.considered);
 
   if (considered.some((child) => child.status === "fail")) return "fail";
-  if (considered.some((child) => child.status === "error" || child.status === "uncertain" || child.status === "missing")) return "uncertain";
+  if (considered.some((child) => child.status !== "pass")) return "uncertain";
   return "pass";
 }
 
@@ -68,7 +68,7 @@ emit(async () => {
   const optionalIds = children.filter((child) => !child.required).map((child) => child.id);
   const findings = {
     policy: {
-      required: `${requiredIds.join(", ")} must have a result and no fail/error/uncertain status. Age is shown, not gated.`,
+      required: `${requiredIds.join(", ")} must have a passing result. Age is shown, not gated.`,
       optional: optionalIds.length > 0
         ? `${optionalIds.join(", ")} ${optionalIds.length === 1 ? "is" : "are"} included when a result exists.`
         : "No optional checks are configured."

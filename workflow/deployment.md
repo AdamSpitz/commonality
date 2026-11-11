@@ -111,7 +111,7 @@ The script refuses to run if the funder cannot cover the per-wallet transfers, e
 
 ### Step 0: Run release-candidate validation
 
-The verifier CLI is installed by this repository's normal `npm install` as the `@adamspitz/verifier` dev dependency. Run verifier commands through the npm scripts or with `npx verifier-run`; see [`verifier/README.md`](../verifier/README.md#harness-setup) if the CLI is unavailable.
+The verifier CLI is installed by this repository's normal `npm install` as the `@adamspitz/verifier` dev dependency. Run verifier commands through the npm scripts or with `npx verifier-run`; see [harness setup](../verifier/HOW-TO-RUN-IT.md#harness-setup) if the CLI is unavailable.
 
 Before changing public testnet state, refresh the verifier checks you intend to claim for this milestone, then refresh the root dashboard:
 

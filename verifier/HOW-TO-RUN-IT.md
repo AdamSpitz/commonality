@@ -26,14 +26,14 @@ The policy, human labels, costs, path ownership, and milestone campaigns live in
 [`OPERATOR-OVERHAUL.md`](./OPERATOR-OVERHAUL.md) for the design and rollout.
 
 To browse the dashboard interactively: `npm run verifier:tree`. It opens on the
-complete check DAG (rooted at `root`). `j`/`k` move, `r` reruns the selected
+flat **Leaf checks** tab; **All checks** shows the complete DAG rooted at `root`. `j`/`k` move, `r` reruns the selected
 check, `d` toggles the details pane between a check's report artifact and its
 findings JSON, and `Tab` focuses the details pane so `j`/`k` scroll it. Press `c`
 for the legacy commands/debug menu.
 
 Tree rows distinguish verdict from refresh cost. The glyph is the verdict:
 bright green `✓` pass, bright red `✗` fail, cyan `?` uncertain, magenta `!`
-check error, grey `·` never run. The age label (`57d ago`) is colored by how
+check error, and a separate skipped verdict for intentional opt-outs; grey `·` means never run. The age label (`57d ago`) is colored by how
 cheap the check is to rerun relative to that age: green while a refresh would
 be soon for its cost, yellow as it crosses about 60× that cost, red after about
 120×. A one-minute no-LLM check goes yellow around an hour and red around two
@@ -143,7 +143,7 @@ Guarded checks refuse to run without an explicit opt-in env var. When they refus
 
 - `verifier-run` takes **one** check per invocation; extra positional args are read as a workspace path, not a second check.
 - Refresh facets *after* their leaves, and only re-run `root` (an LLM check) when you actually want a fresh narrative.
-- The `"cost"` field lives in the sibling [`AdamSpitz/verifier`](https://github.com/AdamSpitz/verifier) repo's `Definition` type, which is npm-linked into the global `verifier-run`/`verifier-tree` binaries. To change harness behavior there, edit `src/`, run `npm run build` — no republish needed.
+- The `"cost"` field lives in the standalone [`AdamSpitz/verifier`](https://github.com/AdamSpitz/verifier) repo's `Definition` type. This workspace currently installs a packed build; see [package provenance](../vendor/README.md). Editing a sibling checkout does not update the installed npm-script binaries.
 
 ## Harness setup
 
