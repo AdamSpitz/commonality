@@ -59,6 +59,23 @@ test("an exhausted catch-up allowance falls back to the quiet ceiling", () => {
   });
 });
 
+test("catch-up allowance does not spend or wait on the quiet daily ceiling", () => {
+  const ledger = new SpendLedger({
+    hourlyCu: 100_000, dailyCu: 60, hourlyRequests: 10, dailyRequests: 1,
+    catchupRequests: 4, catchupCu: 500,
+  });
+  ledger.admit("eth_getLogs", 0);
+  ledger.setCatchingUp(true);
+  ledger.admit("eth_getLogs", 0);
+  ledger.admit("eth_getBlockByNumber", 0);
+  ledger.setCatchingUp(false);
+  assert.throws(() => ledger.admit("eth_chainId", 0), (error: unknown) => {
+    assert.ok(error instanceof SpendParked);
+    assert.match(error.reason, /daily/);
+    return true;
+  });
+});
+
 test("request ceiling parks even when CU weight is zero", () => {
   const ledger = new SpendLedger({ hourlyCu: 100_000, dailyCu: 1_000_000, hourlyRequests: 1, dailyRequests: 10 });
   ledger.admit("eth_chainId", 0);

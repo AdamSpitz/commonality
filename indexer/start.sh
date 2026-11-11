@@ -85,8 +85,9 @@ run_with_capacity_parking() {
 if [ "$HOSTED" = 1 ]; then
   # Fresh schema on the same Postgres. Never the old Ponder DATABASE_SCHEMA.
   export INDEXER_SPEND_GUARD=1
-  # Quiet hourly ceilings are too small for the one-time replay. This extra
-  # allowance applies only while the cursor is still behind, then turns off.
+  # Quiet hourly and daily ceilings are for caught-up polling. While the
+  # cursor is still behind, calls draw a separate allowance and do not consume
+  # those ceilings. The allowance turns off once the cursor is caught up.
   export INDEXER_CATCHUP="${INDEXER_CATCHUP:-1}"
   export INDEXER_PROTOTYPE_DATABASE_URL="${INDEXER_PROTOTYPE_DATABASE_URL:-${DATABASE_URL:-}}"
   export INDEXER_PROTOTYPE_SCHEMA="${INDEXER_PROTOTYPE_SCHEMA:-raw_log}"

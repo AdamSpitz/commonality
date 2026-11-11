@@ -94,14 +94,14 @@ export class SpendLedger {
     const cu = cuFor(method);
     const catchup = this.catchupCanCover(cu);
     const hourly = this.ticks.filter(tick => !tick.catchup && tick.at > at - HOUR_MS);
-    const daily = this.ticks.filter(tick => tick.at > at - DAY_MS);
+    const daily = this.ticks.filter(tick => !tick.catchup && tick.at > at - DAY_MS);
     const hourlyCu = hourly.reduce((sum, tick) => sum + tick.cu, 0);
     const dailyCu = daily.reduce((sum, tick) => sum + tick.cu, 0);
     const breaches: string[] = [];
     if (!catchup && hourly.length + 1 > this.limits.hourlyRequests) breaches.push("hourly requests");
-    if (daily.length + 1 > this.limits.dailyRequests) breaches.push("daily requests");
+    if (!catchup && daily.length + 1 > this.limits.dailyRequests) breaches.push("daily requests");
     if (!catchup && hourlyCu + cu > this.limits.hourlyCu) breaches.push("hourly CU");
-    if (dailyCu + cu > this.limits.dailyCu) breaches.push("daily CU");
+    if (!catchup && dailyCu + cu > this.limits.dailyCu) breaches.push("daily CU");
     if (breaches.length) {
       this.reason = breaches.join(", ");
       this.parkedUntil = at + this.waitFor(at, cu, catchup);
@@ -122,12 +122,12 @@ export class SpendLedger {
   }
 
   private waitFor(at: number, cu: number, catchup: boolean): number {
+    if (catchup) return 1;
     if (cu > this.limits.dailyCu || 1 > this.limits.dailyRequests) return DAY_MS;
-    const needDay = this.ticks.filter(tick => tick.at > at - DAY_MS);
+    const needDay = this.ticks.filter(tick => !tick.catchup && tick.at > at - DAY_MS);
     const dayWait = needDay.length ? needDay[0]!.at + DAY_MS - at : DAY_MS;
     const dailyCu = needDay.reduce((sum, tick) => sum + tick.cu, 0);
     if (needDay.length + 1 > this.limits.dailyRequests || dailyCu + cu > this.limits.dailyCu) return Math.max(dayWait, 1);
-    if (catchup) return Math.max(dayWait, 1);
     if (cu > this.limits.hourlyCu || 1 > this.limits.hourlyRequests) return HOUR_MS;
     const needHour = this.ticks.filter(tick => !tick.catchup && tick.at > at - HOUR_MS);
     const hourWait = needHour.length ? needHour[0]!.at + HOUR_MS - at : HOUR_MS;
