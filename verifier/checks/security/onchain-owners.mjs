@@ -1,5 +1,5 @@
 import { emit, errorResult, fail, pass } from "../lib/result.mjs";
-import { envValue, readEnvFile, readTestnetConfig, requireOptIn, rpcCall } from "../testnet/lib.mjs";
+import { envValue, readEnvFile, readTestnetConfig, requireOptIn, rpcCall, testnetOptInSkipped } from "../testnet/lib.mjs";
 
 const OWNER_SELECTOR = "0x8da5cb5b";
 const OWNER_KEYS = [
@@ -19,7 +19,7 @@ function decodeAddress(hex) {
 }
 
 emit(async () => {
-  try { requireOptIn(); } catch (error) { return errorResult(error.message, { findings: { requiredEnv: error.requiredEnv } }); }
+  try { requireOptIn(); } catch (error) { return testnetOptInSkipped(error); }
   const config = await readTestnetConfig();
   const rpcUrl = envValue(config.rpcUrlEnv);
   const deploymentEnv = await readEnvFile(config.contractsEnvFile);

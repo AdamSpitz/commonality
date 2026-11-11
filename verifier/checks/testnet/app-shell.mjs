@@ -1,5 +1,5 @@
 import { emit, errorResult, fail, pass } from "../lib/result.mjs";
-import { fetchText, readTestnetConfig, requireOptIn } from "./lib.mjs";
+import { fetchText, readTestnetConfig, requireOptIn, testnetOptInSkipped } from "./lib.mjs";
 
 function validate(probe) {
   if (!probe.ok) return `HTTP ${probe.status}`;
@@ -11,7 +11,7 @@ function validate(probe) {
 }
 
 emit(async () => {
-  try { requireOptIn(); } catch (error) { return errorResult(error.message, { findings: { requiredEnv: error.requiredEnv } }); }
+  try { requireOptIn(); } catch (error) { return testnetOptInSkipped(error); }
   const config = await readTestnetConfig();
   const probes = await Promise.all(config.appUrls.map((url) => fetchText(url, { maxBodyChars: 2000 })));
   const failures = probes.map((probe) => ({ url: probe.url, problem: validate(probe), status: probe.status, finalUrl: probe.finalUrl })).filter((item) => item.problem);

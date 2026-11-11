@@ -131,7 +131,7 @@ To run a manual/LLM validation pass (intelligent judgment when conventional test
 
 ### Running guarded checks (env-var opt-ins)
 
-Guarded checks refuse to run without an explicit opt-in env var. **Each has its own — they are NOT interchangeable.** (`coverage/guarded-check-policy.json` is the authoritative per-check list; this is the operator's how-to.)
+Guarded checks refuse to run without an explicit opt-in env var. When they refuse, they record status **`skipped`** (not `error`), with a `skip.reason` taken from `skipPolicyBeforeMandatory` in `coverage/guarded-check-policy.json` and a `skip.enable` hint. Use `optInSkipped()` / `skipped()` from `checks/lib/result.mjs` for new guarded checks. **Each has its own — they are NOT interchangeable.** (`coverage/guarded-check-policy.json` is the authoritative per-check list; this is the operator's how-to.)
 
 - **`stack.fresh-seeded`** — `COMMONALITY_VERIFIER_ALLOW_DESTRUCTIVE=1`. Self-contained: wipes local data, rebuilds Docker images, restarts services, seeds tiny data, then probes rpc / platform-api / ipfs / indexer-health / indexer-events and asserts the tiny seed's Commonality refs (`local-food-systems` / `christianity` for Hardhat #0, `bookmarked-causes` for #0–#9). This **is** how you "boot the local stack." ~5–8 min (image build dominates).
 - **`stack.restart-consistency`** — `COMMONALITY_VERIFIER_ALLOW_RESTART=1` (**not** the destructive flag). Requires a live seeded stack with an indexed event already visible; its pre-restart probe exits fast if the indexer (port 42069) is down. Run it right after `fresh-seeded` **in the same session** — a stack left down between the two makes it false-fail with `curl` exit 7.

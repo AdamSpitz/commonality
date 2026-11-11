@@ -1,5 +1,5 @@
-import { emit, errorResult, fail, pass } from "../lib/result.mjs";
-import { envValue, fetchText, readEnvFile, readTestnetConfig, requireOptIn, rpcCall } from "./lib.mjs";
+import { emit, errorResult, fail, pass, optInSkipped } from "../lib/result.mjs";
+import { envValue, fetchText, readEnvFile, readTestnetConfig, requireOptIn, rpcCall, testnetOptInSkipped, TESTNET_ENABLE } from "./lib.mjs";
 
 const ALIGNMENT_ATTESTATIONS_ABI = [{
   type: "function",
@@ -73,10 +73,9 @@ async function waitForIndexer(config, expected) {
 }
 
 emit(async () => {
-  try { requireOptIn(); } catch (error) { return errorResult(error.message, { findings: { requiredEnv: error.requiredEnv } }); }
+  try { requireOptIn(); } catch (error) { return testnetOptInSkipped(error); }
   if (process.env.COMMONALITY_VERIFIER_ENABLE_TESTNET_MUTATION !== "1") {
-    return errorResult("Refusing to run on-chain-to-indexer journey without COMMONALITY_VERIFIER_ENABLE_TESTNET_MUTATION=1.", {
-      findings: { requiredEnv: ["COMMONALITY_VERIFIER_ENABLE_TESTNET_MUTATION"], mutatesState: true }
+    return optInSkipped("Refusing to run on-chain-to-indexer journey without COMMONALITY_VERIFIER_ENABLE_TESTNET_MUTATION=1.", ["COMMONALITY_VERIFIER_ENABLE_TESTNET_MUTATION"], { enable: TESTNET_ENABLE, findings: { requiredEnv: ["COMMONALITY_VERIFIER_ENABLE_TESTNET_MUTATION"], mutatesState: true }
     });
   }
 

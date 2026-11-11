@@ -1,6 +1,12 @@
 {
   "views": [
     {
+      "id": "leaves",
+      "label": "Leaf checks",
+      "description": "Every leaf check, flat: failing first, then code-changed, then never-run, then passing, then intentionally skipped. For the big picture, run `npm run verifier:brief` and paste it into an LLM.",
+      "source": ["node", "../scripts/verifier-operator.mjs", "view", "leaves"]
+    },
+    {
       "id": "all-checks",
       "label": "All checks",
       "description": "The complete evidence DAG.",

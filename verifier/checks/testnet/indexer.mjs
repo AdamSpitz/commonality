@@ -1,5 +1,5 @@
 import { emit, errorResult, fail, pass } from "../lib/result.mjs";
-import { envValue, fetchText, readTestnetConfig, requireOptIn, rpcCall } from "./lib.mjs";
+import { envValue, fetchText, readTestnetConfig, requireOptIn, rpcCall, testnetOptInSkipped } from "./lib.mjs";
 
 function blockFromStatus(payload, chainSlug) {
   if (!payload || typeof payload !== "object") return null;
@@ -12,7 +12,7 @@ function blockFromStatus(payload, chainSlug) {
 }
 
 emit(async () => {
-  try { requireOptIn(); } catch (error) { return errorResult(error.message, { findings: { requiredEnv: error.requiredEnv } }); }
+  try { requireOptIn(); } catch (error) { return testnetOptInSkipped(error); }
   const config = await readTestnetConfig();
   const rpcUrl = envValue(config.rpcUrlEnv);
   const statusUrl = config.statusUrl ?? new URL("/status", config.eventCacheUrl).toString();

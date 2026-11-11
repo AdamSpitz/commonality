@@ -1,6 +1,6 @@
 import { AbiCoder, id } from "ethers";
 import { emit, errorResult, fail, pass, uncertain } from "../lib/result.mjs";
-import { envValue, readEnvFile, readTestnetConfig, requireOptIn, rpcCall } from "./lib.mjs";
+import { envValue, readEnvFile, readTestnetConfig, requireOptIn, rpcCall, testnetOptInSkipped } from "./lib.mjs";
 
 const ADDRESS_RE = /^0x[0-9a-fA-F]{40}$/;
 const coder = AbiCoder.defaultAbiCoder();
@@ -67,7 +67,7 @@ function parseNonNegativeInteger(value, key) {
 }
 
 emit(async () => {
-  try { requireOptIn(); } catch (error) { return errorResult(error.message, { findings: { requiredEnv: error.requiredEnv } }); }
+  try { requireOptIn(); } catch (error) { return testnetOptInSkipped(error); }
 
   const config = await readTestnetConfig();
   const rpcUrl = envValue(config.rpcUrlEnv);

@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { emit, fail, pass, readInputs, truncate, writeTextArtifact } from "../lib/result.mjs";
+import { emit, fail, pass, readInputs, truncate, writeTextArtifact, optInSkipped } from "../lib/result.mjs";
 
 function mergedParams() {
   return Object.assign({}, ...readInputs().filter((input) => input.kind === "params").map((input) => input.data ?? {}));
@@ -177,11 +177,7 @@ emit(async () => {
   };
 
   if (params.requireEnv && !process.env[params.requireEnv]) {
-    return {
-      status: "error",
-      summary: `Refusing to run indexer lag burst probe; missing required opt-in/env ${params.requireEnv}.`,
-      findings: { requiredEnv: params.requireEnv }
-    };
+    return optInSkipped(`Refusing to run indexer lag burst probe; missing required opt-in/env ${params.requireEnv}.`, params.requireEnv);
   }
 
   const requestedCanary = params.dataCanary !== null && params.dataCanary !== undefined;

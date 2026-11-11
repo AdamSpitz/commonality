@@ -1,12 +1,12 @@
 import { emit, errorResult, fail, pass } from "../lib/result.mjs";
-import { fetchText, readTestnetConfig, requireOptIn } from "./lib.mjs";
+import { fetchText, readTestnetConfig, requireOptIn, testnetOptInSkipped } from "./lib.mjs";
 
 function badBody(body) {
   return /cloudflare.*error|render.*not found|Application error|Internal Server Error|Cannot GET|stack trace/i.test(body ?? "");
 }
 
 emit(async () => {
-  try { requireOptIn(); } catch (error) { return errorResult(error.message, { findings: { requiredEnv: error.requiredEnv } }); }
+  try { requireOptIn(); } catch (error) { return testnetOptInSkipped(error); }
   const config = await readTestnetConfig();
   const urls = [...config.appUrls, ...config.serviceUrls];
   const probes = await Promise.all(urls.map((url) => fetchText(url, { maxBodyChars: 1500 })));

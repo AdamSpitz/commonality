@@ -1,8 +1,8 @@
 import { emit, errorResult, fail, pass } from "../lib/result.mjs";
-import { envValue, readTestnetConfig, requireOptIn, rpcCall } from "./lib.mjs";
+import { envValue, readTestnetConfig, requireOptIn, rpcCall, testnetOptInSkipped } from "./lib.mjs";
 
 emit(async () => {
-  try { requireOptIn(); } catch (error) { return errorResult(error.message, { findings: { requiredEnv: error.requiredEnv } }); }
+  try { requireOptIn(); } catch (error) { return testnetOptInSkipped(error); }
   const config = await readTestnetConfig();
   const rpcUrl = envValue(config.rpcUrlEnv);
   const chain = await rpcCall(rpcUrl, "eth_chainId");

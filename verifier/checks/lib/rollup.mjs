@@ -68,6 +68,7 @@ export function statusCounts(workers) {
 function defaultRollup(workers) {
   if (workers.some((worker) => worker.result?.status === "fail")) return "fail";
   if (workers.some((worker) => worker.result?.status === "error")) return "uncertain";
+  if (workers.some((worker) => worker.result?.status === "skipped")) return "uncertain";
   if (workers.some((worker) => worker.freshness?.stale)) return "uncertain";
   if (workers.some((worker) => worker.result?.status === "uncertain")) return "uncertain";
   if (workers.some((worker) => !worker.result)) return "uncertain";
@@ -88,7 +89,7 @@ export function rollupStatus(rule, workers) {
   if (type === "fractionUncertain") {
     const threshold = Number(rule.threshold ?? 0.3);
     if (workers.some((worker) => worker.result?.status === "fail")) return "fail";
-    const soft = workers.filter((worker) => !worker.result || worker.result.status === "uncertain" || worker.result.status === "error" || worker.freshness?.stale).length;
+    const soft = workers.filter((worker) => !worker.result || worker.result.status === "uncertain" || worker.result.status === "error" || worker.result.status === "skipped" || worker.freshness?.stale).length;
     return workers.length > 0 && soft / workers.length > threshold ? "uncertain" : "pass";
   }
 
@@ -115,7 +116,7 @@ function isSkippedByPolicy(worker) {
   const status = statusOf(worker);
   const summary = worker.result?.summary ?? "";
   const findings = worker.result?.findings ?? {};
-  return status === "error" && (
+  return status === "skipped" || status === "error" && (
     /Refusing to run/.test(summary) ||
     Boolean(findings.requireEnv) ||
     Boolean(findings.requiredEnv) ||

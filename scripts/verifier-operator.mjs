@@ -39,6 +39,10 @@ async function definitions() {
   return map;
 }
 
+function leafIds(defs) {
+  return [...defs.values()].filter((def) => !(def.inputs ?? []).some((input) => input.kind === "check")).map((def) => def.id);
+}
+
 async function latestResult(id) {
   const dir = path.join(workspace, "results", id);
   let files;
@@ -253,12 +257,65 @@ async function view(args, policy, defs) {
     console.log(JSON.stringify({ checks, presentation: await viewPresentation(checks, defs, policy), summary: `${milestone.label} · required evidence and campaign preview` }));
     return;
   }
+  if (name === "leaves") {
+    const leaves = leafIds(defs);
+    const presentation = await viewPresentation(leaves, defs, policy);
+    const results = new Map(await Promise.all(leaves.map(async (id) => [id, await latestResult(id)])));
+    const rank = (id) => {
+      const status = results.get(id)?.status;
+      if (status === "fail" || status === "error") return 0;
+      if (!status) return 2;
+      if (status === "skipped") return 4;
+      return presentation[id]?.freshness?.changed ? 1 : 3;
+    };
+    const checks = leaves.sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
+    const counts = checks.reduce((acc, id) => { const s = results.get(id)?.status ?? "never run"; acc[s] = (acc[s] ?? 0) + 1; return acc; }, {});
+    const summary = Object.entries(counts).map(([k, v]) => `${v} ${k}`).join(" · ") + " · failing first, then code-changed, never-run, passing, intentionally skipped";
+    console.log(JSON.stringify({ checks, presentation, summary }));
+    return;
+  }
   if (name === "all-checks") {
     const checks = [...defs.keys()];
     console.log(JSON.stringify({ checks: ["root"], presentation: await viewPresentation(checks, defs, policy), summary: "Complete evidence DAG" }));
     return;
   }
   throw new Error(`Unknown view '${name}'`);
+}
+
+/** Prints a prompt (flat leaf results + recent git log) for a cheap LLM "what's going on" summary. */
+function ageText(minutes) {
+  if (minutes < 120) return `${minutes}m ago`;
+  if (minutes < 48 * 60) return `${Math.round(minutes / 60)}h ago`;
+  return `${Math.round(minutes / 1440)}d ago`;
+}
+
+async function brief(args, policy, defs) {
+  const leaves = leafIds(defs).sort();
+  const presentation = await viewPresentation(leaves, defs, policy);
+  const lines = [];
+  for (const id of leaves) {
+    const result = await latestResult(id);
+    const fresh = presentation[id]?.freshness;
+    const age = fresh?.ageMinutes == null ? "never run" : ageText(fresh.ageMinutes);
+    const changed = fresh?.changed ? "; relevant code changed since" : "";
+    const cost = presentation[id]?.cost;
+    const summary = (result?.status === "skipped" ? `skipped on purpose: ${result.skip?.reason ?? result.summary}` : result?.summary ?? "").replace(/\s+/g, " ").slice(0, 200);
+    lines.push(`- ${id} | ${result?.status ?? "-"} | ${age}${changed} | cost ${cost?.duration ?? "?"}${cost?.tokens && cost.tokens !== "none" ? `, LLM ${cost.tokens}` : ""} | ${summary}`);
+  }
+  const log = git(["log", "--since=14 days ago", "--date=short", "--pretty=format:%ad %h %s", "-n", "60"]);
+  console.log(`You are giving Adam a quick, high-level status read on the Commonality project. Do NOT investigate deeply: no running checks, no reading result files beyond what is below. Just look at this picture and report the obvious patterns.
+
+In a few short bullets, tell him:
+1. What's actually broken, grouped by likely cause (one real functionality bug vs. docs drift vs. external infrastructure such as an RPC/Alchemy outage vs. environment/setup problems vs. just stale/never-run). "skipped" means intentionally not run (opt-in/guarded) and is NOT a failure; mention skipped checks only if a lot of important coverage is skipped. Many failures with one shared cause should be named as ONE problem.
+2. How the failures relate to what we've been working on lately (git log).
+3. One or two good next steps (e.g. "rerun the cheap stale checks with X", "fix Y first, it probably explains Z").
+
+## Leaf checks (id | status | last run | cost | summary)
+${lines.join("\n")}
+
+## Recent commits (last 14 days)
+${log}
+`);
 }
 
 async function main() {
@@ -269,6 +326,7 @@ async function main() {
   else if (command === "stand") await stand(args, policy, defs);
   else if (command === "prepare") await prepare(args, policy, defs);
   else if (command === "view") await view(args, policy, defs);
+  else if (command === "brief") await brief(args, policy, defs);
   else throw new Error(`Unknown action '${command}'. Use work, stand, or prepare.`);
 }
 

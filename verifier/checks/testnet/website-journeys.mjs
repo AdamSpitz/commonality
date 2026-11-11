@@ -1,5 +1,5 @@
-import { emit, errorResult, fail, pass, uncertain } from "../lib/result.mjs";
-import { readTestnetConfig, requireOptIn } from "./lib.mjs";
+import { emit, errorResult, fail, pass, uncertain, optInSkipped } from "../lib/result.mjs";
+import { readTestnetConfig, requireOptIn, testnetOptInSkipped, TESTNET_ENABLE } from "./lib.mjs";
 
 const MAX_CONSOLE_ERRORS = 0;
 
@@ -121,11 +121,9 @@ async function probeApp(page, url) {
 }
 
 emit(async () => {
-  try { requireOptIn(); } catch (error) { return errorResult(error.message, { findings: { requiredEnv: error.requiredEnv } }); }
+  try { requireOptIn(); } catch (error) { return testnetOptInSkipped(error); }
   if (process.env.COMMONALITY_VERIFIER_ENABLE_TESTNET_BROWSER_JOURNEYS !== "1") {
-    return errorResult("Refusing to run deployed browser journeys without COMMONALITY_VERIFIER_ENABLE_TESTNET_BROWSER_JOURNEYS=1.", {
-      findings: {
-        requiredEnv: ["COMMONALITY_VERIFIER_ENABLE_TESTNET_BROWSER_JOURNEYS"],
+    return optInSkipped("Refusing to run deployed browser journeys without COMMONALITY_VERIFIER_ENABLE_TESTNET_BROWSER_JOURNEYS=1.", ["COMMONALITY_VERIFIER_ENABLE_TESTNET_BROWSER_JOURNEYS"], { enable: TESTNET_ENABLE, findings: { requiredEnv: ["COMMONALITY_VERIFIER_ENABLE_TESTNET_BROWSER_JOURNEYS"],
         mutatesState: false,
         scope: "Loads every configured deployed app URL in Chromium, checks that the React app shell renders, and rejects console/page errors or obvious error screens."
       }
