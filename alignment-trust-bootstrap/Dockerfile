@@ -7,6 +7,8 @@ WORKDIR /workspace
 COPY package.json package-lock.json .npmrc ./
 COPY sdk/package.json ./sdk/package.json
 COPY alignment-trust-bootstrap/package.json ./alignment-trust-bootstrap/package.json
+# file:../verifier is outside the default context; compose names that checkout localverifier.
+COPY --from=localverifier . /verifier
 RUN --mount=type=cache,target=/root/.npm HUSKY=0 npm ci --legacy-peer-deps
 
 COPY sdk ./sdk

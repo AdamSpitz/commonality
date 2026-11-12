@@ -16,7 +16,7 @@ Getting **testnet to a two-person shared lab** is also a standing plan, not a pi
 
 ----
 
-- Replace the temporary vendored verifier package with a published release containing `b362aceba788bdfde3014f6667fe34a86c9335f1` (skipped results, expense metadata, tree views). Update `package.json` and the lockfile, then remove `vendor/adamspitz-verifier-b362ace.tgz` and its provenance note. The currently published `0.1.2` lacks these features.
+- The verifier dev dependency points at the sibling checkout `../verifier` so local harness changes do not need a publish. Image builds receive that checkout as the `localverifier` Docker context. Publish a release and switch back to the registry only when the published package has skipped results, expense metadata, and tree views.
 
 - Rebuild the local stack on a schedule instead of deciding when it is stale. Adam's preference: a nightly job (around 2am) that runs `stack.fresh-seeded` (wipe + rebuild + seed) followed by the deep local checks (`stack.restart-consistency`, `stack.user-journeys`, `artifact.ipfs-domain-smoke`, `operations.indexer-lag`, `operations.seeded-stack-latency`). Local data is always disposable. Keep it simple: a cron trigger on the verifier defs or a user crontab/systemd timer, not a stack-fingerprint system. Daytime test runs should reuse whatever stack exists. Make sure a failed nightly rebuild is visible in the leaf-check view.
 

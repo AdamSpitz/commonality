@@ -29,6 +29,8 @@ COPY coherence-badge-worker/package.json ./coherence-badge-worker/package.json
 COPY cause-assist/package.json ./cause-assist/package.json
 COPY ui/package.json ./ui/package.json
 COPY commonality-ui/package.json ./commonality-ui/package.json
+# file:../verifier is outside the default context; compose names that checkout localverifier.
+COPY --from=localverifier . /verifier
 RUN --mount=type=cache,target=/root/.npm HUSKY=0 npm ci --legacy-peer-deps
 
 COPY sdk ./sdk
