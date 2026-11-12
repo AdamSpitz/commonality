@@ -122,7 +122,6 @@
     "verifier:summarize": "verifier-summarize",
     "verifier:go": "node scripts/verifier-operator.mjs stand",
     "verifier:tree": "verifier-tree",
-    "verifier:brief": "node scripts/verifier-operator.mjs brief",
     "prepare": "husky",
     "check:docs-inventory": "node scripts/check-docs-inventory.mjs",
     "lint:raw": "turbo run lint",

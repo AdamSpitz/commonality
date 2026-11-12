@@ -12,4 +12,3 @@ For more info:
 ## Short list of most common things you might want to do
 
 - `npm run verifier:tree` — TUI. The default **Leaf checks** tab is a flat list of every leaf check (failing first, then code-changed-since-run, then never-run, then passing), so one broken subcheck doesn't paint a whole rollup red. The **All checks** tab still shows the full DAG.
-- `npm run verifier:brief` — prints a prompt (every leaf's status/age/cost/summary + last 14 days of git log) asking an LLM for a cheap, no-deep-investigation "what's going on and what next" read. Pipe or paste it into any LLM (or just ask the chat LLM to run it and answer).
