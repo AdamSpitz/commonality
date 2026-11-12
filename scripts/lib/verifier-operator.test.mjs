@@ -1,6 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { affectedChecks, formatDuration, freshnessFor, pathMatches, presentationFor, profileFor, summarizeProfiles } from "./verifier-operator.mjs";
+import { affectedChecks, filesNewerThan, formatDuration, freshnessFor, pathMatches, presentationFor, profileFor, summarizeProfiles } from "./verifier-operator.mjs";
+
+test("a shared commit log invalidates only results older than the commit", () => {
+  const commits = [{ at: "2026-09-02T00:00:00Z", files: ["ui/a.ts"] }];
+  const dirty = ["verifier/x.json"];
+  assert.deepEqual(filesNewerThan("2026-09-03T00:00:00Z", { dirty, commits }), ["verifier/x.json"]);
+  assert.deepEqual(filesNewerThan("2026-09-01T00:00:00Z", { dirty, commits }).sort(), ["ui/a.ts", "verifier/x.json"]);
+  assert.deepEqual(filesNewerThan(undefined, { dirty, commits }), ["verifier/x.json"]);
+});
 
 test("maps changed paths to checks and reports unmapped paths", () => {
   const result = affectedChecks(["indexer/src/a.ts", "mystery.txt"], [
@@ -31,14 +39,15 @@ test("summarizes aggregate consequences", () => {
   assert.equal(formatDuration(summary.seconds), "about 2m");
 });
 
-test("classifies old and code-invalidated evidence independently from status", () => {
+test("code edits are a separate mark from age", () => {
   const now = Date.parse("2026-09-15T12:00:00Z");
-  assert.deepEqual(freshnessFor({ timestamp: "2026-09-15T11:00:00Z" }, { now, maxAgeMinutes: 120 }), {
-    stale: false, reasons: [], ageMinutes: 60, maxAgeMinutes: 120,
+  assert.deepEqual(freshnessFor({ timestamp: "2026-09-15T11:00:00Z" }, { now }), {
+    stale: false, changed: false, reasons: [], ageMinutes: 60,
   });
-  const stale = freshnessFor({ timestamp: "2026-09-01T12:00:00Z", status: "fail" }, { now, maxAgeMinutes: 120, codeChanged: true });
-  assert.equal(stale.stale, true);
-  assert.equal(stale.reasons.length, 2);
+  const changed = freshnessFor({ timestamp: "2026-09-01T12:00:00Z", status: "fail" }, { now, codeChanged: true });
+  assert.equal(changed.stale, false);
+  assert.equal(changed.changed, true);
+  assert.equal(changed.reasons.length, 1);
 });
 
 test("presents measured time and token cost on independent axes", () => {

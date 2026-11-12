@@ -1,6 +1,10 @@
 {
   "id": "operations.degradation-canary",
   "description": "Runs a cheap representative UI degradation canary set for unavailable/malformed IPFS metadata, platform API, personalization services, indexer empty/lagging/failing states, slow/failing chain RPC, and wrong-chain wallet state.",
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 300
+  },
   "trigger": {
     "type": "manual"
   },

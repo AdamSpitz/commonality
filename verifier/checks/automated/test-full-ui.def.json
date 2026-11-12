@@ -1,6 +1,10 @@
 {
   "id": "automated.test-full-ui",
   "description": "UI test suite rollup: Vitest shards plus Playwright shards. Re-run only the failing sub-check to avoid repeating the whole suite.",
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 300
+  },
   "trigger": {
     "type": "manual"
   },
@@ -29,9 +33,6 @@
         "label": "automated.test-full-ui",
         "rollup": {
           "type": "anyFail"
-        },
-        "freshness": {
-          "requiredMaxAgeMinutes": 10080
         }
       }
     }

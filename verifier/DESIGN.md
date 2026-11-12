@@ -1,6 +1,6 @@
 # Verifier design & philosophy
 
-The *why* behind this workspace. For how to **run** it, see [`README.md`](./README.md); for what's **left to build**, see [`PLAN.md`](./PLAN.md). Per-check behavior is documented in the `*.def.json` files under [`checks/`](./checks/), which are the source of truth.
+The *why* behind this workspace. For anything else, see [`README.md`](./README.md).
 
 ## The overarching goal
 
@@ -70,7 +70,7 @@ Use a manual validation pass when conventional tests pass but we still need inte
 
 1. **Prepare.** Choose pass size (Light / release-candidate / Full). Create a per-pass directory under [`workflow/reviews/`](/workflow/reviews/) with a `checklist.md` (one row per role: Role, Scope/domain, Environment, State class, Report path, Done?). Stand up a fresh seeded stack when needed (`./scripts/data.sh --wipe`, `./scripts/services.sh --start`, `./scripts/data.sh --seed=demo`).
 2. **Manage shared state.** Read-only roles may share the seeded demo world; mutating roles need a fresh world or snapshot/restore; dirty-world/longitudinal roles mutate over time and run near the end. After mutations, run at least one restart self-consistency check.
-3. **Run each role.** Prefer the **current chat LLM** recording a real Result (`npm run verifier:llm -- <checkId> --dump-prompt`, then `--response-file`; see [verifier README](./README.md#run-an-llm-judgment-check-from-this-chat)). A separate `pi` spawn is only for when you explicitly want an isolated process; it must use `xai` / `opencode-go`, never OpenRouter. Give the reviewer this procedure, the relevant role docs, and the exact scope. Make it adversarial by default — try to break it, don't rubber-stamp. Require a timestamped report; check the role off only after the report exists.
+3. **Run each role.** Prefer the **current chat LLM** recording a real Result (`npm run verifier:llm -- <checkId> --dump-prompt`, then `--response-file`; see [verifier runbook](./HOW-TO-RUN-IT.md#run-an-llm-judgment-check-from-this-chat)). A separate `pi` spawn is only for when you explicitly want an isolated process; it must use `xai` / `opencode-go`, never OpenRouter. Give the reviewer this procedure, the relevant role docs, and the exact scope. Make it adversarial by default — try to break it, don't rubber-stamp. Require a timestamped report; check the role off only after the report exists.
 4. **Report template.** Each report uses at least this structure (these section headings are enforced by `checks/review/report-attestation.mjs`):
 
    ```md
@@ -92,7 +92,7 @@ Use a manual validation pass when conventional tests pass but we still need inte
 
 - Leaf checks read the live project/system. Cheap leaves should use `cron`; expensive/manual/LLM leaves are intentionally `manual` unless their definition says otherwise.
 - Deterministic inner nodes use `onInputChange` — they rerun automatically when a child result changes while `verifier-scheduler` is running. `root` is `onInputChange` too, so the **rollup** follows refreshed facets; the narrative LLM is skipped unless `COMMONALITY_VERIFIER_ALLOW_LLM=1` (set by `verifier:root`). Without the scheduler, `onInputChange` does not fire on its own; a manual `verifier-run <id>` still updates descendants' inputs for the next run.
-- Supervisors use `freshness.requiredMaxAgeMinutes` to turn old non-failing child results into `uncertain` — the warning that evidence is old enough to consider refreshing.
+- Age is not a status. The tree colors the age label from measured (or estimated) rerun cost. Supervisors do not turn an old pass into `uncertain` just because a clock expired.
 - `meta.report-currency` is a **manual legacy heuristic**. It is not a root input and only runs explicitly through `verifier:currency:heuristic`. The intent-based operator uses deterministic path rules, the dirty tree, and per-check baselines instead.
 - Standing LLM-judgment leaves call `pi` with `xai` or `opencode-go` only (`verifier/llm-routing.json`). A chat session can supply the JSON envelope via `npm run verifier:llm -- <id> --response-file …` and that stored Result is as real as a `pi` run.
 - `meta.liveness` runs every 30 minutes and warns when scheduled checks have gone silent or overdue.

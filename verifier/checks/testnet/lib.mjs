@@ -2,11 +2,18 @@ import { readFile } from "node:fs/promises";
 import dns from "node:dns/promises";
 import tls from "node:tls";
 import path from "node:path";
-import { truncate, workspacePath } from "../lib/result.mjs";
+import { optInSkipped, truncate, workspacePath } from "../lib/result.mjs";
 
 export async function readTestnetConfig() {
   const configPath = process.env.COMMONALITY_VERIFIER_TESTNET_CONFIG_PATH ?? workspacePath("environments", "testnet.json");
   return JSON.parse(await readFile(configPath, "utf8"));
+}
+
+export const TESTNET_ENABLE = "Run `npm run verifier:testnet:run` (read-only checks; it supplies the RPC URL from .env). Add `-- --browser` for deployed browser journeys and `-- --mutation` for gas-spending write journeys (needs keys from .env.secrets).";
+
+/** Skipped result for a check whose testnet opt-in is missing. */
+export function testnetOptInSkipped(error, extra = {}) {
+  return optInSkipped(error.message, error.requiredEnv, { enable: TESTNET_ENABLE, ...extra });
 }
 
 export function requireOptIn() {

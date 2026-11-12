@@ -1,6 +1,10 @@
 {
   "id": "coverage.readiness",
   "description": "Aggregate open known-gaps by target confidence tier into a single go-live readiness narrative; fail only if a gap has no target tier to place it in.",
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 2
+  },
   "trigger": {
     "type": "cron",
     "everyMinutes": 720

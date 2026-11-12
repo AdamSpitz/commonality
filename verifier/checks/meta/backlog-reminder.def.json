@@ -1,12 +1,33 @@
 {
   "id": "meta.backlog-reminder",
   "description": "Are outstanding tasks visible? Checks that inbox.md retains its backlog reminder while TODO.md has actionable items; advisory only.",
-  "trigger": { "type": "cron", "everyMinutes": 720 },
-  "retention": { "keep": 5, "keepDays": 30 },
-  "command": ["node", "checks/meta/backlog-reminder.mjs"],
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 2
+  },
+  "trigger": {
+    "type": "cron",
+    "everyMinutes": 720
+  },
+  "retention": {
+    "keep": 5,
+    "keepDays": 30
+  },
+  "command": [
+    "node",
+    "checks/meta/backlog-reminder.mjs"
+  ],
   "inputs": [
-    { "kind": "file", "path": "../TODO.md", "as": "todo" },
-    { "kind": "file", "path": "../inbox.md", "as": "needsAttention" }
+    {
+      "kind": "file",
+      "path": "../TODO.md",
+      "as": "todo"
+    },
+    {
+      "kind": "file",
+      "path": "../inbox.md",
+      "as": "needsAttention"
+    }
   ],
   "timeoutMs": 15000
 }

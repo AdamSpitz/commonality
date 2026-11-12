@@ -1,6 +1,10 @@
 {
   "id": "automated.ui-vitest-shared",
   "description": "Run UI Vitest shared component/hook/store/trust tests.",
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 300
+  },
   "trigger": {
     "type": "manual"
   },

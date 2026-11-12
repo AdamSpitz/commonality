@@ -1,5 +1,5 @@
 import { emit, errorResult, fail, pass } from "../lib/result.mjs";
-import { fetchText, readTestnetConfig, requireOptIn } from "./lib.mjs";
+import { fetchText, readTestnetConfig, requireOptIn, testnetOptInSkipped } from "./lib.mjs";
 import { assessPolicyEnforcement } from "./policy-enforcement-lib.mjs";
 
 function configUrl(appUrl) {
@@ -16,7 +16,7 @@ function parseJson(probe, label) {
 }
 
 emit(async () => {
-  try { requireOptIn(); } catch (error) { return errorResult(error.message, { findings: { requiredEnv: error.requiredEnv } }); }
+  try { requireOptIn(); } catch (error) { return testnetOptInSkipped(error); }
   const config = await readTestnetConfig();
   const profile = config.policyEnforcement;
   if (!profile?.civilityAppUrl || !profile?.blockedCid) {

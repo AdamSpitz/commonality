@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { artifactsDir, emit, fail, readInputs, errorResult } from "../lib/result.mjs";
+import { artifactsDir, emit, fail, readInputs, errorResult, optInSkipped } from "../lib/result.mjs";
 import { runCommand } from "../lib/run-command.mjs";
 
 function mergedParams(inputs) {
@@ -60,7 +60,7 @@ emit(async () => {
   const params = mergedParams(readInputs());
   const missing = missingRequiredEnv(params.requireEnv);
   if (missing.length > 0) {
-    return errorResult(`Refusing to run guarded command; missing required opt-in: ${missing.map((item) => item.name ?? "<invalid>").join(", ")}.`, {
+    return optInSkipped(`Refusing to run guarded command; missing required opt-in: ${missing.map((item) => item.name ?? "<invalid>").join(", ")}.`, missing, {
       findings: { requireEnv: params.requireEnv, mutatesState: params.mutatesState }
     });
   }

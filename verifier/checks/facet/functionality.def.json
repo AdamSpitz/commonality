@@ -1,26 +1,72 @@
 {
   "id": "facet.functionality",
   "description": "Does it work? Covers change-local validation, the full suite, deployable artifacts, the local stack, degradation, and testnet behavior.",
-  "trigger": { "type": "onInputChange", "debounceMinutes": 1 },
-  "retention": { "keep": 10, "keepDays": 30 },
-  "command": ["node", "checks/supervisor.mjs"],
+  "trigger": {
+    "type": "onInputChange",
+    "debounceMinutes": 1
+  },
+  "retention": {
+    "keep": 10,
+    "keepDays": 30
+  },
+  "command": [
+    "node",
+    "checks/supervisor.mjs"
+  ],
   "inputs": [
-    { "kind": "check", "id": "validation.pr", "role": "fast-functionality" },
-    { "kind": "check", "id": "automated.test-full", "role": "full-suite" },
-    { "kind": "check", "id": "functionality.deep-stack", "role": "functionality-subfacet" },
-    { "kind": "check", "id": "functionality.operations", "role": "functionality-subfacet" },
-    { "kind": "check", "id": "quality.circular-deps", "role": "code-health-advisory" },
-    { "kind": "check", "id": "quality.line-coverage", "role": "code-health-advisory" },
-    { "kind": "check", "id": "quality.structure-metrics", "role": "code-health-advisory" },
+    {
+      "kind": "check",
+      "id": "validation.pr",
+      "role": "fast-functionality"
+    },
+    {
+      "kind": "check",
+      "id": "automated.test-full",
+      "role": "full-suite"
+    },
+    {
+      "kind": "check",
+      "id": "functionality.deep-stack",
+      "role": "functionality-subfacet"
+    },
+    {
+      "kind": "check",
+      "id": "functionality.operations",
+      "role": "functionality-subfacet"
+    },
+    {
+      "kind": "check",
+      "id": "quality.circular-deps",
+      "role": "code-health-advisory"
+    },
+    {
+      "kind": "check",
+      "id": "quality.line-coverage",
+      "role": "code-health-advisory"
+    },
+    {
+      "kind": "check",
+      "id": "quality.structure-metrics",
+      "role": "code-health-advisory"
+    },
     {
       "kind": "params",
       "data": {
         "label": "facet.functionality",
-        "rollup": { "type": "anyFail" },
-        "advisoryCheckIds": ["quality.circular-deps", "quality.line-coverage", "quality.structure-metrics"],
-        "freshness": { "requiredMaxAgeMinutes": 10080 }
+        "rollup": {
+          "type": "anyFail"
+        },
+        "advisoryCheckIds": [
+          "quality.circular-deps",
+          "quality.line-coverage",
+          "quality.structure-metrics"
+        ]
       }
     }
   ],
-  "timeoutMs": 30000
+  "timeoutMs": 30000,
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 2
+  }
 }

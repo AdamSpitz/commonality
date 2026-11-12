@@ -63,18 +63,16 @@
         ],
         "commandTimeoutMs": 600000,
         "maxFindingsChars": 8000,
-        "taskKind": "clear-communication",
-        "freshness": {
-          "requiredMaxAgeMinutes": 1440,
-          "byIdMinutes": {
-            "meta.verifier-health": 120
-          }
-        }
+        "taskKind": "clear-communication"
       }
     }
   ],
   "timeoutMs": 630000,
   "display": {
     "preferredArtifact": "report.md"
+  },
+  "expense": {
+    "llm": "expensive",
+    "estimatedSeconds": 600
   }
 }

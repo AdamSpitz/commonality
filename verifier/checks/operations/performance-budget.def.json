@@ -1,6 +1,10 @@
 {
   "id": "operations.performance-budget",
   "description": "Builds the UI domain artifacts and enforces a deterministic bundle-size budget as a cheap proxy for launch performance regressions.",
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 300
+  },
   "trigger": {
     "type": "manual"
   },

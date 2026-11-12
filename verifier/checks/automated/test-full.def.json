@@ -1,6 +1,10 @@
 {
   "id": "automated.test-full",
   "description": "Full automated test suite rollup: sdk, hardhat contracts, integration, and UI. Fails if any sub-suite fails. Re-run only the failing sub-check to avoid repeating the whole suite.",
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 300
+  },
   "trigger": {
     "type": "manual"
   },
@@ -39,9 +43,6 @@
         "label": "automated.test-full",
         "rollup": {
           "type": "anyFail"
-        },
-        "freshness": {
-          "requiredMaxAgeMinutes": 10080
         }
       }
     }

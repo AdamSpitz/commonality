@@ -1,5 +1,5 @@
 import { emit, errorResult, fail, pass } from "../lib/result.mjs";
-import { fetchText, readEnvFile, readTestnetConfig, requireOptIn } from "./lib.mjs";
+import { fetchText, readEnvFile, readTestnetConfig, requireOptIn, testnetOptInSkipped } from "./lib.mjs";
 
 function scriptSources(html, baseUrl) {
   return [...html.matchAll(/<script[^>]+src=["']([^"']+)["']/gi)].map((match) => new URL(match[1], baseUrl).toString());
@@ -77,7 +77,7 @@ async function checkTrustRootLiveness(config, deployedText) {
 }
 
 emit(async () => {
-  try { requireOptIn(); } catch (error) { return errorResult(error.message, { findings: { requiredEnv: error.requiredEnv } }); }
+  try { requireOptIn(); } catch (error) { return testnetOptInSkipped(error); }
   const config = await readTestnetConfig();
   const shell = await fetchText(config.appUrl, { maxBodyChars: 200000 });
   if (!shell.ok) return fail(`Could not fetch testnet app shell (${shell.status}).`, { findings: { shell } });

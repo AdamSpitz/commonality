@@ -1,6 +1,10 @@
 {
   "id": "automated.test-fast",
   "description": "Run the fast automated suite: npm run test:fast:raw.",
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 300
+  },
   "trigger": {
     "type": "manual"
   },

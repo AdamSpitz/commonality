@@ -2,7 +2,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
-const VALID_STATUSES = new Set(["pass", "fail", "uncertain", "error"]);
+const VALID_STATUSES = new Set(["pass", "fail", "uncertain", "error", "skipped"]);
 
 export function readInputs() {
   // Prefer the inline env var; fall back to the file the harness always writes
@@ -55,6 +55,29 @@ export function uncertain(summary, extra = {}) {
 
 export function errorResult(summary, extra = {}) {
   return result("error", summary, extra);
+}
+
+/** Deliberately not run. `reason` says why; `enable` says how to turn it on. */
+export function skipped(summary, { reason, enable, ...extra } = {}) {
+  return result("skipped", summary, { skip: { reason: reason ?? summary, ...(enable ? { enable } : {}) }, ...extra });
+}
+
+/** A guarded check refusing to run because its opt-in env var is unset.
+ *  The reason comes from coverage/guarded-check-policy.json (single source of truth). */
+export function optInSkipped(summary, requiredEnv, { enable, ...extra } = {}) {
+  const envs = (Array.isArray(requiredEnv) ? requiredEnv : [requiredEnv]).filter(Boolean).map((env) => env?.name ?? env);
+  let item;
+  try {
+    const policy = JSON.parse(readFileSync(workspacePath("coverage", "guarded-check-policy.json"), "utf8"));
+    item = policy.items?.find((entry) => entry.checkId === process.env.VERIFIER_CHECK_ID);
+  } catch { /* fall back to a generic reason */ }
+  const reason = item?.skipPolicyBeforeMandatory
+    ?? "Guarded check: it has side effects or hits external services, so it only runs with an explicit opt-in.";
+  return skipped(summary, {
+    reason: item?.mandatoryBy ? `${reason} (Required fresh by ${item.mandatoryBy}.)` : reason,
+    enable: enable ?? `Set ${envs.map((env) => `${env}=1`).join(" ")}.`,
+    findings: { requiredEnv: envs, ...(extra.findings ?? {}) },
+  });
 }
 
 export async function writeTextArtifact(name, content, mimeType = "text/plain", description) {

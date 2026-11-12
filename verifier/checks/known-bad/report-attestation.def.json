@@ -1,16 +1,31 @@
 {
   "id": "known-bad.report-attestation",
   "description": "Proves report-attestation rejects a synthetic incomplete manual-validation report.",
-  "trigger": { "type": "cron", "everyMinutes": 720 },
-  "retention": { "keep": 5, "keepDays": 30 },
-  "command": ["node", "checks/known-bad/expect-bad-result.mjs"],
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 2
+  },
+  "trigger": {
+    "type": "cron",
+    "everyMinutes": 720
+  },
+  "retention": {
+    "keep": 5,
+    "keepDays": 30
+  },
+  "command": [
+    "node",
+    "checks/known-bad/expect-bad-result.mjs"
+  ],
   "inputs": [
     {
       "kind": "params",
       "data": {
         "label": "report-attestation known-bad fixtures",
         "targetScript": "checks/review/report-attestation.mjs",
-        "expectedStatuses": ["fail"],
+        "expectedStatuses": [
+          "fail"
+        ],
         "cases": [
           {
             "label": "known-bad incomplete report",
@@ -20,10 +35,21 @@
                 "data": {
                   "label": "known-bad incomplete report",
                   "searchRoot": "fixtures/known-bad/report-attestation",
-                  "filenameIncludes": ["incomplete", "demo", "dry", "run"],
-                  "contentIncludes": ["Demo dry run"],
+                  "filenameIncludes": [
+                    "incomplete",
+                    "demo",
+                    "dry",
+                    "run"
+                  ],
+                  "contentIncludes": [
+                    "Demo dry run"
+                  ],
                   "maxAgeDays": 30,
-                  "statusPolicy": { "missing": "fail", "incomplete": "fail", "stale": "fail" }
+                  "statusPolicy": {
+                    "missing": "fail",
+                    "incomplete": "fail",
+                    "stale": "fail"
+                  }
                 }
               }
             ]
@@ -36,10 +62,21 @@
                 "data": {
                   "label": "known-bad stale report",
                   "searchRoot": "fixtures/known-bad/report-attestation",
-                  "filenameIncludes": ["stale", "demo", "dry", "run"],
-                  "contentIncludes": ["Demo dry run"],
+                  "filenameIncludes": [
+                    "stale",
+                    "demo",
+                    "dry",
+                    "run"
+                  ],
+                  "contentIncludes": [
+                    "Demo dry run"
+                  ],
                   "maxAgeDays": 30,
-                  "statusPolicy": { "missing": "fail", "incomplete": "fail", "stale": "fail" }
+                  "statusPolicy": {
+                    "missing": "fail",
+                    "incomplete": "fail",
+                    "stale": "fail"
+                  }
                 }
               }
             ]
@@ -52,10 +89,21 @@
                 "data": {
                   "label": "known-bad blocker report",
                   "searchRoot": "fixtures/known-bad/report-attestation",
-                  "filenameIncludes": ["blocker", "demo", "dry", "run"],
-                  "contentIncludes": ["Demo dry run"],
+                  "filenameIncludes": [
+                    "blocker",
+                    "demo",
+                    "dry",
+                    "run"
+                  ],
+                  "contentIncludes": [
+                    "Demo dry run"
+                  ],
                   "maxAgeDays": 30,
-                  "statusPolicy": { "missing": "fail", "incomplete": "fail", "stale": "fail" }
+                  "statusPolicy": {
+                    "missing": "fail",
+                    "incomplete": "fail",
+                    "stale": "fail"
+                  }
                 }
               }
             ]

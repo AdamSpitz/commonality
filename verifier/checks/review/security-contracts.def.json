@@ -1,6 +1,10 @@
 {
   "id": "review.security.contracts",
   "description": "Attest that a fresh smart-contract security review report exists.",
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 300
+  },
   "trigger": {
     "type": "manual"
   },

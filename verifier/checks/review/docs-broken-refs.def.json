@@ -1,6 +1,10 @@
 {
   "id": "review.docs-broken-refs",
   "description": "Deterministic broken-reference scan over the bounded docs-coherence surface: extracts relative Markdown links and documented npm run commands, then verifies targets/scripts exist. No model calls; always returns pass or fail. Scheduled every 12 hours because it is cheap.",
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 45
+  },
   "trigger": {
     "type": "schedule",
     "intervalMs": 43200000

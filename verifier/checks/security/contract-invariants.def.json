@@ -1,6 +1,10 @@
 {
   "id": "security.contract-invariants",
   "description": "Runs the security-focused Hardhat regression/property tests for access control, malicious receiver behavior, assurance-contract accounting invariants, and DelegatableNotes payment-note audit regressions as a separately visible security signal.",
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 300
+  },
   "trigger": {
     "type": "cron",
     "everyMinutes": 720

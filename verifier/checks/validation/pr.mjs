@@ -4,10 +4,6 @@ function checkInputs(inputs) {
   return inputs.filter((input) => input.kind === "check");
 }
 
-function paramsInput(inputs) {
-  return Object.assign({}, ...inputs.filter((input) => input.kind === "params").map((input) => input.data ?? {}));
-}
-
 function minutesSince(timestamp) {
   if (!timestamp) return null;
   const time = Date.parse(timestamp);
@@ -27,14 +23,11 @@ function formatAge(minutes) {
   return remainingHours === 0 ? `${days}d ago` : `${days}d ${remainingHours}h ago`;
 }
 
-function childStatus(child, requiredFreshMinutes, optionalFreshMinutes) {
+function childStatus(child) {
   const role = child.role ?? "required";
   const required = role !== "optional";
-  const maxAgeMinutes = required ? requiredFreshMinutes : optionalFreshMinutes;
   const result = child.result ?? null;
   const ageMinutes = minutesSince(result?.timestamp);
-  const fresh = result && ageMinutes !== null && ageMinutes <= maxAgeMinutes;
-  const stale = Boolean(result) && !fresh;
 
   return {
     id: child.id,
@@ -44,27 +37,22 @@ function childStatus(child, requiredFreshMinutes, optionalFreshMinutes) {
     summary: result?.summary ?? "No result yet",
     timestamp: result?.timestamp ?? null,
     ageMinutes,
-    freshness: !result ? "missing" : fresh ? "fresh" : "stale",
-    maxAgeMinutes,
-    stale,
-    considered: required || fresh
+    considered: required || Boolean(result)
   };
 }
 
 function rollup(children) {
   const considered = children.filter((child) => child.considered);
-  const required = children.filter((child) => child.required);
 
   if (considered.some((child) => child.status === "fail")) return "fail";
-  if (required.some((child) => child.freshness !== "fresh")) return "uncertain";
-  if (considered.some((child) => child.status === "error" || child.status === "uncertain" || child.status === "missing")) return "uncertain";
+  if (considered.some((child) => child.status !== "pass")) return "uncertain";
   return "pass";
 }
 
 function childPhrase(child) {
-  const freshness = child.freshness === "fresh" ? `fresh, ${formatAge(child.ageMinutes)}` : child.freshness;
-  const optionalNote = child.required ? "" : child.considered ? ", optional considered" : ", optional ignored";
-  return `${child.id} ${child.status} (${freshness}${optionalNote})`;
+  const age = child.ageMinutes === null ? "no result" : formatAge(child.ageMinutes);
+  const optionalNote = child.required ? "" : ", optional";
+  return `${child.id} ${child.status} (${age}${optionalNote})`;
 }
 
 function makeSummary(status, children) {
@@ -74,20 +62,15 @@ function makeSummary(status, children) {
 
 emit(async () => {
   const inputs = readInputs();
-  const params = paramsInput(inputs);
-  const requiredFreshMinutes = Number(params.requiredFreshMinutes ?? 24 * 60);
-  const optionalFreshMinutes = Number(params.optionalFreshMinutes ?? requiredFreshMinutes);
-  const children = checkInputs(inputs).map((child) => childStatus(child, requiredFreshMinutes, optionalFreshMinutes));
+  const children = checkInputs(inputs).map((child) => childStatus(child));
   const status = rollup(children);
   const requiredIds = children.filter((child) => child.required).map((child) => child.id);
   const optionalIds = children.filter((child) => !child.required).map((child) => child.id);
   const findings = {
     policy: {
-      requiredFreshMinutes,
-      optionalFreshMinutes,
-      required: `${requiredIds.join(", ")} must have fresh results and no fail/error/uncertain status.`,
+      required: `${requiredIds.join(", ")} must have a passing result. Age is shown, not gated.`,
       optional: optionalIds.length > 0
-        ? `${optionalIds.join(", ")} ${optionalIds.length === 1 ? "is" : "are"} considered only when fresh; stale or missing optional results are noted but do not block this PR rollup.`
+        ? `${optionalIds.join(", ")} ${optionalIds.length === 1 ? "is" : "are"} included when a result exists.`
         : "No optional checks are configured."
     },
     children

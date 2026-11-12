@@ -1,12 +1,33 @@
 {
   "id": "coverage.domains",
   "description": "Verify every in-scope UI domain (Commonality, Civility, Common Sense Majority) has an intentional smoke/review/docs coverage story. Other Vite domains are out of scope.",
-  "trigger": { "type": "cron", "everyMinutes": 720 },
-  "retention": { "keep": 10, "keepDays": 30 },
-  "command": ["node", "checks/coverage/domains.mjs"],
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 2
+  },
+  "trigger": {
+    "type": "cron",
+    "everyMinutes": 720
+  },
+  "retention": {
+    "keep": 10,
+    "keepDays": 30
+  },
+  "command": [
+    "node",
+    "checks/coverage/domains.mjs"
+  ],
   "inputs": [
-    { "kind": "file", "path": "coverage/domains.json", "as": "domainsInventory" },
-    { "kind": "file", "path": "../specs/product/ui-domains.md", "as": "uiDomainsDoc" }
+    {
+      "kind": "file",
+      "path": "coverage/domains.json",
+      "as": "domainsInventory"
+    },
+    {
+      "kind": "file",
+      "path": "../specs/product/ui-domains.md",
+      "as": "uiDomainsDoc"
+    }
   ],
   "timeoutMs": 30000
 }

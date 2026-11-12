@@ -7,7 +7,7 @@ Commonality is a system for decentralized crowdfunding of public goods: people c
   - [Fake / seed data plan](./fake-data-generation/PLAN.md) — tiny local world vs real Conceptspace statements vs mass fake activity; **next step for a fresh LLM**
   - [To-do list](./TODO.md) — where LLMs file new one-shot tasks.
   - [Needs attention](./inbox.md) — Adam's inbox for stuff that needs his attention.
-  - [Verifier workspace](./verifier/README.md): current report on what's working. LLM “human tester” leaves are **manual**; if Adam asks you (the chat LLM) to run one, follow [Run an LLM-judgment check from this chat](./verifier/README.md#run-an-llm-judgment-check-from-this-chat) — do not spawn `pi` / OpenRouter.
+  - [Verifier workspace](./verifier/README.md): current report on what's working. LLM “human tester” leaves are **manual**; if Adam asks you (the chat LLM) to run one, follow [Run an LLM-judgment check from this chat](./verifier/HOW-TO-RUN-IT.md#run-an-llm-judgment-check-from-this-chat) — do not spawn `pi` / OpenRouter.
   - [Testing inventory](./workflow/testing-inventory.md): map of conventional tests, verifier coverage, and remaining testing gaps
   - [Milestones](./workflow/milestones.md) — the ladder (testnet lab → testnet simulations → outside review → mainnet), current position, and the consolidated before-mainnet list. Summary: [project status](./workflow/project-status.md); see also [MVP](./specs/product/mvp.md)
   - Product boundaries between the eight sites: [product UI domains](./specs/product/ui-domains.md).

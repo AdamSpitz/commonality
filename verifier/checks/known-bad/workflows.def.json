@@ -1,9 +1,22 @@
 {
   "id": "known-bad.workflows",
   "description": "Proves coverage.workflows rejects synthetic workflows without objective backing or valid bounded UI surface files.",
-  "trigger": { "type": "cron", "everyMinutes": 720 },
-  "retention": { "keep": 5, "keepDays": 30 },
-  "command": ["node", "checks/known-bad/expect-bad-result.mjs"],
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 2
+  },
+  "trigger": {
+    "type": "cron",
+    "everyMinutes": 720
+  },
+  "retention": {
+    "keep": 5,
+    "keepDays": 30
+  },
+  "command": [
+    "node",
+    "checks/known-bad/expect-bad-result.mjs"
+  ],
   "inputs": [
     {
       "kind": "file",
@@ -20,7 +33,9 @@
       "data": {
         "label": "coverage.workflows known-bad fixture",
         "targetScript": "checks/coverage/workflows.mjs",
-        "expectedStatuses": ["fail"]
+        "expectedStatuses": [
+          "fail"
+        ]
       }
     }
   ],

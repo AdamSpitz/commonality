@@ -1,6 +1,10 @@
 {
   "id": "automated.ui-vitest-lazy-giving",
   "description": "Run UI Vitest LazyGiving tests.",
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 300
+  },
   "trigger": {
     "type": "manual"
   },

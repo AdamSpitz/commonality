@@ -1,8 +1,8 @@
 import { emit, errorResult, fail, pass } from "../lib/result.mjs";
-import { checkTls, isPrivateAddress, readTestnetConfig, requireOptIn, resolveHost } from "./lib.mjs";
+import { checkTls, isPrivateAddress, readTestnetConfig, requireOptIn, resolveHost, testnetOptInSkipped } from "./lib.mjs";
 
 emit(async () => {
-  try { requireOptIn(); } catch (error) { return errorResult(error.message, { findings: { requiredEnv: error.requiredEnv } }); }
+  try { requireOptIn(); } catch (error) { return testnetOptInSkipped(error); }
   const config = await readTestnetConfig();
   const dnsResults = await Promise.all(config.expectedHosts.map(resolveHost));
   const tlsResults = await Promise.all(config.expectedHosts.map((host) => checkTls(host)));

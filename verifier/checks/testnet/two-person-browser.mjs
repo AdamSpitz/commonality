@@ -1,5 +1,5 @@
-import { emit, errorResult, fail, pass, uncertain, workspacePath } from "../lib/result.mjs";
-import { envValue, fetchText, readEnvFile, readTestnetConfig, requireOptIn } from "./lib.mjs";
+import { emit, errorResult, fail, optInSkipped, pass, uncertain, workspacePath } from "../lib/result.mjs";
+import { envValue, fetchText, readEnvFile, readTestnetConfig, requireOptIn, testnetOptInSkipped, TESTNET_ENABLE } from "./lib.mjs";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
@@ -208,13 +208,9 @@ async function waitForEvent(config, expected) {
 }
 
 emit(async () => {
-  try { requireOptIn(); } catch (error) {
-    return errorResult(error.message, { findings: { requiredEnv: error.requiredEnv } });
-  }
+  try { requireOptIn(); } catch (error) { return testnetOptInSkipped(error); }
   if (process.env.COMMONALITY_VERIFIER_ENABLE_TESTNET_BROWSER_JOURNEYS !== "1") {
-    return errorResult("Refusing two-person browser lab without COMMONALITY_VERIFIER_ENABLE_TESTNET_BROWSER_JOURNEYS=1.", {
-      findings: { requiredEnv: ["COMMONALITY_VERIFIER_ENABLE_TESTNET_BROWSER_JOURNEYS"] }
-    });
+    return optInSkipped("Refusing two-person browser lab without COMMONALITY_VERIFIER_ENABLE_TESTNET_BROWSER_JOURNEYS=1.", ["COMMONALITY_VERIFIER_ENABLE_TESTNET_BROWSER_JOURNEYS"], { enable: TESTNET_ENABLE });
   }
 
   const { chromium, importError } = await loadPlaywright();

@@ -1,6 +1,10 @@
 {
   "id": "review.qa-synthesis.full-launch",
   "description": "Attest that a fresh full-launch QA synthesis report exists.",
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 300
+  },
   "trigger": {
     "type": "manual"
   },

@@ -1,6 +1,10 @@
 {
   "id": "automated.ui-vitest-fundingportals-delegation",
   "description": "Run UI Vitest funding portals, delegation, and mutable refs tests.",
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 300
+  },
   "trigger": {
     "type": "manual"
   },

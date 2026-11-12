@@ -1,9 +1,18 @@
 {
   "id": "known-bad.supervisor-freshness",
   "description": "Proves the generic supervisor treats stale passing child results as uncertain while preserving concrete child failure/error rollup behavior.",
-  "trigger": { "type": "cron", "everyMinutes": 720 },
-  "retention": { "keep": 5, "keepDays": 30 },
-  "command": ["node", "checks/known-bad/expect-bad-result.mjs"],
+  "trigger": {
+    "type": "cron",
+    "everyMinutes": 720
+  },
+  "retention": {
+    "keep": 5,
+    "keepDays": 30
+  },
+  "command": [
+    "node",
+    "checks/known-bad/expect-bad-result.mjs"
+  ],
   "inputs": [
     {
       "kind": "params",
@@ -13,7 +22,9 @@
         "cases": [
           {
             "label": "stale pass child becomes uncertain",
-            "expectedStatuses": ["uncertain"],
+            "expectedStatuses": [
+              "uncertain"
+            ],
             "targetInputs": [
               {
                 "kind": "check",
@@ -29,14 +40,18 @@
                 "kind": "params",
                 "data": {
                   "label": "supervisor freshness canary",
-                  "freshness": { "requiredMaxAgeMinutes": 1 }
+                  "freshness": {
+                    "requiredMaxAgeMinutes": 1
+                  }
                 }
               }
             ]
           },
           {
             "label": "stale fail child remains fail",
-            "expectedStatuses": ["fail"],
+            "expectedStatuses": [
+              "fail"
+            ],
             "targetInputs": [
               {
                 "kind": "check",
@@ -52,14 +67,18 @@
                 "kind": "params",
                 "data": {
                   "label": "supervisor freshness canary",
-                  "freshness": { "requiredMaxAgeMinutes": 1 }
+                  "freshness": {
+                    "requiredMaxAgeMinutes": 1
+                  }
                 }
               }
             ]
           },
           {
             "label": "fresh error child remains uncertain",
-            "expectedStatuses": ["uncertain"],
+            "expectedStatuses": [
+              "uncertain"
+            ],
             "targetInputs": [
               {
                 "kind": "check",
@@ -75,7 +94,9 @@
                 "kind": "params",
                 "data": {
                   "label": "supervisor freshness canary",
-                  "freshness": { "requiredMaxAgeMinutes": 1 }
+                  "freshness": {
+                    "requiredMaxAgeMinutes": 1
+                  }
                 }
               }
             ]
@@ -84,5 +105,9 @@
       }
     }
   ],
-  "timeoutMs": 30000
+  "timeoutMs": 30000,
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 2
+  }
 }

@@ -1,6 +1,10 @@
 {
   "id": "automated.seed-implication-regression",
   "description": "Run the curated seed implication regression check after seed statement/variant edits.",
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 45
+  },
   "trigger": {
     "type": "manual"
   },

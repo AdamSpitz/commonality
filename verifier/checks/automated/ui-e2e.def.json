@@ -13,17 +13,34 @@
     "checks/supervisor.mjs"
   ],
   "inputs": [
-    { "kind": "check", "id": "automated.ui-e2e-smoke", "role": "suite" },
-    { "kind": "check", "id": "automated.ui-e2e-conceptspace", "role": "suite" },
-    { "kind": "check", "id": "automated.ui-e2e-funding", "role": "suite" },
+    {
+      "kind": "check",
+      "id": "automated.ui-e2e-smoke",
+      "role": "suite"
+    },
+    {
+      "kind": "check",
+      "id": "automated.ui-e2e-conceptspace",
+      "role": "suite"
+    },
+    {
+      "kind": "check",
+      "id": "automated.ui-e2e-funding",
+      "role": "suite"
+    },
     {
       "kind": "params",
       "data": {
         "label": "automated.ui-e2e",
-        "rollup": { "type": "anyFail" },
-        "freshness": { "requiredMaxAgeMinutes": 10080 }
+        "rollup": {
+          "type": "anyFail"
+        }
       }
     }
   ],
-  "timeoutMs": 30000
+  "timeoutMs": 30000,
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 300
+  }
 }

@@ -1,9 +1,22 @@
 {
   "id": "known-bad.testing-plan",
   "description": "Proves coverage.testing-plan rejects a synthetic inventory missing required mappings.",
-  "trigger": { "type": "cron", "everyMinutes": 720 },
-  "retention": { "keep": 5, "keepDays": 30 },
-  "command": ["node", "checks/known-bad/expect-bad-result.mjs"],
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 2
+  },
+  "trigger": {
+    "type": "cron",
+    "everyMinutes": 720
+  },
+  "retention": {
+    "keep": 5,
+    "keepDays": 30
+  },
+  "command": [
+    "node",
+    "checks/known-bad/expect-bad-result.mjs"
+  ],
   "inputs": [
     {
       "kind": "file",
@@ -15,7 +28,9 @@
       "data": {
         "label": "coverage.testing-plan known-bad fixture",
         "targetScript": "checks/coverage/testing-plan.mjs",
-        "expectedStatuses": ["fail"]
+        "expectedStatuses": [
+          "fail"
+        ]
       }
     }
   ],

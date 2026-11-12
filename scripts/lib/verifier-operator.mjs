@@ -6,6 +6,18 @@ export function pathMatches(changedPath, prefix) {
   return changedPath === prefix || changedPath.startsWith(prefix.endsWith("/") ? prefix : `${prefix}/`) || changedPath.startsWith(prefix);
 }
 
+/** Files that can invalidate a result recorded at `timestamp`. Dirty files always count.
+ *  `commits` is one shared log (newest-or-oldest does not matter); include a commit only when it is strictly after the result, matching `git log --since`. */
+export function filesNewerThan(timestamp, { dirty = [], commits = [] } = {}) {
+  const files = new Set(dirty);
+  const cutoff = timestamp ? Date.parse(timestamp) : NaN;
+  if (Number.isNaN(cutoff)) return [...files];
+  for (const commit of commits) {
+    if (Date.parse(commit.at) > cutoff) for (const file of commit.files ?? []) files.add(file);
+  }
+  return [...files];
+}
+
 export function affectedChecks(changedPaths, rules) {
   const checks = new Set();
   const mapped = new Set();
@@ -50,19 +62,11 @@ export function formatCompactDuration(seconds) {
   return `~${Math.ceil(seconds / 60)}m`;
 }
 
-function formatMinutes(minutes) {
-  if (minutes < 60) return `${minutes}m`;
-  if (minutes < 1440) return `${Math.floor(minutes / 60)}h`;
-  return `${Math.floor(minutes / 1440)}d`;
-}
-
-export function freshnessFor(result, { now = Date.now(), maxAgeMinutes = 10080, codeChanged = false } = {}) {
-  if (!result?.timestamp) return { stale: false, reasons: [] };
+export function freshnessFor(result, { now = Date.now(), codeChanged = false } = {}) {
+  if (!result?.timestamp) return { stale: false, changed: false, reasons: [], ageMinutes: null };
   const ageMinutes = Math.max(0, Math.floor((now - Date.parse(result.timestamp)) / 60000));
-  const reasons = [];
-  if (Number.isFinite(maxAgeMinutes) && ageMinutes > maxAgeMinutes) reasons.push(`last run is ${formatMinutes(ageMinutes)} old (limit ${formatMinutes(maxAgeMinutes)})`);
-  if (codeChanged) reasons.push("relevant code changed since this run");
-  return { stale: reasons.length > 0, reasons, ageMinutes, maxAgeMinutes };
+  const reasons = codeChanged ? ["relevant code changed since this run"] : [];
+  return { stale: false, changed: codeChanged, reasons, ageMinutes };
 }
 
 export function presentationFor(result, profile, freshness) {

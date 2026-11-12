@@ -1,9 +1,22 @@
 {
   "id": "known-bad.pages",
   "description": "Proves coverage.pages rejects a broken domain overlay that names a phantom domain absent from source.",
-  "trigger": { "type": "cron", "everyMinutes": 720 },
-  "retention": { "keep": 5, "keepDays": 30 },
-  "command": ["node", "checks/known-bad/expect-bad-result.mjs"],
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 2
+  },
+  "trigger": {
+    "type": "cron",
+    "everyMinutes": 720
+  },
+  "retention": {
+    "keep": 5,
+    "keepDays": 30
+  },
+  "command": [
+    "node",
+    "checks/known-bad/expect-bad-result.mjs"
+  ],
   "inputs": [
     {
       "kind": "file",
@@ -15,7 +28,9 @@
       "data": {
         "label": "coverage.pages known-bad overlay fixture",
         "targetScript": "checks/coverage/pages.mjs",
-        "expectedStatuses": ["fail"]
+        "expectedStatuses": [
+          "fail"
+        ]
       }
     }
   ],

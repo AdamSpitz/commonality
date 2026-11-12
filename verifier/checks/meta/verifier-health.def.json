@@ -1,6 +1,7 @@
 {
   "id": "meta.verifier-health",
-  "description": "Can we trust the verifier? Covers liveness, flakiness, coverage gaps, and known-bad fixtures that prove checks still catch their intended failures.",
+  "name": "Can we trust the verifier?",
+  "description": "Covers liveness, flakiness, coverage gaps, and known-bad fixtures that prove checks still catch their intended failures.",
   "trigger": {
     "type": "onInputChange",
     "debounceMinutes": 5
@@ -245,16 +246,13 @@
         "label": "meta.verifier-health",
         "rollup": {
           "type": "anyFail"
-        },
-        "freshness": {
-          "requiredMaxAgeMinutes": 10080,
-          "byRoleMinutes": {
-            "verifier-review": 43200,
-            "automation-candidates": 43200
-          }
         }
       }
     }
   ],
-  "timeoutMs": 30000
+  "timeoutMs": 30000,
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 2
+  }
 }

@@ -1,5 +1,5 @@
-import { emit, errorResult, fail, pass } from "../lib/result.mjs";
-import { envValue, readEnvFile, readTestnetConfig, requireOptIn, rpcCall } from "./lib.mjs";
+import { emit, errorResult, fail, pass, optInSkipped } from "../lib/result.mjs";
+import { envValue, readEnvFile, readTestnetConfig, requireOptIn, rpcCall, testnetOptInSkipped, TESTNET_ENABLE } from "./lib.mjs";
 
 const ALIGNMENT_ABI = [{
   type: "function", name: "attestAlignment", stateMutability: "nonpayable",
@@ -24,10 +24,9 @@ const TWO = `0x${"02".padStart(64, "0")}`;
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 emit(async () => {
-  try { requireOptIn(); } catch (error) { return errorResult(error.message, { findings: { requiredEnv: error.requiredEnv } }); }
+  try { requireOptIn(); } catch (error) { return testnetOptInSkipped(error); }
   if (process.env.COMMONALITY_VERIFIER_ENABLE_TESTNET_MUTATION !== "1") {
-    return errorResult("Refusing to run alignment-trust journey without COMMONALITY_VERIFIER_ENABLE_TESTNET_MUTATION=1.", {
-      findings: { requiredEnv: ["COMMONALITY_VERIFIER_ENABLE_TESTNET_MUTATION"], mutatesState: true }
+    return optInSkipped("Refusing to run alignment-trust journey without COMMONALITY_VERIFIER_ENABLE_TESTNET_MUTATION=1.", ["COMMONALITY_VERIFIER_ENABLE_TESTNET_MUTATION"], { enable: TESTNET_ENABLE, findings: { requiredEnv: ["COMMONALITY_VERIFIER_ENABLE_TESTNET_MUTATION"], mutatesState: true }
     });
   }
 
