@@ -108,7 +108,7 @@ Maps each route surface to its Vitest and/or Playwright coverage.
 
 | Route | Vitest | Playwright |
 |---|---|---|
-| `/` (landing) | `domains/commonality/LandingPage.test.tsx`, `domains/CrossDomainSmoke.test.tsx` | — |
+| `/` (landing) | `commonality/pages/HomePage.test.tsx`, `domains/CrossDomainSmoke.test.tsx` | — |
 | `/start` | `conceptspace/pages/HomePage.test.tsx` | `wallet-connection.spec.ts`, `delegation-flow.spec.ts` |
 | `/browse` | `conceptspace/pages/BrowseStatementsPage.test.tsx` | `browse-statements.spec.ts` |
 | `/statement/:cid` | `conceptspace/pages/StatementPage.test.tsx` | `statement-creation.spec.ts`, `belief-expression.spec.ts` |

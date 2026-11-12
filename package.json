@@ -150,7 +150,7 @@
     "madge": "^8.0.0",
     "markdown-link-check": "^3.14.2",
     "turbo": "^2.5.8",
-    "vite": "^7.3.5"
+    "vite": "7.3.8"
   },
   "overrides": {
     "viem": "2.54.3",
