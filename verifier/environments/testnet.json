@@ -12,7 +12,9 @@
   "eventCacheUrl": "https://commonality-indexer.onrender.com",
   "appUrl": "https://testnet.commonality.works",
   "expectedHosts": [
-    "testnet.commonality.works",
+    "testnet.commonality.works"
+  ],
+  "deferredHosts": [
     "civility.testnet.commonality.works",
     "common-sense-majority.testnet.commonality.works"
   ],
@@ -25,19 +27,11 @@
     "conceptspace.testnet.commonality.works"
   ],
   "appUrls": [
-    "https://testnet.commonality.works",
-    "https://civility.testnet.commonality.works",
-    "https://common-sense-majority.testnet.commonality.works"
+    "https://testnet.commonality.works"
   ],
   "websiteJourneys": [
-    { "url": "https://testnet.commonality.works", "paths": ["/", "/#/", "/#/causes", "/#/docs"] },
-    { "url": "https://civility.testnet.commonality.works", "paths": ["/", "/#/"] },
-    { "url": "https://common-sense-majority.testnet.commonality.works", "paths": ["/", "/#/"] }
+    { "url": "https://testnet.commonality.works", "paths": ["/", "/#/", "/#/causes", "/#/docs"] }
   ],
-  "policyEnforcement": {
-    "civilityAppUrl": "https://civility.testnet.commonality.works",
-    "blockedCid": "bafkreifzjut3te2nhyekklss27nh3k7232xplrvgnbo3wxj335rkr3v36m"
-  },
   "serviceUrls": [
     "https://commonality-indexer.onrender.com/health",
     "https://commonality-platform-api.onrender.com/health",
