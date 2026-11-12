@@ -25,6 +25,8 @@ The policy, human labels, costs, path ownership, and milestone campaigns live in
 [`operator-policy.json`](./operator-policy.json). See
 [`OPERATOR-OVERHAUL.md`](./OPERATOR-OVERHAUL.md) for the design and rollout.
 
+A known failure that is expensive to fix can be parked in [`parked-failures.json`](./parked-failures.json). A park names the check, owner, reason, review date, and a snippet that must still appear in the latest failure. While it matches, stand, the leaf view, and supervisor rollups keep it out of the current-work problem list. It is not a pass. `staleness.parked-failures` fails when the review date passes, the failure changes, or the check starts passing.
+
 To browse the dashboard interactively: `npm run verifier:tree`. It opens on the
 flat **Leaf checks** tab; **All checks** shows the complete DAG rooted at `root`. `j`/`k` move, `r` reruns the selected
 check, `d` toggles the details pane between a check's report artifact and its

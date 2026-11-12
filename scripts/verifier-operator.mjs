@@ -4,6 +4,7 @@ import { execFileSync, spawnSync } from "node:child_process";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { matchingPark } from "../verifier/checks/lib/parked-failures.mjs";
 import { affectedChecks, filesNewerThan, fingerprintFiles, formatDuration, freshnessFor, presentationFor, profileFor, summarizeProfiles } from "./lib/verifier-operator.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -185,7 +186,18 @@ function age(result) {
   return `${Math.floor(minutes / 1440)}d ago`;
 }
 
+async function parkedItems() {
+  const parsed = await readJson(path.join(workspace, "parked-failures.json"), { items: [] });
+  return parsed.items ?? [];
+}
+
+function displayedStatus(id, result, parks, missing = "unknown") {
+  const park = matchingPark(parks, id, result);
+  return park ? "parked" : (result?.status ?? missing);
+}
+
 async function stand(args, policy, defs) {
+  const parks = await parkedItems();
   let focusLabel = policy.focus.label;
   try {
     const focusText = await fs.readFile(path.resolve(workspace, policy.focus.source), "utf8");
@@ -198,10 +210,17 @@ async function stand(args, policy, defs) {
   const items = args.includes("--all") ? policy.conclusions ?? [] : focusItems;
   const rows = [];
   for (const item of items) rows.push({ ...item, result: await latestResult(item.id) });
-  const visible = args.includes("--problems") ? rows.filter((row) => row.result?.status !== "pass") : rows;
-  for (const row of visible) console.log(`- ${row.result?.status ?? "unknown"}: ${row.label} [${row.id}] — ${age(row.result)}${row.result?.summary ? `\n  ${row.result.summary}` : ""}`);
-  const problems = rows.filter((row) => !["pass"].includes(row.result?.status));
+  const visible = args.includes("--problems") ? rows.filter((row) => !["pass", "parked"].includes(displayedStatus(row.id, row.result, parks))) : rows;
+  for (const row of visible) {
+    const status = displayedStatus(row.id, row.result, parks);
+    const park = matchingPark(parks, row.id, row.result);
+    const note = park ? `\n  Parked until ${park.reviewAfter}: ${park.reason}` : (row.result?.summary ? `\n  ${row.result.summary}` : "");
+    console.log(`- ${status}: ${row.label} [${row.id}] — ${age(row.result)}${note}`);
+  }
+  const parked = rows.filter((row) => displayedStatus(row.id, row.result, parks) === "parked");
+  const problems = rows.filter((row) => !["pass", "parked"].includes(displayedStatus(row.id, row.result, parks)));
   console.log(`\n${problems.length ? `${problems.length} conclusion(s) need attention or evidence.` : "All displayed conclusions currently pass."}`);
+  if (parked.length) console.log(`${parked.length} known failure(s) are parked, not forgotten. They return to the problem list on their review date or if the failure changes.`);
   if (!args.includes("--all")) console.log("Showing current-focus evidence. Add --all for every top-level concern or --problems to hide passing rows.");
   console.log("Read-only: no checks were run and no model was called.");
 }
@@ -259,18 +278,24 @@ async function view(args, policy, defs) {
   }
   if (name === "leaves") {
     const leaves = leafIds(defs);
+    const parks = await parkedItems();
     const presentation = await viewPresentation(leaves, defs, policy);
     const results = new Map(await Promise.all(leaves.map(async (id) => [id, await latestResult(id)])));
+    for (const id of leaves) {
+      const park = matchingPark(parks, id, results.get(id));
+      if (park) presentation[id] = { ...presentation[id], parked: { reviewAfter: park.reviewAfter, reason: park.reason } };
+    }
     const rank = (id) => {
-      const status = results.get(id)?.status;
+      const status = displayedStatus(id, results.get(id), parks, "never run");
       if (status === "fail" || status === "error") return 0;
-      if (!status) return 2;
+      if (status === "never run") return 2;
+      if (status === "parked") return 4;
       if (status === "skipped") return 4;
       return presentation[id]?.freshness?.changed ? 1 : 3;
     };
     const checks = leaves.sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
-    const counts = checks.reduce((acc, id) => { const s = results.get(id)?.status ?? "never run"; acc[s] = (acc[s] ?? 0) + 1; return acc; }, {});
-    const summary = Object.entries(counts).map(([k, v]) => `${v} ${k}`).join(" · ") + " · failing first, then code-changed, never-run, passing, intentionally skipped";
+    const counts = checks.reduce((acc, id) => { const s = displayedStatus(id, results.get(id), parks, "never run"); acc[s] = (acc[s] ?? 0) + 1; return acc; }, {});
+    const summary = Object.entries(counts).map(([k, v]) => `${v} ${k}`).join(" · ") + " · failing first, then code-changed, never-run, passing, parked or intentionally skipped";
     console.log(JSON.stringify({ checks, presentation, summary }));
     return;
   }

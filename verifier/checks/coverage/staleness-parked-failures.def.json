@@ -1,0 +1,28 @@
+{
+  "id": "staleness.parked-failures",
+  "description": "Fail when a parked failure expires, no longer matches the latest result, or the check starts passing.",
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 2
+  },
+  "trigger": {
+    "type": "cron",
+    "everyMinutes": 720
+  },
+  "retention": {
+    "keep": 10,
+    "keepDays": 30
+  },
+  "command": [
+    "node",
+    "checks/coverage/staleness-parked-failures.mjs"
+  ],
+  "inputs": [
+    {
+      "kind": "file",
+      "path": "parked-failures.json",
+      "as": "parkedFailures"
+    }
+  ],
+  "timeoutMs": 30000
+}

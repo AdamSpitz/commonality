@@ -22,6 +22,7 @@
 import { createHash } from "node:crypto";
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
+import { loadParkedFailures, splitParked } from "./lib/parked-failures.mjs";
 import { emit, fail, pass, readInputs, uncertain, workspacePath, writeTextArtifact } from "./lib/result.mjs";
 import {
   checkInputs,
@@ -117,7 +118,10 @@ emit(async () => {
   const allWorkers = withFreshness(checkInputs(inputs), params.freshness);
   const advisoryIds = new Set(params.advisoryCheckIds ?? []);
   const advisoryWorkers = allWorkers.filter((w) => advisoryIds.has(w.id));
-  const gatingWorkers = allWorkers.filter((w) => !advisoryIds.has(w.id));
+  const { active: gatingWorkers, parked } = splitParked(
+    allWorkers.filter((w) => !advisoryIds.has(w.id)),
+    await loadParkedFailures()
+  );
 
   // 1. Deterministic rollup over the gating children — the LLM never touches this.
   const label = params.label ?? THIS_CHECK_ID;
@@ -164,7 +168,7 @@ emit(async () => {
     }
   }
 
-  const summary = makeSummary(label, status, gatingWorkers, counts, classification, advisoryWorkers)
+  const summary = makeSummary(label, status, gatingWorkers, counts, classification, advisoryWorkers, parked)
     + (narrative.summary ? ` — ${narrative.summary}` : narrativeError ? " — (narrative unavailable)" : "");
 
   const findings = {
@@ -176,6 +180,9 @@ emit(async () => {
     children: gatingWorkers.map(childSummary),
     ...(advisoryWorkers.length > 0
       ? { advisoryPolicy: "Advisory children inform the narrative but never affect rollup status.", advisoryCounts: statusCounts(advisoryWorkers), advisoryChildren: advisoryWorkers.map(childSummary) }
+      : {}),
+    ...(parked.length > 0
+      ? { parkedFailures: parked.map((worker) => ({ ...childSummary(worker), reviewAfter: worker.park.reviewAfter, reason: worker.park.reason })) }
       : {}),
     narrative: {
       fingerprint: (narrative.skippedLlm || narrative.stale)
