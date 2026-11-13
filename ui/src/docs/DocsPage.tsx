@@ -1,3 +1,6 @@
+// Ambient virtual-module types must accompany this source export for external consumers.
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference
+/// <reference path="../virtual-end-user-docs.d.ts" />
 import { useParams, Link as RouterLink } from 'react-router-dom'
 import ReactMarkdown from 'react-markdown'
 import rehypeSanitize from 'rehype-sanitize'

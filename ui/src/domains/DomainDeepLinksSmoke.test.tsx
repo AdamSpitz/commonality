@@ -2,7 +2,7 @@ import { render, screen, waitFor, cleanup } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { isRouteResolvableDocLink } from './publicDocLinks'
-import type { DomainId } from './types'
+import type { BuiltDomainId } from './index'
 
 vi.mock('./lazyRoute', () => ({
   lazyRoute: (_loadModule: unknown, exportName: string) => <div data-testid="lazy-route">{exportName}</div>,
@@ -67,8 +67,8 @@ function normalizeInternalHref(href: string): string {
   return withoutQuery.endsWith('/') && withoutQuery.length > 1 ? withoutQuery.slice(0, -1) : withoutQuery
 }
 
-function matchingDomainsForPath(path: string): DomainId[] {
-  return (Object.keys(domainManifests) as DomainId[]).filter(domainId => {
+function matchingDomainsForPath(path: string): BuiltDomainId[] {
+  return (Object.keys(domainManifests) as BuiltDomainId[]).filter(domainId => {
     const routePaths = extractRoutePaths(domainManifests[domainId].routes)
     return routePaths.some(routePath => routePatternMatchesPath(routePath, path))
   })
@@ -93,7 +93,7 @@ function samplePathForRoutePattern(routePattern: string): string {
   })
 }
 
-function renderDomainPath(domainId: DomainId, path: string) {
+function renderDomainPath(domainId: BuiltDomainId, path: string) {
   return render(
     <MemoryRouter initialEntries={[path]}>
       <Routes>
@@ -108,7 +108,7 @@ afterEach(() => {
   cleanup()
 })
 
-async function expectPathToRender(domainId: DomainId, path: string) {
+async function expectPathToRender(domainId: BuiltDomainId, path: string) {
   const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
   try {
     renderDomainPath(domainId, path)
@@ -125,7 +125,7 @@ async function expectPathToRender(domainId: DomainId, path: string) {
 
 describe('domain representative deep links', () => {
   it('renders every declared domain route pattern with representative params', async () => {
-    for (const [domainId, manifest] of Object.entries(domainManifests) as [DomainId, typeof domainManifests[DomainId]][]) {
+    for (const [domainId, manifest] of Object.entries(domainManifests) as [BuiltDomainId, typeof domainManifests[BuiltDomainId]][]) {
       if (domainId === 'commonality') continue
       for (const routePattern of extractRoutePaths(manifest.routes)) {
         cleanup()

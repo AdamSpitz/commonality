@@ -33,12 +33,9 @@
 - `CreatorsLandingPage` (15 tests — default/custom title and descriptions, Twitter/YouTube/Substack platform cards with links and descriptions, learn more link, h1/h6 heading structure, clickable navigation)
 - `CommonalityLandingPage` (13 tests — hero section with eyebrow/title/description/action links/spotlight, section cards with titles/descriptions/CTAs/eyebrows, focused domain entry points with three domain cards)
 - `ContentFundingLandingPage` (10 tests — hero section with eyebrow/title/description/action links/spotlight, section cards with titles/descriptions/CTAs/eyebrows)
-- `CivilityLandingPage` (10 tests — hero section with eyebrow/title/description/action links/spotlight, section cards with titles/descriptions/CTAs/eyebrows)
-- `CommonSenseMajorityLandingPage` (10 tests — hero section with eyebrow/title/description/action links/spotlight, section cards with titles/descriptions/CTAs/eyebrows)
 - `routing.test.ts` (IPFS-mode hash routing fallback)
 - `domainRoutes.test.tsx` (all four domain manifests)
-- `ContentPages.test.tsx` (content-funding and civility branded wrappers)
-- `CsmPages.test.tsx` (Common Sense Majority domain wrappers)
+- `ContentPages.test.tsx` (content-funding branded wrappers)
 - `useTrustedAttesters` (15 tests — localStorage load/save, address validation/filtering, env default fallback, corrupted/non-array JSON handling, hook read-on-mount)
 - `useNudgerMetadata` (9 tests — null URL, successful fetch, HTTP error, network error, malformed JSON, default field fallbacks, trailing slash stripping, serviceUrl change)
 - `useCachedProjects` pure functions (16 tests — withMetrics: null filtering, funding progress calculation, zero threshold, overfunding, createdAtBlock mapping, bigint inputs; sortProjects: 5 sort fields × directions, immutability, empty array)
@@ -138,28 +135,12 @@ Maps each route surface to its Vitest and/or Playwright coverage.
 | `/content/dashboard` | `content-funding/pages/CreatorDashboardPage.test.tsx`, `domains/content-funding/ContentPages.test.tsx` | `content-funding-flow.spec.ts` |
 | `/content/contracts/:address` | `content-funding/components/ContentFundingProjectSection.test.tsx`, `domains/content-funding/ContentPages.test.tsx` | — |
 
-### Civility domain routes (wrapped)
+### Extracted political applications
 
-| Route | Vitest | Playwright |
-|---|---|---|
-| `/` (landing) | `domains/civility/LandingPage.test.tsx`, `domains/CrossDomainSmoke.test.tsx` | — |
-| `/about` | `domains/civility/ContentPages.test.tsx` | — |
-| `/content/*` | `domains/civility/ContentPages.test.tsx` | — |
-
-### Common Sense Majority domain routes (wrapped)
-
-| Route | Vitest | Playwright |
-|---|---|---|
-| `/` (landing) | `domains/common-sense-majority/LandingPage.test.tsx`, `domains/CrossDomainSmoke.test.tsx` | — |
-| `/organize` | `domains/common-sense-majority/CsmPages.test.tsx` | — |
-| `/about` | `domains/common-sense-majority/CsmPages.test.tsx` | — |
-| `/projects` | `domains/common-sense-majority/CsmPages.test.tsx` | — |
-| `/projects/new` | `domains/common-sense-majority/CsmPages.test.tsx` | — |
-| `/projects/:address` | `domains/common-sense-majority/CsmPages.test.tsx` | — |
-| `/content/*` | `domains/common-sense-majority/CsmPages.test.tsx` | — |
-| `/portal/:cid` | `domains/common-sense-majority/CsmPages.test.tsx` | — |
-| `/portal/:cid/leaderboard` | `domains/common-sense-majority/CsmPages.test.tsx` | — |
-| `/explore` | `domains/common-sense-majority/CsmPages.test.tsx` | — |
+Civility and Common Sense Majority routes now live in `common-sense-politics`.
+Their former route-wrapper tests are no longer part of this package. External
+E2E, policy-surface, and workflow-review coverage is pending migration; see the
+root TODO. Shared content-funding behavior remains covered here.
 
 ### Shared routes (all domains)
 
@@ -172,8 +153,8 @@ Maps each route surface to its Vitest and/or Playwright coverage.
 ## Known Gaps
 
 1. ~~**Cross-domain smoke suite:**~~ Done (98 tests — manifest structure with domain-specific expected values, nav integrity, feature flag matrix, route coverage, landing page rendering with exact hero titles, out-of-domain absence, shared route consistency).
-2. ~~**Domain-wrapper depth:**~~ Done (75 tests — 14 content-funding, 23 civility, 38 movement). These are prop-wiring tests that mock underlying pages; they verify branded copy and prop passthrough, not full integration.
-3. ~~**IPFS/hash routing E2E:**~~ Done (`ipfs-domain-artifact-smoke.spec.ts` builds `npm run build:ipfs:domains`, serves `ui/dist`, and checks all eight domain homes plus representative deep-link reloads). Remaining gap: wrong-domain artifact routes should intentionally work or fail with a clear not-found state.
+2. **Domain-wrapper depth:** Content Funding wrapper tests remain here. Civility and CSM wrapper coverage belongs in `common-sense-politics` and is pending migration.
+3. **IPFS/hash routing E2E:** `ipfs-domain-artifact-smoke.spec.ts` builds `npm run build:ipfs:domains`, serves `ui/dist`, and checks Commonality's home plus representative deep-link reloads. Extracted apps need their own artifact smoke coverage.
 4. ~~**Mobile/responsive AppShell:**~~ Done (35 tests — drawer open/close, primary and secondary navigation in drawer, selected-state behavior, custom branding/navigation in drawer, accessibility landmarks).
 5. ~~**Content-funding full loop:**~~ Done (expanded `content-funding-flow.spec.ts` — third-party contract creation, channel verification, channel control/takeover, creator dashboard viewing, supporter purchase with delegatable notes, escrow withdrawal, post-withdrawal UI verification).
 6. ~~**Non-default domain smoke:**~~ Mostly done via `CrossDomainSmoke`, `CrossLinkCrawler`, and `ipfs-domain-artifact-smoke.spec.ts`. Do not duplicate every non-default domain flow in Playwright; add full E2E only for user-critical flows that cannot be covered by Vitest or artifact smoke.

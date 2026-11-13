@@ -11,9 +11,9 @@ function run(command, commandArgs) {
 }
 
 if (args.length > 0) {
-  // `npm test --workspace=ui -- SomeComponent.test.tsx` is a common shorthand for a
+  // `npm test --workspace=@commonality/ui -- SomeComponent.test.tsx` is a common shorthand for a
   // focused unit/component test. Do not forward that Vitest filter to Playwright;
-  // Playwright has a separate `npm run test:e2e --workspace=ui -- ...` entrypoint.
+  // Playwright has a separate `npm run test:e2e --workspace=@commonality/ui -- ...` entrypoint.
   run('npm', ['run', 'test:vitest', '--', ...args])
 } else if (run('npm', ['run', 'test:vitest'])) {
   run('npm', ['run', 'test:e2e'])

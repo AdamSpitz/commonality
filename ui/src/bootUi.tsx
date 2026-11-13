@@ -1,0 +1,249 @@
+import { StrictMode, useState, useCallback, useEffect, useMemo } from 'react'
+import { createRoot } from 'react-dom/client'
+import { CssBaseline, ThemeProvider, createTheme } from '@mui/material'
+import type { PaletteMode, Theme } from '@mui/material'
+import { WagmiProvider, useAccount, useConnect } from 'wagmi'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { ConnectKitProvider } from 'connectkit'
+import {
+  config,
+  createMockConfig,
+  createTestDataConfig,
+} from './wagmi'
+import './index.css'
+import App from './App'
+import { getRuntimeConfig, loadActivePolicyBundle, loadDisplayDenylist, loadRuntimeConfig } from './shared'
+import { installStaleBuildRecovery } from './shared'
+import { ThemeModeContext } from './shared'
+import { TestDataSessionContext } from './shared/wallet/testDataSession'
+
+const queryClient = new QueryClient()
+
+const colorModeStorageKey = 'commonality.colorMode'
+
+function getSystemColorMode(): PaletteMode {
+  if (typeof window === 'undefined') {
+    return 'light'
+  }
+
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+}
+
+function getInitialColorMode(): PaletteMode {
+  if (typeof window === 'undefined') {
+    return 'light'
+  }
+
+  const storedMode = window.localStorage.getItem(colorModeStorageKey)
+
+  if (storedMode === 'light' || storedMode === 'dark') {
+    return storedMode
+  }
+
+  return getSystemColorMode()
+}
+
+// WCAG 2.5.5 / platform HIG minimum comfortable touch-target size (px).
+const TOUCH_TARGET_MIN = 44
+
+function createAppTheme(mode: PaletteMode): Theme {
+  return createTheme({
+    palette: {
+      mode,
+      ...(mode === 'light'
+        ? {
+          background: {
+            default: '#fffdf8',
+            paper: '#ffffff',
+          },
+        }
+        : {
+          primary: {
+            main: '#93c5fd',
+            light: '#bfdbfe',
+            dark: '#1d4ed8',
+            contrastText: '#0b1020',
+          },
+          background: {
+            default: '#0b1020',
+            paper: '#121a2c',
+          },
+        }),
+    },
+    components: {
+      MuiButton: {
+        styleOverrides: {
+          containedPrimary: ({ theme }) => theme.palette.mode === 'dark'
+            ? {
+                backgroundColor: '#1d4ed8',
+                color: '#ffffff',
+                '&:hover': {
+                  backgroundColor: '#1e40af',
+                },
+              }
+            : {},
+          // On touch devices, ensure small buttons still meet the ~44px
+          // touch-target minimum without disturbing desktop density.
+          sizeSmall: {
+            '@media (pointer: coarse)': {
+              minHeight: TOUCH_TARGET_MIN,
+            },
+          },
+        },
+      },
+      MuiIconButton: {
+        styleOverrides: {
+          sizeSmall: {
+            '@media (pointer: coarse)': {
+              minWidth: TOUCH_TARGET_MIN,
+              minHeight: TOUCH_TARGET_MIN,
+            },
+          },
+        },
+      },
+      MuiToggleButton: {
+        styleOverrides: {
+          sizeSmall: {
+            '@media (pointer: coarse)': {
+              minHeight: TOUCH_TARGET_MIN,
+            },
+          },
+        },
+      },
+      MuiChip: {
+        styleOverrides: {
+          // Only clickable/deletable chips are interactive targets; MUI adds
+          // these classes when onClick/onDelete is present.
+          sizeSmall: {
+            '@media (pointer: coarse)': {
+              '&.MuiChip-clickable, &.MuiChip-deletable': {
+                minHeight: TOUCH_TARGET_MIN,
+              },
+            },
+          },
+        },
+      },
+      MuiCssBaseline: {
+        styleOverrides: (themeParam) => ({
+          body: {
+            color: themeParam.palette.text.primary,
+            background: themeParam.palette.mode === 'light'
+              ? 'radial-gradient(circle at top, rgba(216, 243, 220, 0.55), transparent 36%), linear-gradient(180deg, #f7f5ef 0%, #fffdf8 42%, #f4f8f2 100%)'
+              : 'radial-gradient(circle at top, rgba(25, 118, 210, 0.22), transparent 38%), linear-gradient(180deg, #08111f 0%, #0b1020 48%, #111827 100%)',
+          },
+        }),
+      },
+    },
+  })
+}
+
+installStaleBuildRecovery()
+
+// Global type declaration for E2E test helper
+declare global {
+  interface Window {
+    _setupTestWallet: (
+      addressOrPkey: `0x${string}`,
+      features?: Parameters<typeof createMockConfig>[1],
+    ) => ReturnType<typeof createMockConfig>
+    _setupTestDataWallet: (
+      privateKey: `0x${string}`,
+      options: { chainId: number; label: string },
+    ) => ReturnType<typeof createTestDataConfig>
+  }
+}
+
+function AdminWalletAutoConnector({ connectionId }: { connectionId: number }) {
+  const { isConnected } = useAccount()
+  const { connect, connectors } = useConnect()
+
+  useEffect(() => {
+    const connector = connectors[0]
+    if (!isConnected && connector) connect({ connector })
+  }, [connect, connectionId, connectors, isConnected])
+  return null
+}
+
+export function Root() {
+  const [mode, setMode] = useState<PaletteMode>(getInitialColorMode)
+  const [testWagmiConfig, setTestWagmiConfig] = useState<typeof config | null>(null)
+  const [adminConnectionId, setAdminConnectionId] = useState(0)
+  const wagmiConfig = testWagmiConfig ?? config
+
+  const theme = useMemo(() => createAppTheme(mode), [mode])
+  const themeModeContextValue = useMemo(() => ({
+    mode,
+    toggleMode: () => setMode((currentMode) => currentMode === 'light' ? 'dark' : 'light'),
+  }), [mode])
+
+  useEffect(() => {
+    window.localStorage.setItem(colorModeStorageKey, mode)
+    document.documentElement.dataset.colorMode = mode
+  }, [mode])
+
+  // Expose wallet setup function for E2E tests
+  const setupTestWallet = useCallback(
+    (addressOrPkey: `0x${string}`, features?: Parameters<typeof createMockConfig>[1]) => {
+      const newConfig = createMockConfig(addressOrPkey, features)
+      setTestWagmiConfig(newConfig)
+      return newConfig
+    },
+    []
+  )
+
+  const setupTestDataWallet = useCallback(
+    (privateKey: `0x${string}`, options: { chainId: number; label: string }) => {
+      const environment = getRuntimeConfig().COMMONALITY_ENVIRONMENT ?? 'local'
+      if (environment === 'mainnet') throw new Error('Test-data wallets are disabled on mainnet.')
+      const chainId = options.chainId
+      if (chainId !== 31337 && chainId !== 84532) throw new Error(`Unsupported test-data chain ${chainId}.`)
+      const newConfig = createTestDataConfig(privateKey, chainId, options.label)
+      setTestWagmiConfig(newConfig)
+      setAdminConnectionId(current => current + 1)
+      return newConfig
+    },
+    []
+  )
+
+  useEffect(() => {
+    window._setupTestWallet = setupTestWallet
+    window._setupTestDataWallet = setupTestDataWallet
+  }, [setupTestWallet, setupTestDataWallet])
+
+  return (
+    <ThemeModeContext.Provider value={themeModeContextValue}>
+      <TestDataSessionContext.Provider value={Boolean(testWagmiConfig)}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <QueryClientProvider client={queryClient}>
+          <WagmiProvider
+            key={testWagmiConfig ? `test-data-${adminConnectionId}` : 'app'}
+            config={wagmiConfig}
+            reconnectOnMount={!testWagmiConfig}
+          >
+            <ConnectKitProvider>
+              {testWagmiConfig ? <AdminWalletAutoConnector connectionId={adminConnectionId} /> : null}
+              <App />
+            </ConnectKitProvider>
+          </WagmiProvider>
+        </QueryClientProvider>
+      </ThemeProvider>
+      </TestDataSessionContext.Provider>
+    </ThemeModeContext.Provider>
+  )
+}
+
+export async function bootUi() {
+  try {
+    await loadRuntimeConfig()
+    await Promise.all([loadDisplayDenylist(), loadActivePolicyBundle()])
+    createRoot(document.getElementById('root')!).render(
+      <StrictMode>
+        <Root />
+      </StrictMode>,
+    )
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    document.getElementById('root')!.textContent = message
+  }
+}

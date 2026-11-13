@@ -20,12 +20,12 @@
     {
       "kind": "params",
       "data": {
-        "label": "npm run test:e2e --workspace=ui -- e2e/content-funding-flow.spec.ts e2e/delegation-flow.spec.ts e2e/lazyGiving-flow.spec.ts",
+        "label": "npm run test:e2e --workspace=@commonality/ui -- e2e/content-funding-flow.spec.ts e2e/delegation-flow.spec.ts e2e/lazyGiving-flow.spec.ts",
         "command": [
           "npm",
           "run",
           "test:e2e",
-          "--workspace=ui",
+          "--workspace=@commonality/ui",
           "--",
           "e2e/content-funding-flow.spec.ts",
           "e2e/delegation-flow.spec.ts",

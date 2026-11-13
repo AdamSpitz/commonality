@@ -21,7 +21,7 @@ source "$ROOT/scripts/lib/secrets.sh"
 if [ -z "$NETWORK" ]; then
   echo "Usage: $0 <network> [domain]"
   echo "  network: base-sepolia, mainnet"
-  echo "  domain: commonality, lazyGiving, alignment, tally, content-funding, civility, common-sense-majority, conceptspace, commonality-ui"
+  echo "  domain: commonality, lazyGiving, alignment, tally, content-funding, conceptspace, commonality-ui"
   exit 1
 fi
 
@@ -35,17 +35,15 @@ case "$DOMAIN" in
   lazygiving)
     DOMAIN="lazyGiving"
     ;;
-  noninflammatory)
-    DOMAIN="civility"
+  noninflammatory|civility|csm|common-sense-majority)
+    echo "Error: $DOMAIN is no longer built from this repo. Deploy it from the common-sense-politics repo."
+    exit 1
     ;;
-  csm)
-    DOMAIN="common-sense-majority"
-    ;;
-  commonality|lazyGiving|alignment|tally|content-funding|civility|common-sense-majority|conceptspace|commonality-ui)
+  commonality|lazyGiving|alignment|tally|content-funding|conceptspace|commonality-ui)
     ;;
   *)
     echo "Error: unknown UI domain '$DOMAIN'."
-    echo "Expected one of: commonality, lazyGiving, alignment, tally, content-funding, civility, common-sense-majority, conceptspace, commonality-ui."
+    echo "Expected one of: commonality, lazyGiving, alignment, tally, content-funding, conceptspace, commonality-ui."
     exit 1
     ;;
 esac

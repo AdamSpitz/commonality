@@ -70,11 +70,6 @@
     },
     {
       "kind": "check",
-      "id": "functionality.civility-policy-surfaces",
-      "role": "required"
-    },
-    {
-      "kind": "check",
       "id": "automated.seed-implication-regression",
       "role": "optional"
     }

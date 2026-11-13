@@ -105,7 +105,6 @@
               "vitest",
               "run",
               "src/fundingportals/pages/ExplorerPage.test.tsx",
-              "src/domains/common-sense-majority/CsmPages.test.tsx",
               "src/content-funding/components/ContentAttestationSummary.test.tsx"
             ]
           }

@@ -37,11 +37,15 @@ Cross-domain links can be configured at build time or in `dist/<domain>/config.j
 - `dist/alignment/`
 - `dist/tally/`
 - `dist/content-funding/`
-- `dist/civility/`
-- `dist/common-sense-majority/`
 - `dist/conceptspace/`
 
-When you start the local docker-compose stack via `./scripts/services.sh --start`, the IPFS publisher services build all eight domains and add them to the local IPFS node. The CIDs and raw gateway URLs are written to `./data/ui-ipfs/<domain>/`. The stack also starts a local UI gateway that maps stable hostnames to the latest local CIDs, so the primary local entry points are `http://commonality.localhost:8088/#/`, `http://lazygiving.localhost:8088/#/`, etc. `./scripts/services.sh --url` prints the full list, and `http://localhost:8088/admin` is a bookmarkable local admin page with links to all eight.
+When you start the local docker-compose stack via `./scripts/services.sh --start`, it publishes Commonality by default. Set `LOCAL_UI_DOMAINS=all` to publish all six domains. The CIDs and raw gateway URLs are written to `./data/ui-ipfs/<domain>/`. The local UI gateway maps stable hostnames to the latest local CIDs; the primary entry point is `http://commonality.localhost:8088/#/`. `./scripts/services.sh --url` prints the links, and `http://localhost:8088/admin` is the local admin page.
+
+## External verticals
+
+Civility and Common Sense Majority live in the sibling `common-sense-politics` repo. Their pages and manifests belong there; reusable funding pages, wallet providers, routing shell, and runtime configuration remain here. External entry points import `DomainManifest`, `injectActiveDomain`, and `bootUi` from `@commonality/ui/vertical`, inject their manifest, then call `bootUi()`.
+
+The exports in `package.json` expose TypeScript source for a Vite consumer, including separate page subpaths for lazy routes. This is currently a local checkout integration, not a published, independently installable UI distribution. The sibling consumer still requires Commonality's dependencies, docs, and build aliases. Cross-site URL settings remain here so shared features can link to those external sites.
 
 ## Code organization
 

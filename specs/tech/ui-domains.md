@@ -101,6 +101,10 @@ The gateway also reverse-proxies same-origin indexer paths (`/api/*`, `/status`,
 | Wallet-connection expectations for creator/content flows | [Content Funding claim flow](subsystems/content-funding/ui.md#claim-flow); [channel-claiming rationale](subsystems/content-funding/channel-claiming.md#dont-gate-on-wallet-creation); [Get your content funded: if someone already funded your work](../../docs/end-user/content-funding/get-your-content-funded.md#if-someone-already-funded-your-work) |
 
 
+## Vertical extraction
+
+Civility and Common Sense Majority now live in the sibling repo `common-sense-politics`. They import the source exports declared in `ui/package.json`. Their manifests and pages belong to that repo; the shared app shell and feature modules remain here. `@commonality/ui` is still private and consumed through the local sibling checkout, with Commonality's dependencies and docs available. This establishes source ownership, but independent installation and deployment still need packaging work; see [the UI README](../../ui/README.md#external-verticals).
+
 ## Future direction: per-vertical repo split (decided 2026-06-22)
 
 The intended end state is for each vertical — and each core sub-project (Tally, LazyGiving, etc.) — to live in its **own repo**, consuming the substrate as published packages. This is deliberately **not** a config-only or auto-discovered-registry approach: the central `domainManifests` / `DomainId` / `build:domains` / docker-compose-publisher bookkeeping *goes away* when things are split, rather than being automated.

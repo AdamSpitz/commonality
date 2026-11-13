@@ -20,12 +20,12 @@
     {
       "kind": "params",
       "data": {
-        "label": "npm run test:vitest --workspace=ui -- src/conceptspace",
+        "label": "npm run test:vitest --workspace=@commonality/ui -- src/conceptspace",
         "command": [
           "npm",
           "run",
           "test:vitest",
-          "--workspace=ui",
+          "--workspace=@commonality/ui",
           "--",
           "src/conceptspace"
         ],

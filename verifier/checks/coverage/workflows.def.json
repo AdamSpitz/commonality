@@ -1,6 +1,6 @@
 {
   "id": "coverage.workflows",
-  "description": "Verify the in-scope UI workflow inventory (Commonality, Civility, Common Sense Majority) maps each required workflow to a workflow-clarity check, objective smoke, and existing surface files.",
+  "description": "Verify the Commonality workflow inventory maps each required workflow to a workflow-clarity check, objective smoke, and existing surface files. Political app workflows are owned by common-sense-politics.",
   "expense": {
     "llm": "none",
     "estimatedSeconds": 2

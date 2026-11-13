@@ -268,13 +268,16 @@ function buildRuntimeConfig(env: Record<string, string>) {
 
 function resolveDomain(value: string | undefined) {
   switch (value) {
+    case 'civility':
+    case 'noninflammatory':
+    case 'common-sense-majority':
+    case 'csm':
+      throw new Error(`${value} is owned by common-sense-politics; build it from that repository.`)
     case 'commonality':
     case 'lazyGiving':
     case 'alignment':
     case 'tally':
     case 'content-funding':
-    case 'civility':
-    case 'common-sense-majority':
     case 'conceptspace':
       return value
     default:

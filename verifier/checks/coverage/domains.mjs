@@ -3,9 +3,7 @@ import path from "node:path";
 import { emit, fail, pass, readInputs, workspacePath } from "../lib/result.mjs";
 
 const EXPECTED_DOMAIN_NAMES = [
-  "Commonality",
-  "Civility",
-  "Common Sense Majority"
+  "Commonality"
 ];
 
 function findFileInput(inputs, inputName) {

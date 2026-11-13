@@ -2,14 +2,13 @@ import { render, screen, cleanup } from '@testing-library/react'
 import { MemoryRouter, Routes } from 'react-router-dom'
 import { afterEach, describe, expect, it } from 'vitest'
 import { getLinkHref, isCrossDomainLinkTarget, isExternalLinkTarget, type LabeledLinkTarget } from '../shared'
-import { domainManifests } from './index'
+import { domainManifests, type BuiltDomainId } from './index'
 import { isRouteResolvableDocLink } from './publicDocLinks'
-import type { DomainId } from './types'
 
-const domainIds: DomainId[] = ['commonality', 'lazyGiving', 'alignment', 'tally', 'content-funding', 'civility', 'common-sense-majority', 'conceptspace']
+const domainIds = Object.keys(domainManifests) as BuiltDomainId[]
 const publicDocModules = import.meta.glob('../../../docs/end-user/**/*.md', { query: '?raw', import: 'default', eager: true }) as Record<string, string>
 
-function renderDomainRoute(domainId: DomainId, path = '/') {
+function renderDomainRoute(domainId: BuiltDomainId, path = '/') {
   const manifest = domainManifests[domainId]
   return render(
     <MemoryRouter initialEntries={[path]}>
@@ -58,19 +57,19 @@ function routePatternMatchesPath(routePattern: string, path: string): boolean {
   return routeSegments.every((segment, index) => segment.startsWith(':') || segment === pathSegments[index])
 }
 
-function internalHrefResolvesInDomain(domainId: DomainId, href: string): boolean {
+function internalHrefResolvesInDomain(domainId: BuiltDomainId, href: string): boolean {
   const path = normalizeInternalHref(href)
   const routePaths = extractRoutePaths(domainManifests[domainId].routes)
   return routePaths.some(routePath => routePatternMatchesPath(routePath, path))
 }
 
-function expectInternalHrefToResolveInDomain(domainId: DomainId, href: string) {
+function expectInternalHrefToResolveInDomain(domainId: BuiltDomainId, href: string) {
   expect(internalHrefResolvesInDomain(domainId, href), `${domainId} internal link ${href} should match a route`).toBe(true)
 }
 
-function expectFallbackHrefToResolveSomewhere(sourceDomainId: DomainId, href: string) {
+function expectFallbackHrefToResolveSomewhere(sourceBuiltDomainId: BuiltDomainId, href: string) {
   const matchingDomain = domainIds.find(domainId => internalHrefResolvesInDomain(domainId, href))
-  expect(matchingDomain, `${sourceDomainId} rendered link ${href} should match a route in at least one domain`).toBeDefined()
+  expect(matchingDomain, `${sourceBuiltDomainId} rendered link ${href} should match a route in at least one domain`).toBeDefined()
 }
 
 afterEach(() => {
@@ -81,14 +80,12 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
   const manifest = domainManifests[domainId]
 
   describe('manifest structure', () => {
-    const expectedBrandNames: Record<DomainId, string> = {
+    const expectedBrandNames: Record<BuiltDomainId, string> = {
       commonality: 'Commonality',
       lazyGiving: 'LazyGiving',
       alignment: 'Aligning',
       tally: 'Tally',
       'content-funding': 'Content Funding',
-      civility: 'Civility',
-      'common-sense-majority': 'Common Sense Majority',
       conceptspace: 'Conceptspace',
     }
 
@@ -110,7 +107,7 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
     it('only uses navigation links that resolve in their target domain route table', () => {
       for (const item of [...manifest.shell.primaryNavigation, ...manifest.shell.secondaryNavigation]) {
         if (isCrossDomainLinkTarget(item)) {
-          expectInternalHrefToResolveInDomain(item.domain as DomainId, getNavigationHref(item))
+          expectInternalHrefToResolveInDomain(item.domain as BuiltDomainId, getNavigationHref(item))
         } else if (!isExternalLinkTarget(item)) {
           expectInternalHrefToResolveInDomain(domainId, getNavigationHref(item))
         }
@@ -159,7 +156,7 @@ describe('public docs app links', () => {
   it('only points absolute in-app links at routes owned by a public domain', () => {
     for (const [modulePath, markdown] of Object.entries(publicDocModules)) {
       for (const href of extractAbsoluteAppLinks(markdown)) {
-        expectFallbackHrefToResolveSomewhere(modulePath as DomainId, href)
+        expectFallbackHrefToResolveSomewhere(modulePath as BuiltDomainId, href)
       }
     }
   })
@@ -212,7 +209,7 @@ describe('cross-domain route ownership', () => {
     expect(routePaths).toContain('/user/:address')
     expect(routePaths).not.toContain('/explore')
     expect(domainManifests.tally.shell.primaryNavigation).not.toContainEqual({ label: 'Explore', path: '/explore' })
-    for (const id of ['lazyGiving', 'alignment', 'content-funding', 'civility', 'common-sense-majority', 'conceptspace'] as DomainId[]) {
+    for (const id of ['lazyGiving', 'alignment', 'content-funding', 'conceptspace'] as const) {
       const paths = extractRoutePaths(domainManifests[id].routes)
       expect(paths).not.toContain('/statements')
       expect(paths).not.toContain('/statement/:statementCid')
@@ -222,37 +219,11 @@ describe('cross-domain route ownership', () => {
   })
 
   it('content-focused product domains expose content funding surfaces', () => {
-    for (const id of ['content-funding', 'civility'] as DomainId[]) {
-      const routePaths = extractRoutePaths(domainManifests[id].routes)
-      expect(routePaths).toContain('/content')
-      expect(routePaths).toContain('/content/:platform')
-      expect(routePaths).toContain('/content/:platform/:channelId')
-    }
-    expect(extractRoutePaths(domainManifests.commonality.routes)).toContain('/content')
-  })
-
-  it('Common Sense Majority is a thin movement site with thesis, bridge, statement, and nudger routes only', () => {
-    const routePaths = extractRoutePaths(domainManifests['common-sense-majority'].routes)
-    expect(routePaths).toEqual(['/', '/about', '/bridges', '/organize', '/popular-statements', '/docs', '/docs/*'])
-    expect(routePaths).not.toContain('/content')
-    expect(routePaths).not.toContain('/projects')
-    expect(routePaths).not.toContain('/portal/:statementCid')
-  })
-
-  it('Common Sense Majority links out to the domains that carry its product journey', () => {
-    const linkedDomains = [...domainManifests['common-sense-majority'].shell.primaryNavigation, ...domainManifests['common-sense-majority'].shell.secondaryNavigation]
-      .filter(isCrossDomainLinkTarget)
-      .map(item => item.domain)
-
-    expect(linkedDomains).toEqual(expect.arrayContaining(['civility', 'tally', 'alignment', 'lazyGiving']))
-  })
-
-  it('civility links to its content-funding surfaces and Tally statements', () => {
-    const routePaths = extractRoutePaths(domainManifests.civility.routes)
+    const routePaths = extractRoutePaths(domainManifests['content-funding'].routes)
     expect(routePaths).toContain('/content')
-    expect(routePaths).toContain('/content/dashboard')
     expect(routePaths).toContain('/content/:platform')
-    expect(domainManifests.civility.shell.primaryNavigation).toContainEqual({ label: 'Statements on Tally', domain: 'tally', path: '/statements' })
+    expect(routePaths).toContain('/content/:platform/:channelId')
+    expect(extractRoutePaths(domainManifests.commonality.routes)).toContain('/content')
   })
 })
 

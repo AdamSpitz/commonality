@@ -49,7 +49,7 @@ export {
 // ChannelPage, CreateContractPage, CreatorDashboardPage,
 // MaterializeFutureContentPage) are intentionally NOT re-exported here. Domain
 // route wrappers load them directly (see domains/content-funding/ContentPages.tsx
-// and domains/civility/ContentPages.tsx) so each route stays in its own
+// and the external Civility vertical) so each route stays in its own
 // code-split chunk; re-exporting them from this eager barrel would collapse
 // those chunks. Those deep page imports are the second half of this module's
 // public API and map to package *subpath* exports (e.g.

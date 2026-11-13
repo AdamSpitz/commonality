@@ -18,3 +18,4 @@ export { usePaymentTokenCurrency } from './currency/usePaymentTokenCurrency'
 
 export { loadProjectWithCache, projectFoldCacheOptions, useCachedProject } from './hooks/useCachedProject'
 export { useCachedProjects } from './hooks/useCachedProjects'
+export { installFundingSocialAssociation } from './funding/installVerifiedSocialAssociation'

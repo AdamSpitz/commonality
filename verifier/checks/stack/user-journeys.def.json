@@ -25,9 +25,10 @@
           "npm",
           "run",
           "test:e2e",
-          "--workspace=ui",
+          "--workspace=@commonality/ui",
           "--",
-          "--project=common-sense-majority"
+          "--project=tally",
+          "statement-creation.spec.ts"
         ],
         "commandTimeoutMs": 1500000,
         "env": {

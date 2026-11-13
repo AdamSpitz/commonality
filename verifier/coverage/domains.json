@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "source": "specs/product/ui-domains.md",
-  "scope": "In-scope UI domains for verifier gating: Commonality (primary entry), Civility, and Common Sense Majority. Other Vite domains still exist as tools/verticals but are allowed to be broken or unfinished and must not turn coverage red.",
+  "scope": "Commonality is the primary in-repo UI coverage target. Civility and Common Sense Majority are owned by common-sense-politics; other in-repo domains remain supporting tools.",
   "domains": [
     {
       "id": "commonality",
@@ -10,28 +10,6 @@
         "routeSmokeCheckIds": ["automated.test-fast", "automated.test-full"],
         "artifactSmokeCheckIds": ["artifact.ipfs-domain-smoke"],
         "manualReviewCheckIds": ["review.founder-e2e.commonality", "review.workflow-clarity.commonality", "review.real-ui.touched-domain", "review.testnet-two-person-lab"],
-        "docsCoverage": "covered-by-cross-link-and-docs-inventory in automated.test-fast"
-      },
-      "deferred": []
-    },
-    {
-      "id": "civility",
-      "name": "Civility",
-      "coverage": {
-        "routeSmokeCheckIds": ["automated.test-fast", "automated.test-full"],
-        "artifactSmokeCheckIds": ["artifact.ipfs-domain-smoke"],
-        "manualReviewCheckIds": ["review.workflow-clarity.civility", "review.real-ui.touched-domain"],
-        "docsCoverage": "covered-by-cross-link-and-docs-inventory in automated.test-fast"
-      },
-      "deferred": []
-    },
-    {
-      "id": "common-sense-majority",
-      "name": "Common Sense Majority",
-      "coverage": {
-        "routeSmokeCheckIds": ["automated.test-fast", "automated.test-full"],
-        "artifactSmokeCheckIds": ["artifact.ipfs-domain-smoke"],
-        "manualReviewCheckIds": ["review.real-ui.touched-domain", "review.demo-dry-run", "review.workflow-clarity.common-sense-majority"],
         "docsCoverage": "covered-by-cross-link-and-docs-inventory in automated.test-fast"
       },
       "deferred": []

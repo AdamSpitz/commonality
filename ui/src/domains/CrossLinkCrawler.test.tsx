@@ -1,12 +1,11 @@
 import { cleanup, render, screen } from '@testing-library/react'
 import { MemoryRouter, Routes } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { domainManifests } from './index'
+import { domainManifests, type BuiltDomainId } from './index'
 import { isRouteResolvableDocLink } from './publicDocLinks'
-import type { DomainId } from './types'
 
 
-const domainIds = Object.keys(domainManifests) as DomainId[]
+const domainIds = Object.keys(domainManifests) as BuiltDomainId[]
 /** Commonality routes are eager wallet-backed pages, not the lazyRoute samples these crawls assume. */
 const crawledDomainIds = domainIds.filter((id) => id !== 'commonality')
 const publicDocModules = import.meta.glob('../../../docs/end-user/**/*.md', { query: '?raw', import: 'default', eager: true }) as Record<string, string>
@@ -28,7 +27,7 @@ const routeParamSamples: Record<string, string> = {
 }
 
 type CrawledPage = {
-  domainId: DomainId
+  domainId: BuiltDomainId
   path: string
   source: string
 }
@@ -87,7 +86,7 @@ function internalHrefResolvesInAnyPublicDomain(href: string): boolean {
   })
 }
 
-function renderDomainPath(domainId: DomainId, path: string) {
+function renderDomainPath(domainId: BuiltDomainId, path: string) {
   return render(
     <MemoryRouter initialEntries={[path]}>
       <Routes>{domainManifests[domainId].routes}</Routes>
