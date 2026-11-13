@@ -1,11 +1,10 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Routes } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
-import { getDomainManifest, domainManifests } from './index'
-import type { DomainId } from './types'
+import { getDomainManifest, domainManifests, type BuiltDomainId } from './index'
 import React, { isValidElement, type ReactNode } from 'react'
 
-function renderDomainRoute(domainId: DomainId, path = '/') {
+function renderDomainRoute(domainId: BuiltDomainId, path = '/') {
   const manifest = getDomainManifest(domainId)
   return render(
     <MemoryRouter initialEntries={[path]}>
@@ -47,11 +46,6 @@ async function expectLazyRoutePageRendered() {
 function expectLinkToHref(href: string) {
   const links = screen.getAllByRole<HTMLAnchorElement>('link')
   expect(links.some((link) => link.href === href || link.getAttribute('href') === href)).toBe(true)
-}
-
-function expectLinkHrefContaining(hrefPart: string) {
-  const links = screen.getAllByRole<HTMLAnchorElement>('link')
-  expect(links.some((link) => link.href.includes(hrefPart) || link.getAttribute('href')?.includes(hrefPart))).toBe(true)
 }
 
 describe('domain manifest home routes', () => {
@@ -112,20 +106,6 @@ describe('domain manifest home routes', () => {
     expectLinkToHref('/content')
   })
 
-  it('renders the Noninflammatory landing page at the root route', () => {
-    renderDomainRoute('civility')
-
-    expectRoutePageRendered()
-    expectLinkToHref('/filters')
-  })
-
-  it('renders the CSM landing page at the root route', () => {
-    renderDomainRoute('common-sense-majority')
-
-    expectRoutePageRendered()
-    expectLinkHrefContaining('addNudger=0x14dC79964da2C08b23698B3D3cc7Ca32193d9955')
-  })
-
   it('renders the Conceptspace landing page at the root route', () => {
     renderDomainRoute('conceptspace')
 
@@ -145,22 +125,4 @@ describe('domain manifest home routes', () => {
     await expectLazyRoutePageRendered()
   })
 
-  it('renders the Noninflammatory about page at /about', async () => {
-    renderDomainRoute('civility', '/about')
-
-    await expectLazyRoutePageRendered()
-  })
-
-  it('renders the CSM about page at /about', async () => {
-    renderDomainRoute('common-sense-majority', '/about')
-
-    await expectLazyRoutePageRendered()
-  })
-
-  it('renders CSM nudger discovery at /organize', async () => {
-    renderDomainRoute('common-sense-majority', '/organize')
-
-    await expectLazyRoutePageRendered()
-    expectLinkToHref('#')
-  })
 })

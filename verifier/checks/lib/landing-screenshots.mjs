@@ -41,7 +41,7 @@ async function importChromium() {
 
 async function captureDomainScreenshot({ domain, port, chromium, artifactsDir }) {
   const root = workspacePath("..");
-  const server = spawn("npm", ["run", "dev", "--workspace=ui", "--", "--host", "127.0.0.1", "--port", String(port)], {
+  const server = spawn("npm", ["run", "dev", "--workspace=@commonality/ui", "--", "--host", "127.0.0.1", "--port", String(port)], {
     cwd: root,
     env: { ...process.env, VITE_DOMAIN: domain.viteDomain, CHOKIDAR_USEPOLLING: "1" },
     stdio: ["ignore", "pipe", "pipe"]

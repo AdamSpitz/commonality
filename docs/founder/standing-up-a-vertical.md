@@ -78,36 +78,32 @@ The substrate you're choosing from (see
 | `delegation` | follow trusted people's funding judgment |
 | `docs` | the in-app docs site |
 
-## The build, concretely (Civility as the template)
+## The build, concretely (Content Funding as the template)
 
 A vertical lives under [`ui/src/domains/<id>/`](/ui/src/domains/) and is a single
-`DomainManifest`. The cleanest existing example to copy is
-[`ui/src/domains/civility/`](/ui/src/domains/civility/) — it's a thin
-specialization of the Content Funding module.
+`DomainManifest`. Civility and Common Sense Majority now live in the sibling
+`common-sense-politics` repo and consume `@commonality/ui`. The cleanest in-repo
+example to copy is
+[`ui/src/domains/content-funding/`](/ui/src/domains/content-funding/).
 
-A manifest is just data ([`ui/src/domains/civility/manifest.tsx`](/ui/src/domains/civility/manifest.tsx)):
+A manifest is just data ([`ui/src/domains/content-funding/manifest.tsx`](/ui/src/domains/content-funding/manifest.tsx)):
 
 ```tsx
-export const civilityManifest: DomainManifest = {
-  id: 'civility',
-  branding: { name: 'Civility', tagline: 'Build bridges, not walls.' },
+export const contentFundingManifest: DomainManifest = {
+  id: 'content-funding',
+  branding: { name: 'Content Funding', tagline: 'Fund content you believe in.' },
   shell: { primaryNavigation: [...], secondaryNavigation: [...], footerText: '...' },
-  features: {                 // which substrate modules this site exposes
-    contentFunding: true, docs: true,
-    conceptspace: false, lazyGiving: false, fundingportal: false,
-    delegation: false, mutablerefs: false,
-  },
   basePath: '/',
   routes,                     // a <Route> table, mostly lazyRoute(...) into your pages
-  LandingPage: NoninflammatoryLandingPage,
+  LandingPage: ContentFundingLandingPage,
 }
 ```
 
 The full set of touchpoints to add a vertical today:
 
-1. **Create the domain folder.** Copy `ui/src/domains/civility/` to
+1. **Create the domain folder.** Copy `ui/src/domains/content-funding/` to
    `ui/src/domains/<id>/`: a `manifest.tsx`, a `LandingPage.tsx`, and your
-   page components (Civility keeps its pages in `ContentPages.tsx`). Rewrite the
+   page components (Content Funding keeps its pages in `ContentPages.tsx`). Rewrite the
    copy and routes for your audience.
 2. **Register the manifest.** Add it to `domainManifests` and the env switch in
    [`ui/src/domains/index.ts`](/ui/src/domains/index.ts), and add your id to the

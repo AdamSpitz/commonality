@@ -2,8 +2,7 @@ import { cleanup, render, screen } from '@testing-library/react'
 import { MemoryRouter, Routes } from 'react-router-dom'
 import { afterEach, describe, expect, it } from 'vitest'
 import { isExternalLinkTarget } from '../shared'
-import { domainManifests } from './index'
-import type { DomainId } from './types'
+import { domainManifests, type BuiltDomainId } from './index'
 
 const allowedExternalHosts = new Set([
   'community.docusign.com',
@@ -18,7 +17,7 @@ const allowedExternalHosts = new Set([
 ])
 
 const publicDocModules = import.meta.glob('../../../docs/end-user/**/*.md', { query: '?raw', import: 'default', eager: true }) as Record<string, string>
-const domainIds = Object.keys(domainManifests) as DomainId[]
+const domainIds = Object.keys(domainManifests) as BuiltDomainId[]
 
 function expectAllowedExternalUrl(url: string, source: string) {
   const parsedUrl = new URL(url)
@@ -43,7 +42,7 @@ function markdownExternalUrls(markdown: string): string[] {
   return Array.from(markdown.matchAll(/https?:\/\/[^\s)]+/g), match => match[0])
 }
 
-function renderDomainLanding(domainId: DomainId) {
+function renderDomainLanding(domainId: BuiltDomainId) {
   return render(
     <MemoryRouter initialEntries={['/']}>
       <Routes>{domainManifests[domainId].routes}</Routes>

@@ -273,8 +273,6 @@ function resolveDomain(value: string | undefined) {
     case 'alignment':
     case 'tally':
     case 'content-funding':
-    case 'civility':
-    case 'common-sense-majority':
     case 'conceptspace':
       return value
     default:

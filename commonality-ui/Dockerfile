@@ -60,7 +60,7 @@ ENV VITE_WALLETCONNECT_PROJECT_ID=${VITE_WALLETCONNECT_PROJECT_ID}
 ENV HUSKY=0
 
 RUN npm run build --workspace=@commonality/sdk \
-  && VITE_DOMAIN=commonality npm run build --workspace=ui
+  && VITE_DOMAIN=commonality npm run build --workspace=@commonality/ui
 
 # ---------------------------------------------------------------------------
 FROM nginx:1.27-alpine AS runtime

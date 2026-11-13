@@ -1,8 +1,21 @@
 {
-  "name": "ui",
+  "name": "@commonality/ui",
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "exports": {
+    "./vertical": "./src/vertical/index.ts",
+    "./shared": "./src/shared/index.ts",
+    "./shared/funding": "./src/shared/funding.ts",
+    "./content-funding": "./src/content-funding/index.ts",
+    "./content-funding/pages/*": "./src/content-funding/pages/*",
+    "./lazy-giving/pages/*": "./src/lazy-giving/pages/*",
+    "./domains/lazyRoute": "./src/domains/lazyRoute.tsx",
+    "./domains/types": "./src/domains/types.ts",
+    "./domains/components/DomainLandingPage": "./src/domains/components/DomainLandingPage.tsx",
+    "./domains/content-funding/ContentPages": "./src/domains/content-funding/ContentPages.tsx",
+    "./docs/DocsPage": "./src/docs/DocsPage.tsx"
+  },
   "scripts": {
     "predev": "npm run build --workspace=@commonality/sdk",
     "dev": "../node_modules/.bin/vite",
@@ -11,8 +24,6 @@
     "dev:alignment": "VITE_DOMAIN=alignment ../node_modules/.bin/vite",
     "dev:tally": "VITE_DOMAIN=tally ../node_modules/.bin/vite",
     "dev:content-funding": "VITE_DOMAIN=content-funding ../node_modules/.bin/vite",
-    "dev:civility": "VITE_DOMAIN=civility ../node_modules/.bin/vite",
-    "dev:common-sense-majority": "VITE_DOMAIN=common-sense-majority ../node_modules/.bin/vite",
     "dev:conceptspace": "VITE_DOMAIN=conceptspace ../node_modules/.bin/vite",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json --noEmit",
     "build": "tsc -b && tsc -p tsconfig.test.json --noEmit && ../node_modules/.bin/vite build",

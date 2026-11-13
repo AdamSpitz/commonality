@@ -20,12 +20,12 @@
     {
       "kind": "params",
       "data": {
-        "label": "npm run test:e2e --workspace=ui -- e2e/browse-statements.spec.ts e2e/cross-domain-persistence.spec.ts e2e/ipfs-domain-artifact-smoke.spec.ts e2e/negative-paths.spec.ts e2e/wallet-connection.spec.ts",
+        "label": "npm run test:e2e --workspace=@commonality/ui -- e2e/browse-statements.spec.ts e2e/cross-domain-persistence.spec.ts e2e/ipfs-domain-artifact-smoke.spec.ts e2e/negative-paths.spec.ts e2e/wallet-connection.spec.ts",
         "command": [
           "npm",
           "run",
           "test:e2e",
-          "--workspace=ui",
+          "--workspace=@commonality/ui",
           "--",
           "e2e/browse-statements.spec.ts",
           "e2e/cross-domain-persistence.spec.ts",

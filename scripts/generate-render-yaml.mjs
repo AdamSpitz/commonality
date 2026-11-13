@@ -38,8 +38,6 @@ const domainSlugs = [
   'alignment',
   'tally',
   'content-funding',
-  'civility',
-  'common-sense-majority',
   'conceptspace',
 ]
 

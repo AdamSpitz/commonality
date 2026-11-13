@@ -25,7 +25,7 @@
           "npm",
           "run",
           "test:e2e",
-          "--workspace=ui",
+          "--workspace=@commonality/ui",
           "--",
           "--project=common-sense-majority"
         ],

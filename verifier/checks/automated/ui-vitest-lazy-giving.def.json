@@ -20,12 +20,12 @@
     {
       "kind": "params",
       "data": {
-        "label": "npm run test:vitest --workspace=ui -- src/lazy-giving",
+        "label": "npm run test:vitest --workspace=@commonality/ui -- src/lazy-giving",
         "command": [
           "npm",
           "run",
           "test:vitest",
-          "--workspace=ui",
+          "--workspace=@commonality/ui",
           "--",
           "src/lazy-giving"
         ],

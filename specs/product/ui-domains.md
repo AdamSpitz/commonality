@@ -10,7 +10,11 @@ This file is the product-boundary source of truth: which sites exist and what jo
 
 It is **not** the source of truth for landing-page copy, CTA wording, spotlight cards, or navigation. The live domain manifests and landing pages live under [`ui/src/domains/`](/ui/src/domains/) and should be treated as the source of truth for the actual site copy.
 
-## Current shape: eight sites
+## Current shape
+
+Civility and Common Sense Majority are no longer Commonality builds. They live in the sibling repo `common-sense-politics` (separate DNS names, same political-operator repo) and consume `@commonality/ui`. The other six branded builds remain in this repo.
+
+## Previous shape: eight sites
 
 Four product sites for funding (LazyGiving, Aligning, Content Funding, Civility), one product site for signing (Tally), two movement sites (Commonality, CSM), and one mostly developer-facing infrastructure site (Conceptspace).
 

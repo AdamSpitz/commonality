@@ -18,6 +18,8 @@ const RESOLVED_ID = '\0' + VIRTUAL_ID
 interface EndUserDocsPluginOptions {
   domain: string
   includeAll?: boolean
+  /** Absolute docs/end-user root. Defaults to ../docs/end-user from the Vite cwd. */
+  docsRoot?: string
 }
 
 function foldersForDomain(domain: string): string[] {
@@ -47,7 +49,7 @@ function walkMarkdownFiles(dir: string): string[] {
 }
 
 export function endUserDocsPlugin(options: EndUserDocsPluginOptions): Plugin {
-  const docsRoot = path.resolve(process.cwd(), '../docs/end-user')
+  const docsRoot = options.docsRoot ?? path.resolve(process.cwd(), '../docs/end-user')
 
   function addFile(docs: Record<string, string>, file: string): void {
     const rel = path.relative(docsRoot, file).split(path.sep).join('/')

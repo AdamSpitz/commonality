@@ -101,6 +101,10 @@ The gateway also reverse-proxies same-origin indexer paths (`/api/*`, `/status`,
 | Wallet-connection expectations for creator/content flows | [Content Funding claim flow](subsystems/content-funding/ui.md#claim-flow); [channel-claiming rationale](subsystems/content-funding/channel-claiming.md#dont-gate-on-wallet-creation); [Get your content funded: if someone already funded your work](../../docs/end-user/content-funding/get-your-content-funded.md#if-someone-already-funded-your-work) |
 
 
+## Vertical extraction
+
+Civility and Common Sense Majority now live in the sibling repo `common-sense-politics`. They import `@commonality/ui` (`ui/package.json` `exports`) instead of deep paths in this app. The package is still `private` because the npm token in the operator environment is not authorized to publish.
+
 ## Future direction: per-vertical repo split (decided 2026-06-22)
 
 The intended end state is for each vertical — and each core sub-project (Tally, LazyGiving, etc.) — to live in its **own repo**, consuming the substrate as published packages. This is deliberately **not** a config-only or auto-discovered-registry approach: the central `domainManifests` / `DomainId` / `build:domains` / docker-compose-publisher bookkeeping *goes away* when things are split, rather than being automated.
