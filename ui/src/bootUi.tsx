@@ -11,7 +11,7 @@ import {
   createTestDataConfig,
 } from './wagmi'
 import './index.css'
-import App from './App.tsx'
+import App from './App'
 import { getRuntimeConfig, loadActivePolicyBundle, loadDisplayDenylist, loadRuntimeConfig } from './shared'
 import { installStaleBuildRecovery } from './shared'
 import { ThemeModeContext } from './shared'

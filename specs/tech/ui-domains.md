@@ -103,7 +103,7 @@ The gateway also reverse-proxies same-origin indexer paths (`/api/*`, `/status`,
 
 ## Vertical extraction
 
-Civility and Common Sense Majority now live in the sibling repo `common-sense-politics`. They import `@commonality/ui` (`ui/package.json` `exports`) instead of deep paths in this app. The package is still `private` because the npm token in the operator environment is not authorized to publish.
+Civility and Common Sense Majority now live in the sibling repo `common-sense-politics`. They import the source exports declared in `ui/package.json`. Their manifests and pages belong to that repo; the shared app shell and feature modules remain here. `@commonality/ui` is still private and consumed through the local sibling checkout, with Commonality's dependencies and docs available. This establishes source ownership, but independent installation and deployment still need packaging work; see [the UI README](../../ui/README.md#external-verticals).
 
 ## Future direction: per-vertical repo split (decided 2026-06-22)
 

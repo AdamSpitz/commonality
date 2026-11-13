@@ -1,6 +1,6 @@
 {
   "id": "coverage.domains",
-  "description": "Verify every in-scope UI domain (Commonality, Civility, Common Sense Majority) has an intentional smoke/review/docs coverage story. Other Vite domains are out of scope.",
+  "description": "Verify Commonality has an intentional smoke/review/docs coverage story. Extracted political apps belong to common-sense-politics; other Vite domains are supporting tools outside this inventory.",
   "expense": {
     "llm": "none",
     "estimatedSeconds": 2

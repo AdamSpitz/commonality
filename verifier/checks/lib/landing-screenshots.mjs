@@ -5,9 +5,7 @@ import { pathToFileURL } from "node:url";
 import { workspacePath } from "./result.mjs";
 
 const DOMAINS = [
-  { id: "commonality", viteDomain: "commonality" },
-  { id: "civility", viteDomain: "civility" },
-  { id: "common-sense-majority", viteDomain: "common-sense-majority" }
+  { id: "commonality", viteDomain: "commonality" }
 ];
 
 function artifactRelativePath(name) {

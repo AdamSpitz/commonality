@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "source": "specs/product/ui-domains.md",
-  "scope": "Required in-scope UI workflows (Commonality, Civility, Common Sense Majority). Workflows on other domains may still have leftover review.workflow-clarity.* checks; those no longer gate product.workflows.",
+  "scope": "Commonality is the primary in-repo UI coverage target. Civility and Common Sense Majority are owned by common-sense-politics; other in-repo domains remain supporting tools.",
   "workflows": [
     {
       "id": "commonality-organize-and-fund",
@@ -18,33 +18,6 @@
         "../ui/src/commonality/pages/StatementPage.tsx",
         "../ui/src/commonality/pages/ProjectDetailPage.tsx",
         "../ui/src/commonality/pages/CausesPage.tsx"
-      ]
-    },
-    {
-      "id": "civility-discover-and-fund",
-      "title": "Civility supporter discovers noninflammatory content and reaches a funding or share action",
-      "homeDomain": "civility",
-      "goal": "A supporter lands on Civility, understands why listed work qualifies, and can inspect, fund, or share a civility contract without needing the generic Content Funding site.",
-      "workflowClarityCheckIds": ["review.workflow-clarity.civility"],
-      "objectiveSmokeCheckIds": ["automated.test-fast", "automated.test-full", "artifact.ipfs-domain-smoke"],
-      "surfaceFiles": [
-        "../ui/src/domains/civility/manifest.tsx",
-        "../ui/src/domains/civility/LandingPage.tsx",
-        "../ui/src/domains/civility/ContentPages.tsx"
-      ]
-    },
-    {
-      "id": "common-sense-majority-movement-action",
-      "title": "Common Sense Majority visitor understands the movement and reaches a concrete action",
-      "homeDomain": "common-sense-majority",
-      "goal": "A visitor attracted to the quiet-middle thesis can understand the movement and choose a concrete next action: sign a relevant statement, fund civic content, or follow a linked CSM-aligned workflow.",
-      "workflowClarityCheckIds": ["review.workflow-clarity.common-sense-majority"],
-      "objectiveSmokeCheckIds": ["automated.test-fast", "automated.test-full", "artifact.ipfs-domain-smoke"],
-      "surfaceFiles": [
-        "../ui/src/domains/common-sense-majority/manifest.tsx",
-        "../ui/src/domains/common-sense-majority/LandingPage.tsx",
-        "../ui/src/domains/civility/manifest.tsx",
-        "../ui/src/domains/civility/LandingPage.tsx"
       ]
     }
   ]

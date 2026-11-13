@@ -16,6 +16,10 @@ Getting **testnet to a two-person shared lab** is also a standing plan, not a pi
 
 ----
 
+- Restore Civility/CSM verification in `common-sense-politics`: port `ui/e2e/common-sense-majority-flow.spec.ts`, the removed `functionality.civility-policy-surfaces` inventory/check, and the Civility/CSM workflow-review leaves from this repo's pre-extraction history. Those checks depend on app-owned routes and now belong beside those apps. The sibling currently has no E2E/verifier setup, so this PR does not establish external-app coverage. Generic content-policy tests remain here; `stack.user-journeys` now exercises the existing Tally statement write → index → UI readback test.
+
+- Make `common-sense-politics` independently installable and deployable: its local checkout has no Git remote or declared package dependencies, and currently uses local symlinks, Commonality docs, and build aliases. Establish versioned package dependencies and its own CI/deploy setup before treating the source extraction as an independently releasable application. Document the UI package's consumer build contract, including the docs virtual module and runtime configuration plugin.
+
 - The verifier dev dependency points at the sibling checkout `../verifier` so local harness changes do not need a publish. Image builds receive that checkout as the `localverifier` Docker context. Publish a release and switch back to the registry only when the published package has skipped results, expense metadata, and tree views.
 
 - Rebuild the local stack on a schedule instead of deciding when it is stale. Adam's preference: a nightly job (around 2am) that runs `stack.fresh-seeded` (wipe + rebuild + seed) followed by the deep local checks (`stack.restart-consistency`, `stack.user-journeys`, `artifact.ipfs-domain-smoke`, `operations.indexer-lag`, `operations.seeded-stack-latency`). Local data is always disposable. Keep it simple: a cron trigger on the verifier defs or a user crontab/systemd timer, not a stack-fingerprint system. Daytime test runs should reuse whatever stack exists. Make sure a failed nightly rebuild is visible in the leaf-check view.

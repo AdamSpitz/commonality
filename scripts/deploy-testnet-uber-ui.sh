@@ -38,7 +38,7 @@ if [ -z "$PINATA_JWT" ]; then
   exit 1
 fi
 
-mapfile -t DOMAIN_ROWS < <(cd "$ROOT" && node -e "const m=require('./deployments/testnet-names.json'); for (const d of m.domains) console.log([d.slug, d.slug === 'lazygiving' ? 'lazyGiving' : d.slug].join('|'))")
+mapfile -t DOMAIN_ROWS < <(cd "$ROOT" && node -e "import('./scripts/ui-domains.mjs').then(({uiDomains}) => { for (const domain of uiDomains) console.log([domain === 'lazyGiving' ? 'lazygiving' : domain, domain].join('|')) })")
 
 url_base_for_slug() {
   local slug="$1"
@@ -56,8 +56,6 @@ export_path_hosted_urls() {
   export VITE_ALIGNMENT_URL="$(url_base_for_slug alignment)"
   export VITE_TALLY_URL="$(url_base_for_slug tally)"
   export VITE_CONTENT_FUNDING_URL="$(url_base_for_slug content-funding)"
-  export VITE_CIVILITY_URL="$(url_base_for_slug civility)"
-  export VITE_COMMON_SENSE_MAJORITY_URL="$(url_base_for_slug common-sense-majority)"
   export VITE_CONCEPTSPACE_URL="$(url_base_for_slug conceptspace)"
 }
 
@@ -204,8 +202,6 @@ cat > "$ASSEMBLY_ROOT/$ENVIRONMENT_PATH/index.html" <<'HTML'
   <li><a href="./alignment/#/">Alignment</a></li>
   <li><a href="./tally/#/">Tally</a></li>
   <li><a href="./content-funding/#/">Content Funding</a></li>
-  <li><a href="./civility/#/">Civility</a></li>
-  <li><a href="./common-sense-majority/#/">Common Sense Majority</a></li>
   <li><a href="./conceptspace/#/">Conceptspace</a></li>
 </ul>
 HTML

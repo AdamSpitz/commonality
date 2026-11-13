@@ -130,21 +130,6 @@
     },
     {
       "kind": "check",
-      "id": "review.workflow-clarity.civility",
-      "role": "leaf"
-    },
-    {
-      "kind": "check",
-      "id": "review.workflow-clarity.common-sense-majority.understand",
-      "role": "leaf"
-    },
-    {
-      "kind": "check",
-      "id": "review.workflow-clarity.common-sense-majority.act",
-      "role": "leaf"
-    },
-    {
-      "kind": "check",
       "id": "review.founder-e2e.commonality",
       "role": "leaf"
     },

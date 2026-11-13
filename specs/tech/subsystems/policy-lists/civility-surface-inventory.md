@@ -1,10 +1,10 @@
 # Civility policy surface inventory
 
-Status: executable inventory for the starter-profile stopping gate (Aug 2026).
+Status: historical inventory for the starter-profile stopping gate (Aug 2026); external-app verification pending migration.
 
 This inventory bounds the claim that Civility has no known policy bypass. It covers content subjects exposed by Civility's operator-controlled public routes. Static editorial pages, documentation, contract writes, claims, payouts, and gas sponsorship are outside the content-only policy-list scope. The neutral pointer/event index remains readable; it contains identifiers rather than PublishedData bytes and is not an operator content-serving surface.
 
-The machine-readable companion is [`/verifier/coverage/civility-policy-surfaces.json`](/verifier/coverage/civility-policy-surfaces.json). `functionality.civility-policy-surfaces` checks that the route and enforcement markers below remain present, and that every Civility route is classified here.
+The machine-readable companion and `functionality.civility-policy-surfaces` check were removed from this repo when Civility moved to `common-sense-politics`. Restore them beside the app from the pre-extraction history (see [TODO](../../../../TODO.md)); this inventory is not currently an executable route-coverage guarantee. Shared policy enforcement tests remain here.
 
 | Public surface | Content operation | Required policy action / boundary | Current enforcement | Focused coverage |
 |---|---|---|---|---|
