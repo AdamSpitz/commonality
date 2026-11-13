@@ -132,15 +132,6 @@
       "skipPolicyBeforeMandatory": "May be skipped during ordinary development because it publishes a verifier-funded alignment attestation and waits for the deployed bootstrap worker."
     },
     {
-      "checkId": "testnet.policy-enforcement",
-      "mandatoryBy": "release-candidate",
-      "maxAgeDays": 7,
-      "optInEnv": [
-        "COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE"
-      ],
-      "skipPolicyBeforeMandatory": "May be skipped during ordinary development because it probes the deployed Civility bundle and content gateway."
-    },
-    {
       "checkId": "testnet.website-journeys",
       "mandatoryBy": "release-candidate",
       "maxAgeDays": 7,

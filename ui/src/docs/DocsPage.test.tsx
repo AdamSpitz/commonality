@@ -218,13 +218,14 @@ describe('DocsPage', () => {
     expect(screen.getByRole('heading', { name: /why commonality/i })).toBeInTheDocument()
   })
 
-  it('renders Common Sense Majority docs', () => {
+  it('points Common Sense Majority docs at the sibling repo', () => {
     mockUseParams.mockReturnValue({ '*': 'common-sense-majority' })
 
     renderDocsPage()
 
     expect(screen.queryByRole('heading', { name: 'We could not find that guide.' })).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /common sense majority/i })).toBeInTheDocument()
+    expect(screen.getByText(/common-sense-politics repo/i)).toBeInTheDocument()
   })
 
   it('resolves relative links from README docs in subdirectories', () => {

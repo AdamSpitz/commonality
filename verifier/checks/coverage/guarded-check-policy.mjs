@@ -17,7 +17,6 @@ const GUARDED_CHECK_IDS = [
   "testnet.app-config",
   "testnet.contracts",
   "testnet.onchain-to-indexer",
-  "testnet.policy-enforcement",
   "testnet.website-journeys"
 ];
 

@@ -61,8 +61,6 @@ const DEFAULT_INPUT_FILES = [
   "../ui/test-plan.md",
   "../docs/end-user/tldr-for-llms.md",
   "../docs/founder/christian-pitch.md",
-  "../docs/end-user/common-sense-majority/trust-model.md",
-  "../docs/end-user/common-sense-majority/mediator.md",
   "../docs/end-user/lazyGiving/assurance-contracts.md",
   "../docs/end-user/lazyGiving/retroactive-funding.md",
   "../docs/end-user/commonality/how-actions-compound.md",
