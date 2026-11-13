@@ -30,12 +30,20 @@
       "role": "product-judgment"
     },
     {
+      "kind": "check",
+      "id": "review.founder-ui-thoroughness",
+      "role": "advisory"
+    },
+    {
       "kind": "params",
       "data": {
         "label": "product.workflows",
         "rollup": {
           "type": "anyFail"
-        }
+        },
+        "advisoryCheckIds": [
+          "review.founder-ui-thoroughness"
+        ]
       }
     }
   ],

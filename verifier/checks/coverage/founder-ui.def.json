@@ -1,0 +1,33 @@
+{
+  "id": "coverage.founder-ui",
+  "description": "Every ## and ### heading in the founder-authored Commonality UI brief has a sidecar entry that either names existing conventional tests or is explicitly untested-on-purpose. Does not rewrite the brief and does not judge whether the writeup covers the live UI.",
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 2
+  },
+  "trigger": {
+    "type": "cron",
+    "everyMinutes": 720
+  },
+  "retention": {
+    "keep": 10,
+    "keepDays": 30
+  },
+  "command": [
+    "node",
+    "checks/coverage/founder-ui.mjs"
+  ],
+  "inputs": [
+    {
+      "kind": "file",
+      "path": "checks/review/founder-e2e/commonality.md",
+      "as": "founderBrief"
+    },
+    {
+      "kind": "file",
+      "path": "coverage/founder-ui.json",
+      "as": "founderSidecar"
+    }
+  ],
+  "timeoutMs": 30000
+}

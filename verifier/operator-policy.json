@@ -73,6 +73,7 @@
     { "paths": ["sdk/"], "checks": ["automated.test-full-sdk", "automated.integration-tests", "stack.user-journeys"] },
     { "paths": ["ui/"], "checks": ["automated.build", "automated.test-fast", "review.page-links", "stack.user-journeys"] },
     { "paths": ["docs/", "specs/", "workflow/", "README.md", "focus.md"], "checks": ["review.docs-broken-refs"] },
+    { "paths": ["verifier/checks/review/founder-e2e/commonality.md", "verifier/coverage/founder-ui.json"], "checks": ["review.founder-ui-thoroughness", "review.founder-e2e.commonality"] },
     { "paths": ["docker-compose.yml", "scripts/services", "scripts/stop-wipe-restart"], "checks": ["operations.local-stack-health", "stack.fresh-seeded", "stack.restart-consistency", "stack.user-journeys"] },
     { "paths": ["verifier/", "scripts/verifier-", "scripts/lib/verifier-"], "checks": ["meta.operator-policy"] },
     { "paths": ["package.json", "package-lock.json"], "checks": ["automated.build", "automated.test-fast", "automated.dependency-audit", "security.package-lock-dependencies"] }

@@ -1,0 +1,43 @@
+{
+  "id": "known-bad.founder-ui",
+  "description": "Proves coverage.founder-ui rejects a sidecar that does not account for every founder-brief heading.",
+  "expense": {
+    "llm": "none",
+    "estimatedSeconds": 2
+  },
+  "trigger": {
+    "type": "cron",
+    "everyMinutes": 720
+  },
+  "retention": {
+    "keep": 5,
+    "keepDays": 30
+  },
+  "command": [
+    "node",
+    "checks/known-bad/expect-bad-result.mjs"
+  ],
+  "inputs": [
+    {
+      "kind": "file",
+      "path": "checks/review/founder-e2e/commonality.md",
+      "as": "founderBrief"
+    },
+    {
+      "kind": "file",
+      "path": "fixtures/known-bad/founder-ui-missing-heading.json",
+      "as": "founderSidecar"
+    },
+    {
+      "kind": "params",
+      "data": {
+        "label": "coverage.founder-ui known-bad fixture",
+        "targetScript": "checks/coverage/founder-ui.mjs",
+        "expectedStatuses": [
+          "fail"
+        ]
+      }
+    }
+  ],
+  "timeoutMs": 30000
+}

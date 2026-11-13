@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "note": "Known-bad fixture. Omits a heading that exists in the real founder brief.",
+  "founderBrief": "checks/review/founder-e2e/commonality.md",
+  "headings": [
+    {
+      "id": "root-page",
+      "disposition": "untested-on-purpose",
+      "reason": "Section heading only."
+    }
+  ]
+}

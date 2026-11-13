@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "note": "Wiring only. checks/review/founder-e2e/commonality.md is the spec, in Adam's words. Do not paraphrase those headings here. A new ## or ### heading with no entry fails coverage.founder-ui until someone adds tests or marks it untested-on-purpose.",
+  "founderBrief": "checks/review/founder-e2e/commonality.md",
+  "headings": [
+    {
+      "id": "root-page",
+      "disposition": "untested-on-purpose",
+      "reason": "Section heading only. The landing and home headings below carry the claims."
+    },
+    {
+      "id": "if-not-logged-in-landing-page",
+      "disposition": "tests",
+      "tests": [
+        "../ui/src/commonality/pages/HomePage.test.tsx"
+      ]
+    },
+    {
+      "id": "if-logged-in-home-page",
+      "disposition": "tests",
+      "tests": [
+        "../ui/src/commonality/pages/HomePage.test.tsx",
+        "../commonality-ui/e2e/bookmarks.spec.ts"
+      ]
+    },
+    {
+      "id": "cause-editor",
+      "disposition": "tests",
+      "tests": [
+        "../commonality-ui/e2e/connect-and-start.spec.ts"
+      ]
+    },
+    {
+      "id": "cause-page",
+      "disposition": "tests",
+      "tests": [
+        "../commonality-ui/e2e/connect-and-start.spec.ts"
+      ]
+    },
+    {
+      "id": "contributing-page",
+      "disposition": "untested-on-purpose",
+      "reason": "No conventional test yet for the contributing page (one-time vs recurring, delegate, public earmark)."
+    },
+    {
+      "id": "fundable-projects-page",
+      "disposition": "untested-on-purpose",
+      "reason": "No conventional test yet for the cause or statement fundable-projects board (tabs, start project, content-funding contracts)."
+    },
+    {
+      "id": "project-page",
+      "disposition": "untested-on-purpose",
+      "reason": "No Commonality-surface conventional test yet for the project page. LazyGiving e2e covers a different site."
+    }
+  ]
+}
