@@ -1,6 +1,6 @@
 {
   "id": "testnet.sponsored-gas",
-  "description": "Guarded deployed testnet sponsored-gas check: verifies CreatorGasTank/EntryPoint env wiring, bytecode, read-only on-chain config, and the ERC-7677 platform API endpoint.",
+  "description": "Guarded deployed testnet sponsored-gas check: verifies creator and statement gas tanks, each v0.7 and v0.6 paymaster face, bytecode, read-only on-chain config, and both ERC-7677 endpoint shapes.",
   "expense": {
     "llm": "none",
     "estimatedSeconds": 300
