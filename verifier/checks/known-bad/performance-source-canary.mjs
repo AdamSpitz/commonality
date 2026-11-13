@@ -168,6 +168,30 @@ emit(async () => {
         result.findings.synchronousStorageFindings[0].matches.some((match) => match.includes("globalThis?.sessionStorage?.getItem"))
     },
     {
+      name: "effect-and-handler-storage-passes",
+      maxSourceBytes: 4096,
+      files: [{
+        name: "EffectStoragePage.tsx",
+        content: "export default function EffectStoragePage() {\n  React.useEffect(() => { sessionStorage.setItem('k', 'v') }, [])\n  const onChange = () => { window.sessionStorage.getItem('k') }\n  return <select onChange={onChange} />\n}\n"
+      }],
+      check: (result) =>
+        result.status === "pass" &&
+        Array.isArray(result.findings?.synchronousStorageFindings) &&
+        result.findings.synchronousStorageFindings.length === 0
+    },
+    {
+      name: "usestate-initializer-storage-passes",
+      maxSourceBytes: 4096,
+      files: [{
+        name: "DraftPage.tsx",
+        content: "export default function DraftPage() {\n  const [draft] = useState<string | null>(() => {\n    try { return sessionStorage.getItem('draft') } catch { return null }\n  })\n  return <div>{draft}</div>\n}\n"
+      }],
+      check: (result) =>
+        result.status === "pass" &&
+        Array.isArray(result.findings?.synchronousStorageFindings) &&
+        result.findings.synchronousStorageFindings.length === 0
+    },
+    {
       name: "allowed-synchronous-storage-passes",
       maxSourceBytes: 4096,
       allowSynchronousStorageFiles: ["AllowedStoragePage.tsx"],

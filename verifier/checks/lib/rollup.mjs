@@ -177,7 +177,7 @@ export function advisoryParts(advisoryWorkers) {
     .join(", ");
 }
 
-export function makeSummary(label, status, workers, counts, classification, advisoryWorkers) {
+export function makeSummary(label, status, workers, counts, classification, advisoryWorkers, parkedWorkers = []) {
   if (workers.length === 0 && advisoryWorkers.length === 0) return `${label}: no child checks configured.`;
   const parts = ["pass", "fail", "uncertain", "error", "skipped", "missing"]
     .filter((statusName) => counts[statusName])
@@ -185,7 +185,8 @@ export function makeSummary(label, status, workers, counts, classification, advi
     .join(", ");
   const classified = classificationParts(classification).join("; ");
   const advisory = advisoryParts(advisoryWorkers);
-  return `${label}: ${status} (${parts || "no core checks"}${advisory ? `; ${advisory}` : ""})${classified ? ` — ${classified}` : ""}.`;
+  const parkedNote = parkedWorkers.length ? `; ${parkedWorkers.length} parked` : "";
+  return `${label}: ${status} (${parts || "no core checks"}${advisory ? `; ${advisory}` : ""}${parkedNote})${classified ? ` — ${classified}` : ""}.`;
 }
 
 const SEVERITY_RANK = { blocker: 0, high: 1, medium: 2, low: 3, info: 4 };

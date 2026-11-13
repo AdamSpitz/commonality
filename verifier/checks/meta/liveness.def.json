@@ -1,6 +1,6 @@
 {
   "id": "meta.liveness",
-  "description": "Watchdog: flags verifier checks that have never run or are overdue.",
+  "description": "Watchdog: flags verifier checks that have never run, or whose scheduled run was missed. A past nextRunAt is ignored when the check has run since that stamp.",
   "expense": {
     "llm": "none",
     "estimatedSeconds": 2

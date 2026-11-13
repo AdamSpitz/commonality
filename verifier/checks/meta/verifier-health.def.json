@@ -42,6 +42,11 @@
     },
     {
       "kind": "check",
+      "id": "staleness.parked-failures",
+      "role": "coverage"
+    },
+    {
+      "kind": "check",
       "id": "coverage.validation-roster",
       "role": "coverage"
     },

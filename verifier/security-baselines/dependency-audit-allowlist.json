@@ -10,9 +10,9 @@
     {
       "package": "@coinbase/cdp-sdk",
       "severity": "high",
-      "range": ">=1.0.0",
-      "rationale": "Reviewed 2026-06-23: wallet/Web3 stack advisory cluster. npm currently suggests downgrades or semver-major replacements that are not safe as an unattended verifier cleanup. Keep gated by exact package/range and revisit during the planned Privy/wagmi/viem wallet dependency upgrade.",
-      "revisitWhen": "Privy/wagmi/viem or walletconnect dependencies are upgraded, or npm audit reports a different range/advisory for this package."
+      "range": ">=1.8.0",
+      "rationale": "Reviewed 2026-11-12: the remaining advisory is transitive Zod <4.6.6. npm's only fix is a semver-major downgrade to @coinbase/cdp-sdk 1.7.0, which does not patch Zod. Keep the current SDK until Coinbase ships a Zod 4-compatible release.",
+      "revisitWhen": "@coinbase/cdp-sdk no longer depends on Zod <4.6.6, or npm audit reports a different range/advisory for this package."
     },
     {
       "package": "@coinbase/wallet-sdk",
@@ -259,6 +259,41 @@
       "range": "8.0.0 - 8.20.1",
       "rationale": "Reviewed 2026-07-05: direct/root viem now pulls ws 8.21.0, but nested Privy/WalletConnect/x402 viem copies still pull vulnerable ws 8.18.x/8.20.1. npm audit fix points at an invalid Privy downgrade, so keep exact ws range allowlisted until upstream wallet dependencies move.",
       "revisitWhen": "Privy/@privy-io/react-auth, @privy-io/wagmi, x402, walletconnect, viem, or ws dependencies are upgraded, or npm audit reports a different range/advisory for this package."
+    },
+    {
+      "package": "@nomicfoundation/hardhat-ignition",
+      "severity": "high",
+      "range": "<=0.15.16",
+      "rationale": "Reviewed 2026-11-12: dev-only Hardhat Ignition advisory via lodash. npm's fix is Ignition 3.1.10, a semver-major jump off the Hardhat 2 toolchain. Not production request handling.",
+      "revisitWhen": "Hardhat/Ignition is upgraded to 3.x, or npm audit reports a different range/advisory for this package."
+    },
+    {
+      "package": "@nomicfoundation/ignition-core",
+      "severity": "high",
+      "range": "<=0.15.15",
+      "rationale": "Reviewed 2026-11-12: dev-only Ignition core advisory via lodash. npm's fix is ignition-core 3.1.11, which requires the Hardhat 3 migration.",
+      "revisitWhen": "Hardhat/Ignition is upgraded to 3.x, or npm audit reports a different range/advisory for this package."
+    },
+    {
+      "package": "markdown-link-check",
+      "severity": "high",
+      "range": ">=3.12.0",
+      "rationale": "Reviewed 2026-11-12: dev-only docs link checker. npm's only fix is a downgrade to 3.11.2, which is not a security improvement. The checker does not run in production.",
+      "revisitWhen": "markdown-link-check publishes a patched 3.12+ release, or npm audit reports a different range/advisory for this package."
+    },
+    {
+      "package": "vitest",
+      "severity": "critical",
+      "range": "0.0.95 - 4.1.10",
+      "rationale": "Reviewed 2026-11-12: dev-only test runner. The critical advisory is tinypool prototype pollution in worker options, reachable when running tests, not in the deployed app. npm's fix is Vitest 5, a breaking upgrade. Do that deliberately.",
+      "revisitWhen": "Vitest is upgraded to 5.1.0 or later, or npm audit reports a different range/advisory for this package."
+    },
+    {
+      "package": "zod",
+      "severity": "high",
+      "range": "<4.6.6",
+      "rationale": "Reviewed 2026-11-12: advisory is memory exhaustion while validating oversized constrained collections. The tree is on Zod 3; npm's fix is Zod 4.6.7, a breaking migration across direct dependents including the MCP SDK and cdp-sdk. Do that as its own upgrade, not an audit auto-fix.",
+      "revisitWhen": "Direct Zod dependents move to Zod >=4.6.6, or npm audit reports a different range/advisory for this package."
     },
     {
       "package": "x402",

@@ -112,6 +112,8 @@ services:
     image: commonality-published-data-ipfs-mirror:dev
     build:
       context: .
+      additional_contexts:
+        localverifier: ../verifier
       dockerfile: published-data-ipfs-mirror/Dockerfile
     container_name: commonality-published-data-ipfs-mirror
     user: "${UID:-1000}:${GID:-1000}"
@@ -149,6 +151,8 @@ services:
     image: commonality-ui-ipfs-publisher:dev
     build:
       context: .
+      additional_contexts:
+        localverifier: ../verifier
       dockerfile: ui/Dockerfile
     container_name: commonality-ui-ipfs-publisher-commonality
     user: "${UID:-1000}:${GID:-1000}"
@@ -182,6 +186,8 @@ services:
     image: commonality-ui-ipfs-publisher:dev
     build:
       context: .
+      additional_contexts:
+        localverifier: ../verifier
       dockerfile: ui/Dockerfile
     container_name: commonality-ui-ipfs-publisher-lazyGiving
     user: "${UID:-1000}:${GID:-1000}"
@@ -213,6 +219,8 @@ services:
     image: commonality-ui-ipfs-publisher:dev
     build:
       context: .
+      additional_contexts:
+        localverifier: ../verifier
       dockerfile: ui/Dockerfile
     container_name: commonality-ui-ipfs-publisher-alignment
     user: "${UID:-1000}:${GID:-1000}"
@@ -244,6 +252,8 @@ services:
     image: commonality-ui-ipfs-publisher:dev
     build:
       context: .
+      additional_contexts:
+        localverifier: ../verifier
       dockerfile: ui/Dockerfile
     container_name: commonality-ui-ipfs-publisher-content-funding
     user: "${UID:-1000}:${GID:-1000}"
@@ -275,6 +285,8 @@ services:
     image: commonality-ui-ipfs-publisher:dev
     build:
       context: .
+      additional_contexts:
+        localverifier: ../verifier
       dockerfile: ui/Dockerfile
     container_name: commonality-ui-ipfs-publisher-civility
     user: "${UID:-1000}:${GID:-1000}"
@@ -306,6 +318,8 @@ services:
     image: commonality-ui-ipfs-publisher:dev
     build:
       context: .
+      additional_contexts:
+        localverifier: ../verifier
       dockerfile: ui/Dockerfile
     container_name: commonality-ui-ipfs-publisher-common-sense-majority
     user: "${UID:-1000}:${GID:-1000}"
@@ -337,6 +351,8 @@ services:
     image: commonality-ui-ipfs-publisher:dev
     build:
       context: .
+      additional_contexts:
+        localverifier: ../verifier
       dockerfile: ui/Dockerfile
     container_name: commonality-ui-ipfs-publisher-tally
     user: "${UID:-1000}:${GID:-1000}"
@@ -368,6 +384,8 @@ services:
     image: commonality-ui-ipfs-publisher:dev
     build:
       context: .
+      additional_contexts:
+        localverifier: ../verifier
       dockerfile: ui/Dockerfile
     container_name: commonality-ui-ipfs-publisher-conceptspace
     user: "${UID:-1000}:${GID:-1000}"
@@ -406,6 +424,8 @@ services:
     image: commonality-cause-assist:dev
     build:
       context: .
+      additional_contexts:
+        localverifier: ../verifier
       dockerfile: cause-assist/Dockerfile
     container_name: commonality-cause-assist
     ports:
@@ -441,6 +461,8 @@ services:
     image: commonality-coherence-badge-worker:dev
     build:
       context: .
+      additional_contexts:
+        localverifier: ../verifier
       dockerfile: coherence-badge-worker/Dockerfile
     container_name: commonality-coherence-badge-worker
     user: "${UID:-1000}:${GID:-1000}"
@@ -480,6 +502,8 @@ services:
     image: commonality-alignment-trust-bootstrap:dev
     build:
       context: .
+      additional_contexts:
+        localverifier: ../verifier
       dockerfile: alignment-trust-bootstrap/Dockerfile
     container_name: commonality-alignment-trust-bootstrap
     user: "${UID:-1000}:${GID:-1000}"
@@ -515,6 +539,8 @@ services:
     image: commonality-ui:dev
     build:
       context: .
+      additional_contexts:
+        localverifier: ../verifier
       dockerfile: commonality-ui/Dockerfile
       args:
         VITE_WALLETCONNECT_PROJECT_ID: ${VITE_WALLETCONNECT_PROJECT_ID:-}
@@ -663,6 +689,8 @@ services:
     image: commonality-platform-api-service:dev
     build:
       context: .
+      additional_contexts:
+        localverifier: ../verifier
       dockerfile: platform-api-service/Dockerfile
     container_name: commonality-platform-api-service
     user: "${UID:-1000}:${GID:-1000}"
@@ -713,6 +741,8 @@ services:
     image: commonality-service-host:dev
     build:
       context: .
+      additional_contexts:
+        localverifier: ../verifier
       dockerfile: service-host/Dockerfile
     container_name: commonality-service-host-attesters
     user: "${UID:-1000}:${GID:-1000}"
@@ -783,6 +813,8 @@ services:
     image: commonality-service-host:dev
     build:
       context: .
+      additional_contexts:
+        localverifier: ../verifier
       dockerfile: service-host/Dockerfile
     container_name: commonality-service-host-workers
     user: "${UID:-1000}:${GID:-1000}"
@@ -843,6 +875,8 @@ services:
     image: commonality-service-host:dev
     build:
       context: .
+      additional_contexts:
+        localverifier: ../verifier
       dockerfile: service-host/Dockerfile
     container_name: commonality-christian-bridge-creator
     user: "${UID:-1000}:${GID:-1000}"

@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "note": "A park hides one known failure from current-work rollups until reviewAfter, or until the failure evidence changes. It is not a pass. staleness.parked-failures fails when a park expires, no longer matches, or becomes obsolete.",
+  "items": [
+    {
+      "checkId": "automated.seed-implication-regression",
+      "owner": "engineering",
+      "reason": "The implication-attester prompt fingerprint drifted from the saved seed corpus. Recheck decisions and refresh the corpus when we commit to a prompt.",
+      "parkedOn": "2026-11-12",
+      "reviewAfter": "2027-02-12",
+      "evidenceIncludes": "Saved prompt fingerprint differs"
+    }
+  ]
+}

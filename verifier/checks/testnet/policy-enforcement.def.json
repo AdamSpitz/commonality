@@ -1,6 +1,6 @@
 {
   "id": "testnet.policy-enforcement",
-  "description": "Guarded read-only deployed Civility policy check: the UI bundle and content gateway report one active digest and the live blocked fixture is refused.",
+  "description": "Guarded read-only deployed Civility policy check. Skips while civility.testnet is in deferredHosts. When configured, the UI bundle and content gateway must report one active digest and the live blocked fixture must be refused.",
   "expense": {
     "llm": "none",
     "estimatedSeconds": 300

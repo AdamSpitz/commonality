@@ -1,4 +1,4 @@
-import { emit, errorResult, fail, pass } from "../lib/result.mjs";
+import { emit, errorResult, fail, pass, skipped } from "../lib/result.mjs";
 import { fetchText, readTestnetConfig, requireOptIn, testnetOptInSkipped } from "./lib.mjs";
 import { assessPolicyEnforcement } from "./policy-enforcement-lib.mjs";
 
@@ -19,7 +19,13 @@ emit(async () => {
   try { requireOptIn(); } catch (error) { return testnetOptInSkipped(error); }
   const config = await readTestnetConfig();
   const profile = config.policyEnforcement;
-  if (!profile?.civilityAppUrl || !profile?.blockedCid) {
+  if (!profile?.civilityAppUrl) {
+    return skipped("Civility and Common Sense Majority testnet hosts are not checked.", {
+      reason: "Those subdomains stay out of the testnet smoke set until the products are split out or the domains are kept. DNS was left unchanged.",
+      findings: { deferredHosts: config.deferredHosts ?? [] },
+    });
+  }
+  if (!profile.blockedCid) {
     return fail("Testnet policy-enforcement fixture is not configured.", { findings: { profile } });
   }
 

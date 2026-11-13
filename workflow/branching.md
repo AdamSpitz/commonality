@@ -2,11 +2,10 @@
 
 ## Daily cheat sheet
 
-The everyday loop, one task at a time:
+The everyday loop is **one linear working branch**, not a new branch per task:
 
 ```bash
-git switch dev && git pull            # 1. start from an up-to-date dev
-git switch -c feature/the-thing       # 2. branch off (you CAN'T commit on dev)
+# already on the current working branch (not dev or master)
 # ...do the work, commit as often as you like...
 git push -u origin feature/the-thing  # 3. push the branch (no gate to push)
 gh pr create --base dev --fill        # 4. open the PR
@@ -19,6 +18,12 @@ git branch -d feature/the-thing
 # 8. start the next task (see "Don't wait on CI" below)
 ```
 
+- **Stay on the current working branch.** Commit the next task there. Do not
+  open a new `feature/*` branch to isolate it. One linear history is easier to
+  integrate. Split only for a really good reason: a conflicting experiment, a
+  change that must land or be reviewed apart from the rest, or Adam asking for
+  a separate branch. If you are already on `dev` or `master`, branch once, then
+  keep using that branch.
 - **Never work on `dev` directly.** If you forget and try to commit, the hook
   refuses and tells you to branch — that's the safety net, not an error to fight.
 - **Feature PRs target `dev`.** GitHub's default branch is `dev`, so a plain
@@ -45,7 +50,7 @@ git branch -d feature/the-thing
 
 ## Overview
 
-All work happens on **feature branches**. You never commit on `dev` or `master`.
+All work happens on a working branch, usually the one already checked out. You never commit on `dev` or `master`. Do not isolate each task on its own branch unless there is a really good reason; keep the history linear.
 
 - **`feature/*`** (also `fix/*`, `chore/*`) — where you actually work
 - **`dev`** — integration branch; the review gate lives here; advances only by
@@ -68,7 +73,7 @@ this step.
 
 ## The flow
 
-1. **Start a branch** — you cannot commit on `master`/`dev` (git hook blocks it):
+1. **Use the current working branch.** You cannot commit on `master`/`dev` (git hook blocks it). If you are already on one of those, branch once, then keep committing there instead of cutting a new branch per task:
    ```bash
    git switch -c feature/your-thing
    ```

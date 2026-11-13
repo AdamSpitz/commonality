@@ -35,7 +35,7 @@
     {
       "kind": "params",
       "data": {
-        "guardPolicy": "Requires testnet smoke and mutation opt-ins, the verifier private key, the bootstrap root env, and spends Base Sepolia gas."
+        "guardPolicy": "Requires COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE and COMMONALITY_VERIFIER_ENABLE_TESTNET_MUTATION, the verifier private key, the bootstrap root env, and spends Base Sepolia gas."
       }
     }
   ],

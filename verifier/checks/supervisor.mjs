@@ -1,4 +1,5 @@
 import { emit, fail, pass, readInputs, uncertain } from "./lib/result.mjs";
+import { loadParkedFailures, splitParked } from "./lib/parked-failures.mjs";
 import {
   checkInputs,
   classifyChildren,
@@ -21,7 +22,8 @@ emit(async () => {
   // without letting a plausible uncertain or an un-run manual check turn it red.
   const advisoryIds = new Set(params.advisoryCheckIds ?? []);
   const advisoryWorkers = allWorkers.filter((worker) => advisoryIds.has(worker.id));
-  const workers = allWorkers.filter((worker) => !advisoryIds.has(worker.id));
+  const gatingWorkers = allWorkers.filter((worker) => !advisoryIds.has(worker.id));
+  const { active: workers, parked } = splitParked(gatingWorkers, await loadParkedFailures());
   const label = params.label ?? process.env.VERIFIER_CHECK_ID ?? "supervisor";
   const status = rollupStatus(params.rollup, workers);
   const counts = statusCounts(workers);
@@ -37,10 +39,13 @@ emit(async () => {
     children: workers.map(childSummary),
     ...(advisoryWorkers.length > 0
       ? { advisoryPolicy: "Advisory children are summarized but never affect rollup status.", advisoryCounts: statusCounts(advisoryWorkers), advisoryChildren: advisoryWorkers.map(childSummary) }
+      : {}),
+    ...(parked.length > 0
+      ? { parkedPolicy: "Parked failures stay failed, but do not count as current-work rollup failures until reviewAfter or until the evidence changes.", parkedFailures: parked.map((worker) => ({ ...childSummary(worker), reviewAfter: worker.park.reviewAfter, reason: worker.park.reason })) }
       : {})
   };
 
-  const summary = makeSummary(label, status, workers, counts, classification, advisoryWorkers);
+  const summary = makeSummary(label, status, workers, counts, classification, advisoryWorkers, parked);
   if (status === "pass") return pass(summary, { findings });
   if (status === "fail") return fail(summary, { findings });
   return uncertain(summary, { findings });

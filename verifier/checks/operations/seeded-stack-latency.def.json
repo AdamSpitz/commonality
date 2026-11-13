@@ -28,13 +28,13 @@
         "endpoints": [
           {
             "name": "ui shell",
-            "url": "http://localhost:5173/",
+            "url": "http://localhost:8088/",
             "expectedStatus": 200,
             "maxLatencyMs": 1000
           },
           {
             "name": "platform api health",
-            "url": "http://localhost:3000/health",
+            "url": "http://localhost:3001/health",
             "expectedStatus": 200,
             "maxLatencyMs": 1000
           },

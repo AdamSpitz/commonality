@@ -90,9 +90,10 @@ async function runCase(testCase) {
   }
 
   const findings = { ...baseFindings, targetStatus: result.status, targetSummary: result.summary, targetFindings: result.findings };
-  const expected = result.status === "fail" && result.summary.includes(testCase.expectedSummaryFragment);
+  const expectedStatus = testCase.expectedStatus ?? "fail";
+  const expected = result.status === expectedStatus && (expectedStatus !== "fail" || result.summary.includes(testCase.expectedSummaryFragment));
   if (expected) {
-    return { ok: true, summary: `${testCase.name}: liveness rejected fixture with fail.`, findings };
+    return { ok: true, summary: `${testCase.name}: liveness returned ${result.status} as expected.`, findings };
   }
   return { ok: false, summary: `${testCase.name}: liveness unexpectedly returned ${result.status}.`, findings };
 }
@@ -110,9 +111,16 @@ emit(async () => {
     {
       name: "overdue-check",
       checkId: "fixture.overdue",
-      description: "Known-bad check with a nextRunAt far in the past.",
-      state: { lastRunAt: new Date(now - 60 * 60 * 1000).toISOString(), nextRunAt: new Date(now - 30 * 60 * 1000).toISOString() },
+      description: "Known-bad check whose scheduled run was missed.",
+      state: { lastRunStarted: new Date(now - 60 * 60 * 1000).toISOString(), nextRunAt: new Date(now - 30 * 60 * 1000).toISOString() },
       expectedSummaryFragment: "silent or overdue"
+    },
+    {
+      name: "stale-schedule-after-later-run",
+      checkId: "fixture.stale-schedule",
+      description: "Past nextRunAt left behind after a later manual run.",
+      state: { lastRunStarted: new Date(now - 60 * 60 * 1000).toISOString(), nextRunAt: new Date(now - 14 * 24 * 60 * 60 * 1000).toISOString() },
+      expectedStatus: "pass"
     }
   ];
 
@@ -122,5 +130,5 @@ emit(async () => {
   if (failures.length > 0) {
     return fail(`meta.liveness known-bad fixtures: ${failures.length}/${results.length} fixture(s) were not rejected.`, { findings });
   }
-  return pass(`meta.liveness known-bad fixtures: all ${results.length} fixture(s) were rejected.`, { findings });
+  return pass(`meta.liveness known-bad fixtures: all ${results.length} fixture(s) behaved as expected.`, { findings });
 });

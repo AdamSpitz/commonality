@@ -22,4 +22,5 @@ Avoid `lens_diagnostics mode=full` unless you specifically need a project-wide s
 
 Read `workflow/branching.md` before working with branches or creating PRs. Key points:
 - Always compare to `dev`, not `master`
+- Stay on the current working branch. Do not open a new branch per task unless there is a really good reason to keep the work separate.
 - Feature PRs target `dev`; release is `scripts/promote-dev-to-master.sh` (fast-forward `master` to `dev`), not a GitHub PR

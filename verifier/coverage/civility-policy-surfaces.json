@@ -4,6 +4,10 @@
   "routes": [
     { "path": "/", "classification": "static-editorial" },
     { "path": "/content", "classification": "governed", "actions": ["suppress"] },
+    { "path": "/explore", "classification": "governed", "actions": ["suppress", "exclude-aggregation"] },
+    { "path": "/explore/:propertyId", "classification": "governed", "actions": ["suppress", "exclude-aggregation"] },
+    { "path": "/explore/:propertyId/fund", "classification": "governed", "actions": ["suppress"] },
+    { "path": "/fund", "classification": "governed", "actions": ["suppress"] },
     { "path": "/filters", "classification": "static-editorial" },
     { "path": "/popular-statements", "classification": "static-editorial" },
     { "path": "/nominate", "classification": "static-editorial" },

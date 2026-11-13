@@ -1,3 +1,4 @@
+import { loadParkedFailures, matchingPark } from "../lib/parked-failures.mjs";
 import { emit, fail, pass, readInputs, uncertain } from "../lib/result.mjs";
 
 function checkInputs(inputs) {
@@ -42,7 +43,7 @@ function childStatus(child) {
 }
 
 function rollup(children) {
-  const considered = children.filter((child) => child.considered);
+  const considered = children.filter((child) => child.considered && !child.parked);
 
   if (considered.some((child) => child.status === "fail")) return "fail";
   if (considered.some((child) => child.status !== "pass")) return "uncertain";
@@ -52,7 +53,8 @@ function rollup(children) {
 function childPhrase(child) {
   const age = child.ageMinutes === null ? "no result" : formatAge(child.ageMinutes);
   const optionalNote = child.required ? "" : ", optional";
-  return `${child.id} ${child.status} (${age}${optionalNote})`;
+  const parkedNote = child.parked ? `, parked until ${child.parked.reviewAfter}` : "";
+  return `${child.id} ${child.parked ? "parked" : child.status} (${age}${optionalNote}${parkedNote})`;
 }
 
 function makeSummary(status, children) {
@@ -62,7 +64,12 @@ function makeSummary(status, children) {
 
 emit(async () => {
   const inputs = readInputs();
-  const children = checkInputs(inputs).map((child) => childStatus(child));
+  const parks = await loadParkedFailures();
+  const children = checkInputs(inputs).map((child) => {
+    const status = childStatus(child);
+    const parked = matchingPark(parks, child.id, child.result);
+    return parked ? { ...status, parked } : status;
+  });
   const status = rollup(children);
   const requiredIds = children.filter((child) => child.required).map((child) => child.id);
   const optionalIds = children.filter((child) => !child.required).map((child) => child.id);

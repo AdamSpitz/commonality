@@ -3,7 +3,7 @@
     {
       "id": "leaves",
       "label": "Leaf checks",
-      "description": "Every leaf check, flat: failing first, then code-changed, then never-run, then passing, then intentionally skipped. For the big picture, run `npm run verifier:brief` and paste it into an LLM.",
+      "description": "Every leaf check, flat: failing first, then code-changed, then never-run, then passing, then intentionally skipped.",
       "source": ["node", "../scripts/verifier-operator.mjs", "view", "leaves"]
     },
     {

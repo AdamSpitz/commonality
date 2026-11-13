@@ -67,13 +67,20 @@ emit(async () => {
     }
 
     const nextRunAt = stateTimestamp(state, ["nextRunAt", "nextRun", "scheduledAt"]);
-    if (nextRunAt !== null && nextRunAt + graceMs < now) {
+    const lastRunAt = stateTimestamp(state, ["lastRunStarted", "lastRunAt", "lastRun"]);
+    // nextRunAt is leftover scheduler state. The workstation scheduler is off, so a
+    // past stamp is not a miss when the check has already run since that stamp.
+    const missedScheduledRun = nextRunAt !== null && nextRunAt + graceMs < now && (lastRunAt === null || lastRunAt < nextRunAt);
+    if (missedScheduledRun) {
       findings.push({
         severity: "high",
         confidence: "high",
         area: "verifier",
         title: `${def.id} is overdue`,
-        evidence: [`nextRunAt=${new Date(nextRunAt).toISOString()}`],
+        evidence: [
+          `nextRunAt=${new Date(nextRunAt).toISOString()}`,
+          lastRunAt === null ? "lastRun=never" : `lastRun=${new Date(lastRunAt).toISOString()}`
+        ],
         recommendation: `Investigate the scheduler or run verifier-run ${def.id}`
       });
     }
