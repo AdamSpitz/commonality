@@ -88,6 +88,12 @@ vi.mock('../../content-funding', async () => {
 
 import { createProject } from '@commonality/sdk/lazy-giving'
 
+const mockCreateClaimTicketProject = vi.fn()
+vi.mock('@commonality/sdk/claim-tickets', () => ({
+  createClaimTicketProject: (...args: unknown[]) => mockCreateClaimTicketProject(...args),
+  encodeClaimTicketCode: () => 'ct1:recovered',
+}))
+
 describe('CreateProjectPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -695,6 +701,55 @@ describe('CreateProjectPage', () => {
       await waitFor(() => {
         expect(screen.getByText('Transaction reverted')).toBeInTheDocument()
       })
+    })
+  })
+
+  describe('claim tickets', () => {
+    function fillForm() {
+      setFieldValue(/project name/i, 'Ticket project')
+      setFieldValue(/description/i, 'A piece of work')
+      setFieldValue(/updates channel link/i, 'https://updates.example/project')
+      setFieldValue(/funding goal/i, '10')
+      setFieldValue(/deadline/i, futureDeadlineValue())
+      setFieldValue(/supply/i, '100')
+      setFieldValue(/price/i, '0.1')
+    }
+
+    it('hides the project link until the issuer acknowledges the saved code', async () => {
+      mockCreateClaimTicketProject.mockResolvedValue({
+        project: '0x9999999999999999999999999999999999999999',
+        code: 'ct1:shown-once',
+      })
+      render(<CreateProjectPage />)
+      const user = userEvent.setup()
+      fillForm()
+      await user.click(screen.getByLabelText(/claim ticket/i))
+      await submitAndConfirm(user)
+
+      expect(await screen.findByText(/copy or download it now/i)).toBeInTheDocument()
+      expect(screen.getByDisplayValue('ct1:shown-once')).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /view project/i })).not.toBeInTheDocument()
+
+      await user.click(screen.getByRole('checkbox', { name: /i saved this code/i }))
+      expect(screen.getByRole('button', { name: /view project/i })).toBeInTheDocument()
+    })
+
+    it('recovers the code from a confirmed creation instead of starting another project', async () => {
+      mockCreateClaimTicketProject.mockRejectedValue(new Error('timeout'))
+      mockPublicClient.readContract.mockImplementation(async (args: { functionName?: string }) => {
+        if (args.functionName === 'ticketProjectOf') return '0x9999999999999999999999999999999999999999'
+        return false
+      })
+      render(<CreateProjectPage />)
+      const user = userEvent.setup()
+      fillForm()
+      await user.click(screen.getByLabelText(/claim ticket/i))
+      await submitAndConfirm(user)
+
+      expect(await screen.findByDisplayValue('ct1:recovered')).toBeInTheDocument()
+      expect(screen.getByText(/earlier creation confirmed/i)).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /view project/i })).not.toBeInTheDocument()
+      expect(mockCreateClaimTicketProject).toHaveBeenCalledTimes(1)
     })
   })
 })

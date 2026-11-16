@@ -1,6 +1,6 @@
 # Claim ticket (commit first, onboard the doer later)
 
-Status: product shape with a [technical design](/specs/tech/subsystems/claim-tickets.md). Contracts, relay, and claim UI are in place for the v1 path.
+Status: v1 is built. Contracts, the platform-api redeem relay, creation and claim UI, and the acceptance tests for that path are in place. The [technical design](/specs/tech/subsystems/claim-tickets.md) is the source for what v1 includes and what it deliberately leaves out.
 
 Related: [fund now, claim later](fund-now-claim-later.md) (public identity, not a secret), [foolproof project creation](foolproof-project-creation.md) (recipient picker; its later email-bound embedded wallet is a different idea), [bridges.md](/specs/tech/bridges.md) (Linkdrop, for the donor direction).
 
@@ -47,6 +47,8 @@ The [technical design](/specs/tech/subsystems/claim-tickets.md) answers these qu
 - Whether Alice gets a short cancel window before she reveals the code. Default assumption: no. Commit-first means the project exists when she hands the code over. Cancel after reveal is just "Alice kept a copy."
 - How the code is encoded so it is safe to paste into a chat without looking like a seed phrase.
 
-## When to build
+## v1 status
 
-Not part of the current beneficiary-claim work. Build this when a real "I found the person, they have no wallet" path is blocking a delegate or a donor. Until then, the workaround is the thing this spec refuses to require: Bob creates an account first, Alice uses that address.
+Built. Alice can create a ticket project, save the code, and fund only after she acknowledges that she saved it. Bob can redeem on `/claim` through the relay, or submit the same payload himself if the relay is down. Redemption binds his account. Accepting the work and claiming proceeds stay separate, and the normal deadline and 90-day reclaim rules still apply.
+
+Not in v1, on purpose: CREATE2 or a code that names the project before creation confirms, counterfactual signatures for an undeployed destination, destination rotation, and recovering a code if the browser dies after the creation confirms. A human security review of the authorization and accounting changes still precedes a production deployment.

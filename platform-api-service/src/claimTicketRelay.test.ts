@@ -51,10 +51,43 @@ describe('claim ticket relay', () => {
     );
   });
 
-  it('returns the same payload when sponsorship is exhausted', async () => {
+  it('returns the same payload when sponsorship is exhausted or submission fails', async () => {
     await assert.rejects(
       () => relayClaimTicket(config, request, chain({ async signerBalance() { return 0n; } })),
       (error: unknown) => error instanceof HttpError && error.code === 'sponsorship_exhausted' && (error.details as { to: string }).to === project,
+    );
+    await assert.rejects(
+      () => relayClaimTicket(config, request, chain({
+        async submitRedeem() { throw new Error('nonce'); },
+      })),
+      (error: unknown) => error instanceof HttpError && error.code === 'sponsorship_exhausted' && (error.details as { to: string }).to === project,
+    );
+  });
+
+  it('refuses an already redeemed ticket, a failing simulation, and a gas estimate over the cap', async () => {
+    await assert.rejects(
+      () => relayClaimTicket(config, request, chain({
+        async readProvenance() { return { matchesFactory: true, redeemed: true }; },
+      })),
+      (error: unknown) => error instanceof HttpError && error.code === 'ticket_already_redeemed',
+    );
+    await assert.rejects(
+      () => relayClaimTicket(config, request, chain({
+        async simulateRedeem() { throw new Error('revert'); },
+      })),
+      (error: unknown) => error instanceof HttpError && error.code === 'claim_simulation_failed',
+    );
+    await assert.rejects(
+      () => relayClaimTicket(config, request, chain({ async estimateRedeemGas() { return 9_000_000n; } })),
+      (error: unknown) => error instanceof HttpError && error.code === 'claim_gas_too_high',
+    );
+    await assert.rejects(
+      () => relayClaimTicket({ ...config, chainId: undefined }, request, chain()),
+      (error: unknown) => error instanceof HttpError && error.code === 'claim_relay_not_configured',
+    );
+    await assert.rejects(
+      () => relayClaimTicket(config, { ...request, transitSignature: `0x${'ab'.repeat(3_000)}` }, chain()),
+      (error: unknown) => error instanceof HttpError && error.code === 'invalid_request',
     );
   });
 });

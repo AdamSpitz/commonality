@@ -164,5 +164,109 @@ describe('claim tickets', function () {
     await live.ac.connect(bob).refuse();
     await expect(live.ac.connect(await asSender(liveTransit)).claim()).to.be.revertedWithCustomError(live.ac, 'NotPayoutAddress');
     expect(await paymentToken.balanceOf(bob.address)).to.equal(0n);
+    expect(await live.ac.accumulatedReimbursementPerClaimShare()).to.equal(0n);
+  });
+
+  it('rejects a signature from another chain, contract, or competing stolen-code destination', async function () {
+    const { bob, other, transit, deadline, create } = await setup();
+    const { ac } = await create();
+    const domain = {
+      name: 'ClaimTicket',
+      version: '1',
+      chainId: (await ethers.provider.getNetwork()).chainId + 1n,
+      verifyingContract: ac.target,
+    };
+    const wrongChain = await transit.signTypedData(domain, redeemTypes(), {
+      destination: bob.address, deadline, nonce: 0n,
+    });
+    const bobSig = await signRedeem(ac, bob, bob.address, deadline);
+    await expect(ac.redeem(bob.address, wrongChain, bobSig, deadline))
+      .to.be.revertedWithCustomError(ac, 'InvalidTransitSignature');
+
+    const otherContract = { ...domain, chainId: (await ethers.provider.getNetwork()).chainId, verifyingContract: bob.address };
+    const wrongContract = await transit.signTypedData(otherContract, redeemTypes(), {
+      destination: bob.address, deadline, nonce: 0n,
+    });
+    await expect(ac.redeem(bob.address, wrongContract, bobSig, deadline))
+      .to.be.revertedWithCustomError(ac, 'InvalidTransitSignature');
+
+    const carol = other;
+    const stolenTransit = await signRedeem(ac, transit, carol.address, deadline);
+    const carolSig = await signRedeem(ac, carol, carol.address, deadline);
+    await ac.redeem(bob.address, await signRedeem(ac, transit, bob.address, deadline), bobSig, deadline);
+    await expect(ac.redeem(carol.address, stolenTransit, carolSig, deadline))
+      .to.be.revertedWithCustomError(ac, 'TicketAlreadyRedeemed');
+    expect(await ac.destination()).to.equal(bob.address);
+  });
+
+  it('keeps the seven-day veto, refunds a refusal before success, and reclaims only at the 90-day boundary', async function () {
+    const { factory, paymentToken, alice, bob, transit, create } = await setup();
+    const earlyDeadline = BigInt((await ethers.provider.getBlock('latest')).timestamp + 40 * DAY);
+    const { ac, token } = await create(transit, [WORK + ':boundary'], earlyDeadline);
+    await ac.redeem(
+      bob.address,
+      await signRedeem(ac, transit, bob.address, earlyDeadline),
+      await signRedeem(ac, bob, bob.address, earlyDeadline),
+      earlyDeadline,
+    );
+    await fund(paymentToken, alice, ac, token, 5n);
+    await expect(ac.connect(bob).refuse()).to.emit(ac, 'ProceedsRefused');
+    const receipt = await ethers.getContractAt('PremintingERC1155', token);
+    await receipt.connect(alice).setApprovalForAll(ac.target, true);
+    await ac.connect(alice).refundERC1155(alice.address, token, [1n], [1n], '0x');
+    expect(await paymentToken.balanceOf(alice.address)).to.equal(5n);
+    const laterTransit = ethers.Wallet.createRandom().connect(ethers.provider);
+    const laterDeadline = BigInt((await ethers.provider.getBlock('latest')).timestamp + 40 * DAY);
+    const later = await create(laterTransit, [WORK + ':later'], laterDeadline);
+    await later.ac.redeem(
+      bob.address,
+      await signRedeem(later.ac, laterTransit, bob.address, laterDeadline),
+      await signRedeem(later.ac, bob, bob.address, laterDeadline),
+      laterDeadline,
+    );
+    await fund(paymentToken, alice, later.ac, later.token, 5n);
+    await fund(paymentToken, alice, later.ac, later.token, 7n, 2n);
+    const reservesBefore = await later.ac.accumulatedReimbursementPerClaimShare();
+    await factory.connect(bob).acceptWorkProject(later.ac.target);
+    expect(await later.condition.VETO_WINDOW()).to.equal(7n * BigInt(DAY));
+    await ethers.provider.send('evm_increaseTime', [7 * DAY + 1]);
+    await ethers.provider.send('evm_mine', []);
+    const noted = await (await later.ac.noteSuccess()).wait();
+    const succeededAt = BigInt((await ethers.provider.getBlock(noted.blockNumber)).timestamp);
+    expect(await later.ac.accumulatedReimbursementPerClaimShare()).to.equal(reservesBefore);
+    await expect(later.ac.reclaimUnclaimedShare()).to.be.revertedWithCustomError(later.ac, 'ClaimWindowStillOpen');
+    const window = await later.ac.unclaimedProceedsWindow();
+    await ethers.provider.send('evm_setNextBlockTimestamp', [Number(succeededAt + window - 1n)]);
+    await expect(later.ac.connect(bob).claim()).to.emit(later.ac, 'ProceedsClaimed');
+    expect(await paymentToken.balanceOf(bob.address)).to.equal(12n);
+    expect(await paymentToken.balanceOf(laterTransit.address)).to.equal(0n);
+
+    const closedTransit = ethers.Wallet.createRandom().connect(ethers.provider);
+    const closedDeadline = BigInt((await ethers.provider.getBlock('latest')).timestamp + 40 * DAY);
+    const closed = await create(closedTransit, [WORK + ':closed'], closedDeadline);
+    await closed.ac.redeem(
+      bob.address,
+      await signRedeem(closed.ac, closedTransit, bob.address, closedDeadline),
+      await signRedeem(closed.ac, bob, bob.address, closedDeadline),
+      closedDeadline,
+    );
+    await fund(paymentToken, alice, closed.ac, closed.token, 5n);
+    await factory.connect(bob).acceptWorkProject(closed.ac.target);
+    await ethers.provider.send('evm_increaseTime', [7 * DAY + 1]);
+    await ethers.provider.send('evm_mine', []);
+    const closedNote = await (await closed.ac.noteSuccess()).wait();
+    const closedAt = BigInt((await ethers.provider.getBlock(closedNote.blockNumber)).timestamp) + await closed.ac.unclaimedProceedsWindow();
+    await ethers.provider.send('evm_setNextBlockTimestamp', [Number(closedAt)]);
+    await expect(closed.ac.connect(bob).claim()).to.be.revertedWithCustomError(closed.ac, 'ClaimWindowElapsed');
+    const beforeReclaim = await paymentToken.balanceOf(alice.address);
+    await closed.ac.connect(alice).reclaimUnclaimedShare();
+    expect(await paymentToken.balanceOf(alice.address)).to.equal(beforeReclaim + 5n);
+    expect(await closed.condition.VETO_WINDOW()).to.equal(7n * BigInt(DAY));
   });
 });
+
+async function fund(paymentToken, alice, ac, token, amount, id = 1n) {
+  await paymentToken.connect(alice).mint(amount);
+  await paymentToken.connect(alice).approve(ac.target, amount);
+  await ac.connect(alice).buyERC1155(alice.address, token, [id], [1n], '0x');
+}
