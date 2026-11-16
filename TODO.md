@@ -32,6 +32,8 @@ Getting **testnet to a two-person shared lab** is also a standing plan, not a pi
 
 - Decide implication hints: where they are stored, who may send them, and how to stop a hint from becoming a cheap way to make the attester do a lot of work. The idea is in [statement proliferation](specs/product/statement-proliferation.md) §7. A hint only points at a pair; it is not a claim, and a declined hint changes nothing.
 
+- Claim ticket for a doer who has no wallet yet: product shape is [claim-ticket.md](specs/product/claim-ticket.md). A donor or delegate creates the project now and hands over a one-time bearer code; the doer later redeems it to an account he creates. Do not implement an email beneficiary, and do not treat the ticket as a public-identity claim ([fund now, claim later](specs/product/fund-now-claim-later.md)). Next step is a tech design that answers the open questions in the spec. Do not start contracts from this page alone.
+
 - Generalize content funding into extensible structured work types: domain-defined canonical work-item IDs, explicit links to funding requests with duplicate-claim rules, structured creation forms, and item/sequence alignment attestations feeding fundable-projects boards. Capture and refine the design before implementation; see [Structured fundable work](specs/product/structured-fundable-work.md).
 
 - Manually confirm enrolled statement support is sponsored on a Base Account against the HTTPS paymaster after the statement tank is redeployed. Disbelief, mixed batches, and unenrolled statements must stay on the user's own gas.

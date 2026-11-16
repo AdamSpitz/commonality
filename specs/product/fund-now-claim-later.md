@@ -14,6 +14,7 @@ No real users yet: content channels should **become** this primitive (see the te
 - **Us as intermediary or leftover payee.** If the beneficiary never claims, contributors reclaim (or the project deadline fires and they reclaim). Not Adam, not Commonality, not a designated fallback charity.
 - **"Funds legally reserved for Example Charity, Inc."** as the protocol assertion. The enforceable assertion is **"funds reserved for the controller of this public identity"** (initially `example.org`). Legal-entity identity is a later, layered claim — see [Assurance levels](#assurance-levels).
 - **Keying escrow by EIN / charity number / legal name alone.** Those are not surfaces anyone can post a challenge to. They can appear in a *composite* identity whose verifier still requires a writable proof (domain listed in the official registry, plus domain control, or a KYC provider attesting the wallet).
+- **A secret for a known person who has no wallet yet.** That is a [claim ticket](claim-ticket.md): Alice hands Bob a bearer code, and the code is not a proof of identity. Do not force that case through this primitive.
 
 ## Product shape
 
