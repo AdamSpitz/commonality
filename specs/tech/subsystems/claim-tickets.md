@@ -1,6 +1,6 @@
 # Claim tickets: technical design
 
-Status: proposed design, 2026-11-16. The ticket project, redemption, and factory path are implemented in contracts. Relay, SDK folds, and creation/claim UI are not. Product: [claim ticket](/specs/product/claim-ticket.md).
+Status: proposed design, 2026-11-16. Contracts, SDK code/folds/creation, the platform-api redeem relay, and the creation/claim UI are implemented. Product: [claim ticket](/specs/product/claim-ticket.md).
 
 ## Decision and boundary
 

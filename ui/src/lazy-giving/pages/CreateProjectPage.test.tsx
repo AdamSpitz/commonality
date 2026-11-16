@@ -25,6 +25,7 @@ const mockPublicClient = {
 
 vi.mock('wagmi', () => ({
   useAccount: () => mockAccount,
+  useChainId: () => 31337,
   useWalletClient: () => mockWalletClient,
   usePublicClient: () => mockPublicClient,
 }))

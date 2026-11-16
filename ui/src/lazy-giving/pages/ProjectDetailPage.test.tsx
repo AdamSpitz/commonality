@@ -19,7 +19,7 @@ const mockAccount = {
   isConnected: false,
 }
 const mockWalletClient = { data: undefined as any }
-const mockPublicClient = {} as any
+const mockPublicClient = { readContract: vi.fn().mockRejectedValue(new Error('not a ticket')) }
 
 vi.mock('wagmi', async (importOriginal) => {
   const actual = await importOriginal<typeof import('wagmi')>()

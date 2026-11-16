@@ -1,6 +1,6 @@
 # Claim ticket (commit first, onboard the doer later)
 
-Status: product shape with a [technical design](/specs/tech/subsystems/claim-tickets.md). The contract path is started. Relay and claim UI are not built.
+Status: product shape with a [technical design](/specs/tech/subsystems/claim-tickets.md). Contracts, relay, and claim UI are in place for the v1 path.
 
 Related: [fund now, claim later](fund-now-claim-later.md) (public identity, not a secret), [foolproof project creation](foolproof-project-creation.md) (recipient picker; its later email-bound embedded wallet is a different idea), [bridges.md](/specs/tech/bridges.md) (Linkdrop, for the donor direction).
 

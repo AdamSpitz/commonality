@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Box, CircularProgress, Alert, Button, Paper, Typography } from '@mui/material'
 import { Link as RouterLink, useParams, useSearchParams } from 'react-router-dom'
-import { useAccount } from 'wagmi'
+import { useAccount, usePublicClient } from 'wagmi'
+import { ClaimTicketAssuranceContractAbi } from '@commonality/sdk/abis'
 import { getPurchasedNoteEventsByTxHashes, getDelegationChainsForNotes } from '@commonality/sdk/delegation'
 import { getProjectTokens, getProjectContributions, getProjectRefunds, getProjectReimbursementState, getContributorReimbursementState, type ProjectToken, type Contribution, type Refund, type ProjectReimbursementState, type ContributorReimbursementState } from '@commonality/sdk/lazy-giving'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
@@ -69,6 +70,8 @@ export function ProjectDetailPage({
     searchParams.get('closeTheLoop') === '1'
     || (typeof window !== 'undefined' && window.location.hash === '#close-the-loop')
   const { address, isConnected } = useAccount()
+  const publicClient = usePublicClient()
+  const [ticketDestination, setTicketDestination] = useState<`0x${string}` | null | undefined>(undefined)
   const disavowedProjects = useProjectDisavowals()
   const machinery = useMachinery()
   const machineryDefaultChainId = (machinery as { defaultChainId?: number }).defaultChainId
@@ -103,6 +106,28 @@ export function ProjectDetailPage({
     )
   }, [contentChannels, projectContractAddress])
   const headerKind = isContentProject ? 'content-project' : 'project'
+
+  useEffect(() => {
+    if (!publicClient || !projectContractAddress) return
+    let cancelled = false
+    void publicClient.readContract({
+      address: projectContractAddress as `0x${string}`,
+      abi: ClaimTicketAssuranceContractAbi,
+      functionName: 'redeemed',
+    }).then(async (redeemed) => {
+      const destination = redeemed
+        ? await publicClient.readContract({
+          address: projectContractAddress as `0x${string}`,
+          abi: ClaimTicketAssuranceContractAbi,
+          functionName: 'destination',
+        })
+        : null
+      if (!cancelled) setTicketDestination(destination)
+    }).catch(() => {
+      if (!cancelled) setTicketDestination(undefined)
+    })
+    return () => { cancelled = true }
+  }, [publicClient, projectContractAddress])
 
   const [metadata, setMetadata] = useState<ProjectMetadata | null>(null)
   const [metadataWarning, setMetadataWarning] = useState<string | null>(null)
@@ -373,7 +398,7 @@ export function ProjectDetailPage({
         <Button component={RouterLink} to={projectPath} size="small" sx={{ mb: 2, textTransform: 'none' }}>
           ← Back to project
         </Button>
-        <ProjectHeader project={project} metadata={metadata} kind={headerKind} beneficiaryBinding={beneficiaryBinding} />
+        <ProjectHeader project={project} metadata={metadata} kind={headerKind} beneficiaryBinding={beneficiaryBinding} ticketDestination={ticketDestination} />
         <Leaderboard
           contributions={contributions}
           refunds={refunds}
@@ -385,7 +410,7 @@ export function ProjectDetailPage({
 
   return (
     <Box>
-      <ProjectHeader project={project} metadata={metadata} kind={headerKind} beneficiaryBinding={beneficiaryBinding} />
+      <ProjectHeader project={project} metadata={metadata} kind={headerKind} beneficiaryBinding={beneficiaryBinding} ticketDestination={ticketDestination} />
       {projectContractAddress && <PendingProjectSpends primaryMarket={projectContractAddress} currency={fundingCurrency} />}
 
       {projectContractAddress && disavowedProjects.has(projectContractAddress.toLowerCase()) && (

@@ -9,6 +9,8 @@ import type { PlatformApiService } from './service.js';
 import type { PlatformApiServiceConfig } from './config.js';
 import { parseContentSubmission } from './submissions.js';
 import { handleSponsoredGasPaymasterRpc } from './sponsoredGasPaymaster.js';
+import { relayClaimTicket } from './claimTicketRelay.js';
+import { createClaimTicketRelayChain } from './claimTicketChain.js';
 import type { PolicyBundleRuntime } from '@commonality/sdk/policy-lists';
 import { createPolicyContentGatewayHandler } from './policyContentGateway.js';
 
@@ -173,6 +175,34 @@ export function createApp(
     }
 
     res.json(await service.getBaseUsdcBalance(address));
+  }));
+
+  const claimRelayLimiter = createRateLimiter({
+    windowMs: config.resolveRateLimitWindowMs,
+    maxRequests: config.resolveRateLimitMaxRequests,
+    message: 'Too many claim relay requests. Please wait before trying again.',
+  });
+
+  app.post('/claim-ticket/redeem', claimRelayLimiter, handleRoute(async (req: Request, res: Response) => {
+    const body = req.body as Record<string, unknown>;
+    if (JSON.stringify(body).length > 16_384) {
+      res.status(400).json({ error: 'invalid_request', message: 'Claim relay request is too large.' });
+      return;
+    }
+    const result = await relayClaimTicket({
+      chainId: config.claimTicketChainId,
+      factoryAddress: config.claimTicketFactoryAddress,
+      maxGas: config.claimTicketMaxGas,
+      minSignerBalance: config.claimTicketMinSignerBalance,
+    }, {
+      project: typeof body.project === 'string' ? body.project : undefined,
+      destination: typeof body.destination === 'string' ? body.destination : undefined,
+      transitAddress: typeof body.transitAddress === 'string' ? body.transitAddress : undefined,
+      transitSignature: typeof body.transitSignature === 'string' ? body.transitSignature : undefined,
+      destinationSignature: typeof body.destinationSignature === 'string' ? body.destinationSignature : undefined,
+      deadline: typeof body.deadline === 'string' ? body.deadline : undefined,
+    }, createClaimTicketRelayChain(config));
+    res.json(result);
   }));
 
   app.post('/sponsored-gas/paymaster', onrampLimiter, (req: Request, res: Response) => {

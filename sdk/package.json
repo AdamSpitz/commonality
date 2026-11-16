@@ -72,6 +72,10 @@
       "types": "./dist/src/subsystems/lazy-giving/index.d.ts",
       "default": "./dist/src/subsystems/lazy-giving/index.js"
     },
+    "./claim-tickets": {
+      "types": "./dist/src/subsystems/claim-tickets/index.d.ts",
+      "default": "./dist/src/subsystems/claim-tickets/index.js"
+    },
     "./mutable-refs": {
       "types": "./dist/src/subsystems/mutable-refs/index.d.ts",
       "default": "./dist/src/subsystems/mutable-refs/index.js"

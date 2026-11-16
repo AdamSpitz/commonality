@@ -27,6 +27,8 @@ export const fundingContractNames = [
   "FixedControllerFactory",
   "FixedControllerAssuranceContract",
   "ProjectFactory",
+  "ClaimTicketFactory",
+  "ClaimTicketAssuranceContract",
   "ERC1155Factory",
   "AssuranceContract",
   "PremintingERC1155",

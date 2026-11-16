@@ -12,6 +12,7 @@ const routes: ReactNode = (
     <Route path="/" element={<LazyGivingLandingPage />} />
     <Route path="/projects" element={lazyRoute(() => import('../../lazy-giving/pages/BrowseProjectsPage'), 'BrowseProjectsPage')} />
     <Route path="/projects/new" element={lazyRoute(() => import('../../lazy-giving/pages/CreateProjectPage'), 'CreateProjectPage')} />
+    <Route path="/claim" element={lazyRoute(() => import('../../lazy-giving/pages/ClaimTicketPage'), 'ClaimTicketPage')} />
     <Route path="/projects/:projectAddress/leaderboard" element={lazyRoute(() => import('../../lazy-giving/pages/ProjectDetailPage'), 'ProjectLeaderboardPage')} />
     <Route path="/projects/:projectAddress" element={lazyRoute(() => import('../../lazy-giving/pages/ProjectDetailPage'), 'ProjectDetailPage')} />
     <Route path="/delegation" element={<Navigate to="/delegation/notes" replace />} />
