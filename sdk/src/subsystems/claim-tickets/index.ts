@@ -15,4 +15,4 @@ export {
   type ClaimTicketCreatedEvent,
   type ClaimTicketRedeemedEvent,
 } from './folds.js';
-export { createClaimTicketProject, type CreatedClaimTicket } from './actions.js';
+export { createClaimTicketProject, ClaimTicketCreationRevertedError, type CreatedClaimTicket } from './actions.js';

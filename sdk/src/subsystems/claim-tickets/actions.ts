@@ -12,6 +12,13 @@ export interface CreatedClaimTicket {
   code: string;
 }
 
+export class ClaimTicketCreationRevertedError extends Error {
+  constructor(public readonly transactionHash: Hash) {
+    super('Claim ticket creation transaction reverted.');
+    this.name = 'ClaimTicketCreationRevertedError';
+  }
+}
+
 /**
  * Create a ticket project and return its claim code only after the receipt confirms.
  * The caller keeps the transit key until this returns. A timeout after submission
@@ -35,6 +42,12 @@ export async function createClaimTicketProject(
     tokenPrices: bigint[];
     workIds?: string[];
   },
+  options: {
+    /** Resume confirmation of an earlier submission without creating another project. */
+    transactionHash?: Hash;
+    /** Retain the hash before waiting, including when confirmation times out. */
+    onSubmitted?: (hash: Hash) => void;
+  } = {},
 ): Promise<CreatedClaimTicket> {
   const chainId = BigInt(clients.walletClient.chain?.id ?? await clients.publicClient.getChainId());
   const args = [
@@ -51,7 +64,7 @@ export async function createClaimTicketProject(
     params.tokenPrices,
     params.workIds ?? [],
   ] as const;
-  const hash = await clients.walletClient.writeContract({
+  const hash = options.transactionHash ?? await clients.walletClient.writeContract({
     address: projectFactory,
     abi: ProjectFactoryAbi,
     functionName: 'createClaimTicketProject',
@@ -59,7 +72,9 @@ export async function createClaimTicketProject(
     chain: clients.walletClient.chain,
     account: clients.walletClient.account!,
   });
+  options.onSubmitted?.(hash);
   const receipt = await clients.publicClient.waitForTransactionReceipt({ hash });
+  if (receipt.status !== 'success') throw new ClaimTicketCreationRevertedError(hash);
   const created = parseEventLogs({
     abi: ProjectFactoryAbi,
     eventName: 'ClaimTicketProjectCreated',

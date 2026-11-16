@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Alert, Box, Button, Stack, TextField, Typography } from '@mui/material'
 import { useAccount, useChainId, usePublicClient, useSignTypedData, useWalletClient } from 'wagmi'
-import { getAddress, zeroAddress } from 'viem'
+import { getAddress, zeroAddress, type Hash } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import { ClaimTicketAssuranceContractAbi, ProjectFactoryAbi } from '@commonality/sdk/abis'
 import {
@@ -93,22 +93,21 @@ export function ClaimTicketPage() {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify(body),
-      })
-      const payload = await relay.json().catch(() => null) as { transactionHash?: string; payload?: { data?: `0x${string}` }; message?: string } | null
-      if (relay.ok && payload?.transactionHash) {
-        setProject(projectAddress)
-        setStatus('The ticket is bound to this account. Accepting the work and claiming proceeds are separate steps.')
-        return
-      }
-      const data = payload?.payload?.data ?? encodeRedeemCall({
+      }).catch(() => null)
+      const payload = await relay?.json().catch(() => null) as { transactionHash?: Hash; message?: string } | null
+      const data = encodeRedeemCall({
         destination: address,
         transitSignature,
         destinationSignature,
         deadline,
       })
-      if (!walletClient.data) throw new Error(payload?.message || 'The relay could not submit this claim.')
-      const hash = await walletClient.data.sendTransaction({ to: projectAddress, data })
-      await publicClient.waitForTransactionReceipt({ hash })
+      let hash = relay?.ok ? payload?.transactionHash : undefined
+      if (!hash) {
+        if (!walletClient.data) throw new Error(payload?.message || 'The relay could not submit this claim.')
+        hash = await walletClient.data.sendTransaction({ to: projectAddress, data })
+      }
+      const receipt = await publicClient.waitForTransactionReceipt({ hash })
+      if (receipt.status !== 'success') throw new Error('The redemption transaction reverted. The ticket has not been claimed.')
       setProject(projectAddress)
       setStatus('The ticket is bound to this account. Accepting the work and claiming proceeds are separate steps.')
     } catch (err) {

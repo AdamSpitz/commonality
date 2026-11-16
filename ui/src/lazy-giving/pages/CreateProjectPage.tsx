@@ -31,7 +31,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAccount, useChainId, usePublicClient } from 'wagmi'
 import { BeneficiaryRegistryAbi, ProjectFactoryAbi, PublishedDataAbi } from '@commonality/sdk/abis'
 import { assertValidWorkId, createProject, type ProjectFactoryContract } from '@commonality/sdk/lazy-giving'
-import { createClaimTicketProject } from '@commonality/sdk/claim-tickets'
+import { ClaimTicketCreationRevertedError, createClaimTicketProject } from '@commonality/sdk/claim-tickets'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import { hashBeneficiaryId, normalizeDnsBeneficiary } from '@commonality/sdk/content-funding'
 import { createDefaultDocumentStore, createDisplayableDocument } from '@commonality/sdk/displayable-documents'
@@ -111,6 +111,7 @@ export function CreateProjectPage() {
   const [claimCode, setClaimCode] = useState<string | null>(null)
   const [claimCodeSaved, setClaimCodeSaved] = useState(false)
   const pendingTransitKey = useRef<`0x${string}` | null>(null)
+  const pendingCreationHash = useRef<`0x${string}` | undefined>(undefined)
   const [beneficiaryDomain, setBeneficiaryDomain] = useState(searchParams.get('beneficiary') ?? '')
   const [threshold, setThreshold] = useState('')
   const [stopAtGoal, setStopAtGoal] = useState(true)
@@ -420,11 +421,20 @@ export function CreateProjectPage() {
             tokenCounts: tokenTypes.map(t => BigInt(t.supply)),
             tokenPrices: tokenTypes.map(t => parsePaymentAmount(t.price)),
             ...(workItems.length > 0 ? { workIds: workItems.map((item) => item.id) } : {}),
+          }, {
+            transactionHash: pendingCreationHash.current,
+            onSubmitted: (hash) => { pendingCreationHash.current = hash },
           })
           setClaimCode(created.code)
+          setClaimCodeSaved(false)
           setCreatedProjectAddress(created.project)
           setSuccess('Ticket project created. Save the code before funding it.')
         } catch (ticketError) {
+          if (ticketError instanceof ClaimTicketCreationRevertedError) {
+            pendingCreationHash.current = undefined
+            pendingTransitKey.current = null
+            throw ticketError
+          }
           const recorded = await publicClient?.readContract({
             address: projectFactoryContract.address,
             abi: ProjectFactoryAbi,
@@ -434,10 +444,12 @@ export function CreateProjectPage() {
           if (recorded && recorded !== '0x0000000000000000000000000000000000000000') {
             const { encodeClaimTicketCode } = await import('@commonality/sdk/claim-tickets')
             setClaimCode(encodeClaimTicketCode({ chainId: BigInt(chainId), project: recorded, transitKey }))
+            setClaimCodeSaved(false)
             setCreatedProjectAddress(recorded)
             setSuccess('The earlier creation confirmed. Save this code before funding the project.')
           } else {
-            pendingTransitKey.current = null
+            // A missing mapping can mean the submitted transaction is still pending.
+            // Keep its key and hash so a retry waits for the same creation.
             throw ticketError
           }
         }
@@ -825,7 +837,7 @@ export function CreateProjectPage() {
                 <Button size="small" onClick={() => downloadClaimCode(claimCode)}>Download code</Button>
               </Stack>
               <FormControlLabel
-                control={<Checkbox checked={claimCodeSaved} onChange={() => { setClaimCodeSaved(true); pendingTransitKey.current = null }} />}
+                control={<Checkbox checked={claimCodeSaved} onChange={() => { setClaimCodeSaved(true); pendingTransitKey.current = null; pendingCreationHash.current = undefined }} />}
                 label="I saved this code. I understand that losing it can leave the project unclaimable."
               />
             </Alert>
