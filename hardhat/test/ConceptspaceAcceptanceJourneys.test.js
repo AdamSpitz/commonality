@@ -109,6 +109,7 @@ describe("Conceptspace acceptance journeys", function () {
       paymentToken.target,
     ]);
     const workRegistry = await ethers.deployContract("ContentRegistry");
+    const claimTicketFactory = await ethers.deployContract("ClaimTicketFactory");
     const projectFactory = await ethers.deployContract("ProjectFactory", [
       tokenFactory.target,
       assuranceFactory.target,
@@ -117,6 +118,7 @@ describe("Conceptspace acceptance journeys", function () {
       beneficiaryEscrow.target,
       fixedControllerFactory.target,
       workRegistry.target,
+      claimTicketFactory.target,
     ]);
     await workRegistry.setRegistrar(projectFactory.target, true);
 

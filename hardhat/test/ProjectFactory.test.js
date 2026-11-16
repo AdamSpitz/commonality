@@ -182,7 +182,7 @@ describe('ProjectFactory', function () {
     const dependency = await ethers.deployContract('PremintingERC1155Factory');
 
     await expect(
-      factory.deploy(ethers.ZeroAddress, dependency.target, dependency.target, dependency.target, dependency.target, dependency.target, dependency.target),
+      factory.deploy(ethers.ZeroAddress, dependency.target, dependency.target, dependency.target, dependency.target, dependency.target, dependency.target, dependency.target),
     ).to.be.revertedWithCustomError(factory, 'InvalidFactoryAddress');
   });
 

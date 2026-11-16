@@ -1,6 +1,6 @@
 # Claim ticket (commit first, onboard the doer later)
 
-Status: product shape with a [proposed technical design](/specs/tech/subsystems/claim-tickets.md). Implementation remains demand-gated, not scheduled work.
+Status: product shape with a [technical design](/specs/tech/subsystems/claim-tickets.md). The contract path is started. Relay and claim UI are not built.
 
 Related: [fund now, claim later](fund-now-claim-later.md) (public identity, not a secret), [foolproof project creation](foolproof-project-creation.md) (recipient picker; its later email-bound embedded wallet is a different idea), [bridges.md](/specs/tech/bridges.md) (Linkdrop, for the donor direction).
 

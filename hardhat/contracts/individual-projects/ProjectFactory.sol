@@ -7,13 +7,15 @@ import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
 import {PremintingERC1155, PremintingERC1155Clone} from "../utils/PremintingERC1155.sol";
 import {AssuranceContract} from "./AssuranceContract.sol";
 import {MultiERC1155AssuranceContract} from "./AssuranceContracts.sol";
+import {BeneficiaryAssuranceContract} from "./BeneficiaryAssuranceContract.sol";
 import {IAssuranceCondition} from "./IAssuranceCondition.sol";
 import {ValueThresholdCondition} from "./ValueThresholdCondition.sol";
-import {BeneficiaryAssuranceContract} from "./BeneficiaryAssuranceContract.sol";
 import {FixedControllerFactory} from "./FixedControllerFactory.sol";
 import {ContentRegistry} from "../content-funding/ContentRegistry.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {WorkFundingCondition} from "./WorkFundingCondition.sol";
+import {ClaimTicketFactory} from "./ClaimTicketFactory.sol";
+import {ClaimTicketAssuranceContract} from "./ClaimTicketAssuranceContract.sol";
 
 interface IProjectBeneficiaryRegistry {
   function isVerified(bytes32 beneficiaryId) external view returns (bool);
@@ -39,6 +41,8 @@ error BeneficiaryEscrowRegistryMismatch();
 error UnknownProjectWork(address project);
 error OnlyPayoutAddressCanCreateForControlledBeneficiary();
 error ThirdPartyCustomConditionRequiresDeadline();
+error DuplicateTransitAddress();
+error InvalidTransitAddress();
 
 /**
  * @title PremintingERC1155Factory
@@ -97,7 +101,6 @@ contract PremintingERC1155Factory {
  * @notice Factory contract for creating MultiERC1155AssuranceContract contracts
  */
 contract AssuranceContractFactory {
-  mapping(address => bool) public isDeployedAssurance;
   mapping(address => bool) public isDeployedPrimaryMarket;
 
   event LazyGivingAssuranceContractCreated(address indexed assuranceContract);
@@ -116,7 +119,6 @@ contract AssuranceContractFactory {
       erc1155Addr,
       projectMetadataCid
     );
-    isDeployedAssurance[address(ac)] = true;
     isDeployedPrimaryMarket[address(ac)] = true;
     emit LazyGivingAssuranceContractCreated(address(ac));
     return ac;
@@ -134,7 +136,6 @@ contract AssuranceContractFactory {
     BeneficiaryAssuranceContract ac = new BeneficiaryAssuranceContract(
       owner, paymentToken, erc1155Addr, projectMetadataCid, beneficiaryId, registry, unclaimedWindow
     );
-    isDeployedAssurance[address(ac)] = true;
     isDeployedPrimaryMarket[address(ac)] = true;
     emit LazyGivingAssuranceContractCreated(address(ac));
     return ac;
@@ -186,6 +187,7 @@ contract ProjectFactory {
   ValueThresholdConditionFactory public immutable _conditionFactory;
   IProjectBeneficiaryRegistry public immutable beneficiaryRegistry;
   FixedControllerFactory public immutable fixedControllerFactory;
+  ClaimTicketFactory public immutable claimTicketFactory;
   /// @notice Retained so existing deployment wiring still constructs this factory.
   ///         New projects do not deposit here.
   address public immutable beneficiaryEscrow;
@@ -194,6 +196,9 @@ contract ProjectFactory {
   mapping(address project => string[] workIds) private _projectWorkIds;
   mapping(address project => bytes32 beneficiaryId) public workBeneficiaryOf;
   mapping(address project => address condition) public workConditionOf;
+  mapping(address transit => address project) public ticketProjectOf;
+
+  event ClaimTicketProjectCreated(address indexed project, address indexed transitAddress);
 
   /**
    * @notice Emitted once per createERC1155...() call, tying together the three
@@ -213,7 +218,8 @@ contract ProjectFactory {
     address _beneficiaryRegistry,
     address _beneficiaryEscrow,
     address _fixedControllerFactory,
-    address _workRegistry
+    address _workRegistry,
+    address _claimTicketFactory
   ) {
     if (erc1155Factory == address(0)) revert InvalidFactoryAddress();
     if (assuranceFactory == address(0)) revert InvalidFactoryAddress();
@@ -222,6 +228,7 @@ contract ProjectFactory {
     if (_beneficiaryEscrow == address(0)) revert InvalidFactoryAddress();
     if (_fixedControllerFactory == address(0)) revert InvalidFactoryAddress();
     if (_workRegistry == address(0)) revert InvalidFactoryAddress();
+    if (_claimTicketFactory == address(0)) revert InvalidFactoryAddress();
     _premintingERC1155Factory = PremintingERC1155Factory(erc1155Factory);
     _assuranceFactory = AssuranceContractFactory(assuranceFactory);
     _conditionFactory = ValueThresholdConditionFactory(conditionFactory);
@@ -229,6 +236,7 @@ contract ProjectFactory {
     beneficiaryEscrow = _beneficiaryEscrow;
     fixedControllerFactory = FixedControllerFactory(_fixedControllerFactory);
     workRegistry = ContentRegistry(_workRegistry);
+    claimTicketFactory = ClaimTicketFactory(_claimTicketFactory);
     if (IProjectBeneficiaryEscrow(_beneficiaryEscrow).beneficiaryRegistry() != _beneficiaryRegistry) {
       revert BeneficiaryEscrowRegistryMismatch();
     }
@@ -493,6 +501,53 @@ contract ProjectFactory {
     return (t, ac);
   }
 
+  /// @notice Create a ticket project. The transit address is the signing capability, not the payout.
+  ///         Deployment uses the ordinary factory path. The claim code is built after this confirms.
+  function createClaimTicketProject(
+    string memory metadataURI,
+    string memory contractURI,
+    address owner,
+    address transitAddress,
+    address paymentToken,
+    uint256 threshold,
+    uint256 deadline,
+    string memory projectMetadataCid,
+    uint256[] memory ids,
+    uint256[] memory counts,
+    uint256[] memory prices,
+    string[] memory workIds
+  ) public returns (IERC1155, AssuranceContract) {
+    if (transitAddress == address(0)) revert InvalidTransitAddress();
+    if (ticketProjectOf[transitAddress] != address(0)) revert DuplicateTransitAddress();
+    if (threshold == 0) revert InvalidThreshold();
+    if (deadline <= block.timestamp) revert InvalidDeadline();
+    CreateProjectParams memory params = CreateProjectParams({
+      metadataURI: metadataURI,
+      contractURI: contractURI,
+      owner: owner,
+      recipient: transitAddress,
+      paymentToken: paymentToken,
+      projectMetadataCid: projectMetadataCid,
+      ids: ids,
+      counts: counts,
+      prices: prices,
+      workIds: workIds,
+      beneficiaryId: bytes32(0),
+      deadline: deadline
+    });
+    _validateProjectParams(params);
+    PremintingERC1155 t = _deployToken(params);
+    MultiERC1155AssuranceContract ac = claimTicketFactory.create(
+      address(this), transitAddress, paymentToken, address(t), projectMetadataCid
+    );
+    ticketProjectOf[transitAddress] = address(ac);
+    ValueThresholdCondition condition = _conditionFactory.createCondition(address(ac), threshold, deadline);
+    _wireUpAndFinalize(t, ac, IAssuranceCondition(address(condition)), params, true);
+    emit ClaimTicketProjectCreated(address(ac), transitAddress);
+    emit ProjectCreated(msg.sender, address(t), address(ac), workConditionOf[address(ac)]);
+    return (t, ac);
+  }
+
   function workIdsOf(address project) external view returns (string[] memory) {
     return _projectWorkIds[project];
   }
@@ -505,6 +560,7 @@ contract ProjectFactory {
   }
 
   /// @notice Accept a proposal about your work; this starts its seven-day veto window.
+  /// @notice Accept through the condition's authority. Ticket projects resolve that to the bound destination, or zero before redemption.
   function acceptWorkProject(address project) external {
     if (workConditionOf[project] == address(0)) revert UnknownProjectWork(project);
     WorkFundingCondition(workConditionOf[project]).accept(msg.sender);
@@ -558,19 +614,33 @@ contract ProjectFactory {
     IAssuranceCondition condition,
     CreateProjectParams memory params
   ) private {
+    _wireUpAndFinalize(t, ac, condition, params, false);
+  }
+
+  function _wireUpAndFinalize(
+    PremintingERC1155 t,
+    MultiERC1155AssuranceContract ac,
+    IAssuranceCondition condition,
+    CreateProjectParams memory params,
+    bool ticket
+  ) private {
     address beneficiary = params.beneficiaryId == bytes32(0)
       ? params.recipient
       : beneficiaryRegistry.payoutAddress(params.beneficiaryId);
-    bool thirdParty = msg.sender != beneficiary;
+    bool thirdParty = ticket || msg.sender != beneficiary;
     // Custom conditions have no known deadline. Restrict this path to the
     // recipient so a third party cannot create an unbounded reservation.
     if (params.deadline == 0 && thirdParty) revert ThirdPartyCustomConditionRequiresDeadline();
     WorkFundingCondition workCondition = new WorkFundingCondition(
       address(condition), address(beneficiaryRegistry), params.recipient,
-      params.beneficiaryId, params.deadline, thirdParty
+      params.beneficiaryId, params.deadline, thirdParty,
+      ticket ? address(ac) : address(0)
     );
     condition = IAssuranceCondition(address(workCondition));
     workConditionOf[address(ac)] = address(condition);
+    if (ticket) {
+      ClaimTicketAssuranceContract(address(ac)).bindRedemptionCondition(condition);
+    }
     workBeneficiaryOf[address(ac)] = params.beneficiaryId == bytes32(0)
       ? walletWorkBeneficiary(params.recipient)
       : params.beneficiaryId;

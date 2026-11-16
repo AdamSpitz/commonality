@@ -57,9 +57,10 @@ abstract contract IdentityHeldProceeds is MultiERC1155AssuranceContract {
         address registry,
         bytes32 _beneficiaryId,
         address _fixedPayout,
-        uint256 window
+        uint256 window,
+        bool unboundPayout
     ) MultiERC1155AssuranceContract(owner, _fixedPayout == address(0) ? address(this) : _fixedPayout, paymentToken, erc1155Addr, projectMetadataCid) {
-        if (window == 0 || (_fixedPayout == address(0) && registry == address(0))) revert InvalidProceedsRegistry();
+        if (window == 0 || (!unboundPayout && _fixedPayout == address(0) && registry == address(0))) revert InvalidProceedsRegistry();
         proceedsRegistry = registry;
         beneficiaryId = _beneficiaryId;
         fixedPayout = _fixedPayout;
@@ -77,13 +78,13 @@ abstract contract IdentityHeldProceeds is MultiERC1155AssuranceContract {
         revert UseClaim();
     }
 
-    function claim() external {
+    function claim() external nonReentrant {
         address payout = _payout();
         if (acceptanceClosed) revert AcceptanceClosed();
         noteSuccess();
         uint256 closedAt = succeededAt + unclaimedProceedsWindow;
         if (block.timestamp >= closedAt) revert ClaimWindowElapsed(closedAt);
-        if (fixedPayout == address(0)) {
+        if (fixedPayout == address(0) && proceedsRegistry != address(0)) {
             uint256 withdrawableAt = IProceedsBeneficiaryRegistry(proceedsRegistry).claimWithdrawableAt(beneficiaryId);
             if (block.timestamp < withdrawableAt) revert ClaimWaitingPeriodNotElapsed(withdrawableAt);
         }
@@ -93,7 +94,7 @@ abstract contract IdentityHeldProceeds is MultiERC1155AssuranceContract {
         IERC20(paymentToken).safeTransfer(payout, value);
     }
 
-    function refuse() external {
+    function refuse() external nonReentrant {
         address payout = _payout();
         if (acceptanceClosed) revert AcceptanceClosed();
         acceptanceClosed = true;
@@ -104,7 +105,7 @@ abstract contract IdentityHeldProceeds is MultiERC1155AssuranceContract {
         }
     }
 
-    function reclaimUnclaimedShare() external {
+    function reclaimUnclaimedShare() external nonReentrant {
         if (!surplusReturnOpen) {
             if (acceptanceClosed && !_hasSucceeded()) revert NothingToReclaim();
             noteSuccess();
@@ -136,13 +137,18 @@ abstract contract IdentityHeldProceeds is MultiERC1155AssuranceContract {
         super.requireRefundsAllowed();
     }
 
-    function _payout() internal view returns (address payout) {
+    /// @dev Fixed and registry projects keep this resolution. A ticket overrides it.
+    function _authorizedPayout() internal view virtual returns (address payout) {
         if (fixedPayout != address(0)) {
             payout = fixedPayout;
         } else {
             if (!IProceedsBeneficiaryRegistry(proceedsRegistry).isVerified(beneficiaryId)) revert NotPayoutAddress();
             payout = IProceedsBeneficiaryRegistry(proceedsRegistry).payoutAddress(beneficiaryId);
         }
+    }
+
+    function _payout() internal view returns (address payout) {
+        payout = _authorizedPayout();
         if (msg.sender != payout) revert NotPayoutAddress();
     }
 

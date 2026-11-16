@@ -1,6 +1,6 @@
 # Claim tickets: technical design
 
-Status: proposed design, 2026-11-16. No contracts or service are implemented by this document. Product: [claim ticket](/specs/product/claim-ticket.md). Implementation is demand-gated by that page's “When to build” section.
+Status: proposed design, 2026-11-16. The ticket project, redemption, and factory path are implemented in contracts. Relay, SDK folds, and creation/claim UI are not. Product: [claim ticket](/specs/product/claim-ticket.md).
 
 ## Decision and boundary
 

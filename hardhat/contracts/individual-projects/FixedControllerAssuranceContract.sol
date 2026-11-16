@@ -19,7 +19,7 @@ contract FixedControllerAssuranceContract is IdentityHeldProceeds {
         bytes32 _beneficiaryId,
         address registry,
         uint256 unclaimedWindow
-    ) IdentityHeldProceeds(owner, paymentToken, erc1155Addr, projectMetadataCid, registry, _beneficiaryId, controller, unclaimedWindow) {}
+    ) IdentityHeldProceeds(owner, paymentToken, erc1155Addr, projectMetadataCid, registry, _beneficiaryId, controller, unclaimedWindow, false) {}
 
     function recipient() external view returns (address) {
         return fixedPayout;
