@@ -9,6 +9,8 @@ export function registerRawEvents(register: (name: string) => void): void {
   register("AssuranceContractFactory:LazyGivingAssuranceContractCreated");
   register("FixedControllerFactory:FixedControllerAssuranceCreated");
   register("ProjectFactory:ProjectCreated");
+  register("ProjectFactory:ClaimTicketProjectCreated");
+  register("ClaimTicketFactory:ClaimTicketAssuranceCreated");
   register("ERC1155Factory:LazyGivingERC1155ContractCreated");
   const assuranceContractEvents = [
     "AssuranceContractInitialized",
@@ -27,11 +29,13 @@ export function registerRawEvents(register: (name: string) => void): void {
     "FixedControllerAssuranceContract",
     "CreatorAssuranceContract",
     "ProspectiveContentAssuranceContract",
+    "ClaimTicketAssuranceContract",
   ] as const) {
     for (const eventName of assuranceContractEvents) {
       register(`${contractName}:${eventName}`);
     }
   }
+  register("ClaimTicketAssuranceContract:TicketRedeemed");
   register("PremintingERC1155:TransferSingle");
   register("PremintingERC1155:TransferBatch");
 

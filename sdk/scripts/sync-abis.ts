@@ -49,6 +49,8 @@ const CONTRACTS_TO_SYNC: Record<string, AbiSyncEntry> = {
   MultiERC1155AssuranceContract: { artifactPath: "individual-projects/AssuranceContracts.sol/MultiERC1155AssuranceContract.json", outputFile: "AssuranceContractAbi.ts", capability: "funding" },
   BeneficiaryAssuranceContract: { artifactPath: "individual-projects/BeneficiaryAssuranceContract.sol/BeneficiaryAssuranceContract.json", outputFile: "BeneficiaryAssuranceContractAbi.ts", capability: "funding" },
   ProjectFactory: { artifactPath: "individual-projects/ProjectFactory.sol/ProjectFactory.json", outputFile: "ProjectFactoryAbi.ts", capability: "funding" },
+  ClaimTicketAssuranceContract: { artifactPath: "individual-projects/ClaimTicketAssuranceContract.sol/ClaimTicketAssuranceContract.json", outputFile: "ClaimTicketAssuranceContractAbi.ts", capability: "funding" },
+  ClaimTicketFactory: { artifactPath: "individual-projects/ClaimTicketFactory.sol/ClaimTicketFactory.json", outputFile: "ClaimTicketFactoryAbi.ts", capability: "funding" },
   PremintingERC1155Factory: { artifactPath: "individual-projects/ProjectFactory.sol/PremintingERC1155Factory.json", outputFile: "PremintingERC1155FactoryAbi.ts", capability: "funding" },
   AssuranceContractFactory: { artifactPath: "individual-projects/ProjectFactory.sol/AssuranceContractFactory.json", outputFile: "AssuranceContractFactoryAbi.ts", capability: "funding" },
   ValueThresholdConditionFactory: { artifactPath: "individual-projects/ProjectFactory.sol/ValueThresholdConditionFactory.json", outputFile: "ValueThresholdConditionFactoryAbi.ts", capability: "funding" },

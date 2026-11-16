@@ -56,11 +56,6 @@
     },
     {
       "kind": "check",
-      "id": "testnet.policy-enforcement",
-      "role": "deployed-policy-enforcement"
-    },
-    {
-      "kind": "check",
       "id": "testnet.onchain-to-indexer",
       "role": "guarded-deployed-journey"
     },

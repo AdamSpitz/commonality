@@ -65,10 +65,9 @@ Acceptance criteria:
 
 **Why it matters:** the existing `stack.user-journeys` path proves some write → index → UI readback behavior, but launch confidence needs journeys that resemble actual first-use moments.
 
-Done: `stack.user-journeys` now includes the named journeys.
-- **Common Sense Majority movement-to-action** is covered by the `common-sense-majority` Playwright project: it starts on the CSM landing page, opts into the mediator, verifies the local opt-in state, follows the Tally nudger setup action, and asserts Tally persists/renders the mediator.
+Done: `stack.user-journeys` now includes the named in-repo journeys. Civility and Common Sense Majority journeys belong in `common-sense-politics`, not this verifier.
 
-Remaining: add Commonality and Civility Playwright journey projects when those first-use paths are stable enough to gate. Leftover `tally` / `lazyGiving` / `content-funding` specs still exist but are out of verifier gating scope.
+Remaining: leftover `tally` / `lazyGiving` / `content-funding` specs still exist but are out of verifier gating scope.
 
 ### 3. Keep dependency-audit allowlist current
 

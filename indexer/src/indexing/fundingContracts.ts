@@ -2,6 +2,8 @@ import { AssuranceContractFactoryAbi } from "../../abis/AssuranceContractFactory
 import { FixedControllerFactoryAbi } from "../../abis/FixedControllerFactoryAbi";
 import { PremintingERC1155FactoryAbi } from "../../abis/PremintingERC1155FactoryAbi";
 import { ProjectFactoryAbi } from "../../abis/ProjectFactoryAbi";
+import { ClaimTicketFactoryAbi } from "../../abis/ClaimTicketFactoryAbi";
+import { ClaimTicketAssuranceContractAbi } from "../../abis/ClaimTicketAssuranceContractAbi";
 import { AssuranceContractAbi } from "../../abis/AssuranceContractAbi";
 import { PremintingERC1155Abi } from "../../abis/PremintingERC1155Abi";
 import { DelegatableNotesAbi } from "../../abis/DelegatableNotesAbi";
@@ -34,6 +36,9 @@ const prospectiveRoundMaterializedEvent = ProspectiveContentRoundFactoryAbi.find
 const creatorContractCreatedEvent = CreatorAssuranceContractFactoryAbi.find(
   (item) => item.type === "event" && item.name === "CreatorContractCreated",
 )!;
+const claimTicketCreatedEvent = ClaimTicketFactoryAbi.find(
+  (item) => item.type === "event" && item.name === "ClaimTicketAssuranceCreated",
+)!;
 
 /** Child source discovered from a factory event. Not a Ponder helper. */
 function factory<T extends Record<string, unknown>>(value: T): T {
@@ -46,6 +51,11 @@ export function fundingContracts(context: IndexerDeploymentContext) {
     "AssuranceContractFactory",
     "ASSURANCE_CONTRACT_FACTORY_ADDRESS",
     context.contractStartBlock("ASSURANCE_CONTRACT_FACTORY_START_BLOCK", context.lazyGivingStartBlock),
+  );
+  const claimTicketFactory = context.getDeployments(
+    "ClaimTicketFactory",
+    "CLAIM_TICKET_FACTORY_ADDRESS",
+    context.contractStartBlock("CLAIM_TICKET_FACTORY_START_BLOCK", context.lazyGivingStartBlock),
   );
   const projectFactory = context.getDeployments(
     "ProjectFactory",
@@ -141,6 +151,23 @@ export function fundingContracts(context: IndexerDeploymentContext) {
       abi: ProjectFactoryAbi,
       chain: context.chain,
       ...context.deploymentConfig(projectFactory, context.lazyGivingStartBlock),
+    },
+    ClaimTicketFactory: {
+      abi: ClaimTicketFactoryAbi,
+      chain: context.chain,
+      ...context.deploymentConfig(claimTicketFactory, context.lazyGivingStartBlock),
+    },
+    ClaimTicketAssuranceContract: {
+      abi: ClaimTicketAssuranceContractAbi,
+      chain: context.chain,
+      address: context.factoryAddress(claimTicketFactory)
+        ? factory({
+            ...context.factoryAddress(claimTicketFactory)!,
+            event: claimTicketCreatedEvent,
+            parameter: "assuranceContract",
+          })
+        : undefined,
+      startBlock: context.deploymentStartBlock(claimTicketFactory, context.lazyGivingStartBlock),
     },
     ERC1155Factory: {
       abi: PremintingERC1155FactoryAbi,

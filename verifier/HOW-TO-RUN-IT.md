@@ -192,7 +192,7 @@ The five children under `root`:
 - **`facet.security`** — is the on-chain surface sound? Hardhat tests, Slither, and contract review.
 - **`meta.verifier-health`** — can you trust the green? Liveness, flakiness, coverage maps, and the `known-bad.*` verifier-of-verifier fixtures.
 
-UI-domain gating is **Commonality, Civility, and Common Sense Majority only**. `coverage/domains.json` is the in-scope roster. Other Vite domains (LazyGiving, Aligning, Tally, Content Funding, Commonality, Conceptspace) may still exist and even have leftover checks, but they must not turn coverage, page-link, landing, workflow, or testnet UI probes red.
+UI-domain gating follows `coverage/domains.json`. That roster is Commonality. Civility and Common Sense Majority live in `common-sense-politics`. Other Vite domains may still exist and even have leftover checks, but they must not turn coverage, page-link, landing, workflow, or testnet UI probes red.
 
 For the live tree — current children, statuses, and per-leaf detail — open the commands menu (`npm run verifier:tree`) and pick `Open check dashboard` (it's the source of truth; this README deliberately doesn't duplicate it). Drill into red children there; the `report.md` narrative is the executive summary that names the top issue under each red facet. Checks whose definitions set `display.preferredArtifact` (e.g. `"preferredArtifact": "report.md"`) show that artifact by default in the details pane.
 

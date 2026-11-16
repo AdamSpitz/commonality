@@ -38,6 +38,11 @@ export const ProjectFactoryAbi = [
         "internalType": "address",
         "name": "_workRegistry",
         "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_claimTicketFactory",
+        "type": "address"
       }
     ],
     "stateMutability": "nonpayable",
@@ -46,6 +51,11 @@ export const ProjectFactoryAbi = [
   {
     "inputs": [],
     "name": "BeneficiaryEscrowRegistryMismatch",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "DuplicateTransitAddress",
     "type": "error"
   },
   {
@@ -76,6 +86,11 @@ export const ProjectFactoryAbi = [
   {
     "inputs": [],
     "name": "InvalidThreshold",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidTransitAddress",
     "type": "error"
   },
   {
@@ -124,6 +139,25 @@ export const ProjectFactoryAbi = [
     "inputs": [],
     "name": "ZeroPrice",
     "type": "error"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "project",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "transitAddress",
+        "type": "address"
+      }
+    ],
+    "name": "ClaimTicketProjectCreated",
+    "type": "event"
   },
   {
     "anonymous": false,
@@ -245,6 +279,98 @@ export const ProjectFactoryAbi = [
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "claimTicketFactory",
+    "outputs": [
+      {
+        "internalType": "contract ClaimTicketFactory",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "metadataURI",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "contractURI",
+        "type": "string"
+      },
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "transitAddress",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "paymentToken",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "threshold",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "deadline",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "projectMetadataCid",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "ids",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "counts",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "prices",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "string[]",
+        "name": "workIds",
+        "type": "string[]"
+      }
+    ],
+    "name": "createClaimTicketProject",
+    "outputs": [
+      {
+        "internalType": "contract IERC1155",
+        "name": "",
+        "type": "address"
+      },
+      {
+        "internalType": "contract AssuranceContract",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -646,6 +772,25 @@ export const ProjectFactoryAbi = [
     "name": "releaseWorkOnFailure",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "transit",
+        "type": "address"
+      }
+    ],
+    "name": "ticketProjectOf",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "project",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {

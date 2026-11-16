@@ -16,7 +16,7 @@ contract BeneficiaryAssuranceContract is IdentityHeldProceeds {
         bytes32 _beneficiaryId,
         address registry,
         uint256 unclaimedWindow
-    ) IdentityHeldProceeds(owner, paymentToken, erc1155Addr, projectMetadataCid, registry, _beneficiaryId, address(0), unclaimedWindow) {}
+    ) IdentityHeldProceeds(owner, paymentToken, erc1155Addr, projectMetadataCid, registry, _beneficiaryId, address(0), unclaimedWindow, false) {}
 
     function recipient() external view returns (address) {
         return _recipient;

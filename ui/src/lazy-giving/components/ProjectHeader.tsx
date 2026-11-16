@@ -38,9 +38,11 @@ interface ProjectHeaderProps {
   kind?: 'project' | 'content-project'
   /** On-chain check of the published DNS beneficiary. Omitted until the page has read it. */
   beneficiaryBinding?: PublishedBeneficiaryBinding
+  /** Set when this project is a claim ticket. Null destination means unclaimed. */
+  ticketDestination?: `0x${string}` | null
 }
 
-export function ProjectHeader({ project, metadata, kind = 'project', beneficiaryBinding }: ProjectHeaderProps) {
+export function ProjectHeader({ project, metadata, kind = 'project', beneficiaryBinding, ticketDestination }: ProjectHeaderProps) {
   const status = getProjectStatus(project)
   const [copiedRecipient, setCopiedRecipient] = useState(false)
   const hasMinimum = BigInt(project.threshold) > 0n
@@ -90,6 +92,10 @@ export function ProjectHeader({ project, metadata, kind = 'project', beneficiary
               <WebsiteBeneficiaryMark domain={websiteBeneficiary} size="hero" />
               {beneficiaryBinding && <PublishedBeneficiaryVerifiedMark binding={beneficiaryBinding} />}
             </Box>
+          ) : ticketDestination !== undefined ? (
+          <Typography variant="body2" color="text.secondary">
+            {ticketDestination ? <>Recipient: <AccountAddress address={ticketDestination} /></> : 'Recipient: unclaimed ticket. Anyone with the claim code can take the funds, including the creator.'}
+          </Typography>
           ) : (
           <Stack direction="row" spacing={0.5} alignItems="center">
             <Typography variant="body2" color="text.secondary">

@@ -4,7 +4,7 @@
 
 ### If not logged in: landing page
 
-I dunno, I guess there should be some "hey, here's what this website is all about, here's how to get started" stuff.
+There should be some "hey, here's what this website is all about, here's how to get started" stuff. Plus a "Log in" (or "Connect wallet") button.
 
 There specifically is NOT any "here's the top ten causes" or a list of sitewide recent activity or whatever. We're not listing or promoting causes; Commonality hosts this UI for viewing any of the causes, but you have to explicitly have a link to it in order to get to it, you can't just browse.
 

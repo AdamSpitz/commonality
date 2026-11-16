@@ -52,6 +52,7 @@ const routes: ReactNode = (
     <Route path="/statement/:statementCid/board" element={lazyRoute(() => import('../../commonality/pages/StatementBoardRedirect'), 'StatementBoardRedirect')} />
     <Route path="/statement/:statementCid/board/leaderboard" element={lazyRoute(() => import('../../commonality/pages/StatementBoardLeaderboardPage'), 'StatementBoardLeaderboardPage')} />
     <Route path="/projects/new" element={lazyRoute(() => import('../../lazy-giving/pages/CreateProjectPage'), 'CreateProjectPage')} />
+    <Route path="/claim" element={lazyRoute(() => import('../../lazy-giving/pages/ClaimTicketPage'), 'ClaimTicketPage')} />
     <Route path="/projects/:projectAddress/leaderboard" element={lazyRoute(() => import('../../commonality/pages/ProjectDetailPage'), 'ProjectLeaderboardPage')} />
     <Route path="/projects/:projectAddress" element={lazyRoute(() => import('../../commonality/pages/ProjectDetailPage'), 'ProjectDetailPage')} />
     <Route path="/content-funding" element={lazyRoute(() => import('../content-funding/LandingPage'), 'ContentFundingLandingPage')} />

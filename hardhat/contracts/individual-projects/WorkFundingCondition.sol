@@ -12,6 +12,10 @@ interface IWorkThresholdCondition {
     function threshold() external view returns (uint256);
 }
 
+interface IWorkAuthority {
+    function workAuthority() external view returns (address);
+}
+
 /// @notice A third-party proposal needs beneficiary acceptance before it can
 ///         succeed. Acceptance opens a seven-day veto window for this project.
 ///         Unaccepted proposals expire even if their funding threshold was met.
@@ -31,6 +35,8 @@ contract WorkFundingCondition is IAssuranceCondition {
     bytes32 public immutable beneficiaryId;
     uint256 public immutable deadline;
     bool public immutable isThirdParty;
+    /// @dev When set, acceptance authority is read from this contract instead of the immutable recipient.
+    address public immutable authoritySource;
     uint256 public acceptedAt;
     bool public cancelled;
 
@@ -43,7 +49,8 @@ contract WorkFundingCondition is IAssuranceCondition {
         address recipient_,
         bytes32 beneficiaryId_,
         uint256 deadline_,
-        bool thirdParty
+        bool thirdParty,
+        address authoritySource_
     ) {
         baseCondition = IAssuranceCondition(base);
         registry = IWorkBeneficiaryRegistry(registry_);
@@ -52,9 +59,11 @@ contract WorkFundingCondition is IAssuranceCondition {
         beneficiaryId = beneficiaryId_;
         deadline = deadline_;
         isThirdParty = thirdParty;
+        authoritySource = authoritySource_;
     }
 
     function beneficiary() public view returns (address) {
+        if (authoritySource != address(0)) return IWorkAuthority(authoritySource).workAuthority();
         if (beneficiaryId == bytes32(0)) return recipient;
         if (!registry.isVerified(beneficiaryId)) return address(0);
         return registry.payoutAddress(beneficiaryId);

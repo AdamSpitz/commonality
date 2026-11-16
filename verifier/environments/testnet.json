@@ -14,10 +14,6 @@
   "expectedHosts": [
     "testnet.commonality.works"
   ],
-  "deferredHosts": [
-    "civility.testnet.commonality.works",
-    "common-sense-majority.testnet.commonality.works"
-  ],
   "optionalHosts": [
     "testnet.commonality.works",
     "lazygiving.testnet.commonality.works",

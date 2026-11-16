@@ -62,7 +62,7 @@ function buildPrompt(workflow) {
 Trace the path a user with that goal would actually take through the real UI source. Judge whether they could get from the entry point to completion without guessing, dead-ending, or leaving the product. Understand what the workflow is FOR (read the relevant product/tech docs first) before judging the UI that implements it.`
   })}
 Where to look:
-- In-scope product domains are enumerated in \`${DOMAINS_INVENTORY}\` (Commonality, Civility, Common Sense Majority). Other Vite domains exist but are out of scope unless this workflow hops to them. Live route/navigation manifests and pages live under \`ui/src/domains/\` and the feature directories under \`ui/src/\`.
+- In-scope product domains are enumerated in \`${DOMAINS_INVENTORY}\` (Commonality). Civility and Common Sense Majority are owned by common-sense-politics. Other Vite domains exist but are out of scope unless this workflow hops to them. Live route/navigation manifests and pages live under \`ui/src/domains/\` and the feature directories under \`ui/src/\`.
 - Suggested starting points for THIS workflow (open these first, then follow the trace wherever it leads — read more widely if needed):
 ${surfaceHints.length > 0 ? surfaceHints.map((p) => `  - \`${p}\``).join("\n") : "  - (none specified — locate the domain's manifest and landing page yourself)"}
 

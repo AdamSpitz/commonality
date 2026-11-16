@@ -33,6 +33,11 @@ export const WorkFundingConditionAbi = [
         "internalType": "bool",
         "name": "thirdParty",
         "type": "bool"
+      },
+      {
+        "internalType": "address",
+        "name": "authoritySource_",
+        "type": "address"
       }
     ],
     "stateMutability": "nonpayable",
@@ -134,6 +139,19 @@ export const WorkFundingConditionAbi = [
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "authoritySource",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
       }
     ],
     "stateMutability": "view",

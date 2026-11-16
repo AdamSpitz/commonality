@@ -1,14 +1,5 @@
-# The trust model: everything is choosable
+# Common Sense Majority
 
-All of the CSM mechanisms depend on people on both sides actually trusting the system. The trust model has three layers:
+Moved to the sibling common-sense-politics repo.
 
-1. **Trustless infrastructure.** Money flows onchain (Ethereum, smart contracts). Nobody can capture the funding pipeline, cook the books, or freeze accounts. This layer genuinely requires no trust.
-2. **Transparent subjectivity.** For the parts that are inherently subjective — evaluating whether content is noninflammatory, whether an implication holds, whether a nudge is fair — we use AI with open-source prompts. The AI posts its reasoning alongside its decisions, often including explicit pro and con arguments before reaching a conclusion, and making clear what context it took into account. You can read the prompt, read the reasoning, and judge for yourself whether the output is biased. This doesn't eliminate the need for trust, but it makes the trust burden much lower: you mainly need to trust that the prompt being run is the one that's published.
-3. **Full configurability.** For anyone who doesn't trust even that, everything is choosable:
-
-- **Attesters:** You choose which AI attesters you trust for evaluating noninflammatory content. Run your own if you prefer. The prompts should be open-source/inspectable.
-- **Delegates:** You choose who handles your funding decisions. Revocable at any time.
-- **Trust networks:** Your [trust graph](/docs/end-user/shared/key-ideas/trust-networks.md) filters what you see. Projects and content are surfaced through people you (transitively) trust, not through some central editorial process.
-- **Nudgers:** The bridge creator is a nudger you can choose to trust or ignore. Its suggestions appear in your feed only if you've opted in. Nudgers actually get the strongest version of configurability: because a nudger's only output is suggestions you choose to act on (its provenance doesn't persist into the system), and because its prompt and curated data are public, you can run the entire nudger yourself against your own LLM if you don't trust the one we operate. See the [mediator doc](./mediator.md) for what this means in the CSM case.
-
-Nobody has to trust a central authority. Each person configures their own experience. The system discovers common ground *despite* people having different trusted sources — which is what makes the common ground genuine rather than an artifact of a particular attester's biases.
+Canonical copy: docs/end-user/common-sense-majority/trust-model.md

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   Box,
   Typography,
@@ -10,6 +10,7 @@ import {
   IconButton,
   CircularProgress,
   FormControl,
+  Checkbox,
   FormControlLabel,
   FormLabel,
   Radio,
@@ -27,9 +28,11 @@ import AddIcon from '@mui/icons-material/Add'
 import DeleteIcon from '@mui/icons-material/Delete'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { useAccount, usePublicClient } from 'wagmi'
+import { useAccount, useChainId, usePublicClient } from 'wagmi'
 import { BeneficiaryRegistryAbi, ProjectFactoryAbi, PublishedDataAbi } from '@commonality/sdk/abis'
 import { assertValidWorkId, createProject, type ProjectFactoryContract } from '@commonality/sdk/lazy-giving'
+import { ClaimTicketCreationRevertedError, createClaimTicketProject } from '@commonality/sdk/claim-tickets'
+import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import { hashBeneficiaryId, normalizeDnsBeneficiary } from '@commonality/sdk/content-funding'
 import { createDefaultDocumentStore, createDisplayableDocument } from '@commonality/sdk/displayable-documents'
 import { isValidCidV1 } from '@commonality/sdk/utils'
@@ -76,11 +79,22 @@ const STOCK_TOKEN_IMAGES = [
   },
 ] as const
 
+function downloadClaimCode(code: string) {
+  const blob = new Blob([code], { type: 'text/plain' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = 'claim-ticket.txt'
+  link.click()
+  URL.revokeObjectURL(url)
+}
+
 export function CreateProjectPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const statementCid = searchParams.get('statement')
   const { address, isConnected } = useAccount()
+  const chainId = useChainId()
   const publicClient = usePublicClient()
   const writeClients = useWriteClients(address)
   const machinery = useMachinery()
@@ -91,9 +105,13 @@ export function CreateProjectPage() {
   const [updatesUrl, setUpdatesUrl] = useState('')
   const [relevantAreas, setRelevantAreas] = useState('')
   const [recipient, setRecipient] = useState<string | null>(null)
-  const [recipientKind, setRecipientKind] = useState<'wallet' | 'website'>(
+  const [recipientKind, setRecipientKind] = useState<'wallet' | 'website' | 'ticket'>(
     searchParams.get('beneficiary') ? 'website' : 'wallet',
   )
+  const [claimCode, setClaimCode] = useState<string | null>(null)
+  const [claimCodeSaved, setClaimCodeSaved] = useState(false)
+  const pendingTransitKey = useRef<`0x${string}` | null>(null)
+  const pendingCreationHash = useRef<`0x${string}` | undefined>(undefined)
   const [beneficiaryDomain, setBeneficiaryDomain] = useState(searchParams.get('beneficiary') ?? '')
   const [threshold, setThreshold] = useState('')
   const [stopAtGoal, setStopAtGoal] = useState(true)
@@ -384,6 +402,61 @@ export function CreateProjectPage() {
         description: description.trim() || `Contribution receipt for ${name.trim()}`,
       })
 
+      if (recipientKind === 'ticket') {
+        const transitKey = pendingTransitKey.current ?? generatePrivateKey()
+        pendingTransitKey.current = transitKey
+        const transitAddress = privateKeyToAccount(transitKey).address
+        try {
+          const created = await createClaimTicketProject(clients, projectFactoryContract.address, {
+            metadataURI: erc1155MetadataUri,
+            contractURI: erc1155MetadataUri,
+            owner: address,
+            transitAddress,
+            transitKey,
+            paymentToken: paymentTokenAddress as `0x${string}`,
+            threshold: parsePaymentAmount(threshold),
+            deadline: BigInt(deadlineTimestamp),
+            projectMetadataCid: metadataCid,
+            tokenIds: tokenTypes.map(t => BigInt(t.tokenId)),
+            tokenCounts: tokenTypes.map(t => BigInt(t.supply)),
+            tokenPrices: tokenTypes.map(t => parsePaymentAmount(t.price)),
+            ...(workItems.length > 0 ? { workIds: workItems.map((item) => item.id) } : {}),
+          }, {
+            transactionHash: pendingCreationHash.current,
+            onSubmitted: (hash) => { pendingCreationHash.current = hash },
+          })
+          setClaimCode(created.code)
+          setClaimCodeSaved(false)
+          setCreatedProjectAddress(created.project)
+          setSuccess('Ticket project created. Save the code before funding it.')
+        } catch (ticketError) {
+          if (ticketError instanceof ClaimTicketCreationRevertedError) {
+            pendingCreationHash.current = undefined
+            pendingTransitKey.current = null
+            throw ticketError
+          }
+          const recorded = await publicClient?.readContract({
+            address: projectFactoryContract.address,
+            abi: ProjectFactoryAbi,
+            functionName: 'ticketProjectOf',
+            args: [transitAddress],
+          }).catch(() => null)
+          if (recorded && recorded !== '0x0000000000000000000000000000000000000000') {
+            const { encodeClaimTicketCode } = await import('@commonality/sdk/claim-tickets')
+            setClaimCode(encodeClaimTicketCode({ chainId: BigInt(chainId), project: recorded, transitKey }))
+            setClaimCodeSaved(false)
+            setCreatedProjectAddress(recorded)
+            setSuccess('The earlier creation confirmed. Save this code before funding the project.')
+          } else {
+            // A missing mapping can mean the submitted transaction is still pending.
+            // Keep its key and hash so a retry waits for the same creation.
+            throw ticketError
+          }
+        }
+        sessionStorage.removeItem('commonality.work-item-draft')
+        return
+      }
+
       const payoutTarget = canonicalBeneficiaryDomain
         ? { beneficiaryId: hashBeneficiaryId('dns', canonicalBeneficiaryDomain) }
         : { recipient: (recipient || address) as `0x${string}` }
@@ -527,10 +600,15 @@ export function CreateProjectPage() {
             >
               <FormControlLabel value="wallet" control={<Radio />} label="A wallet" />
               <FormControlLabel value="website" control={<Radio />} label="The controller of a website" />
+              <FormControlLabel value="ticket" control={<Radio />} label="A claim ticket, for someone with no wallet yet" />
             </RadioGroup>
           </FormControl>
 
-          {recipientKind === 'wallet' ? (
+          {recipientKind === 'ticket' ? (
+            <Alert severity="warning">
+              Anyone with this code can claim this project, including its creator. The code is shown once after creation confirms. Losing it means the project stays unclaimed until its normal deadline refunds contributors. This is not a verified person.
+            </Alert>
+          ) : recipientKind === 'wallet' ? (
             <Stack spacing={1}>
               <RecipientPicker address={address} onChange={(addr) => setRecipient(addr)} />
               <Alert severity="info">
@@ -750,10 +828,24 @@ export function CreateProjectPage() {
           </Dialog>
 
           {error && <Alert severity="error">{error}</Alert>}
+          {claimCode && (
+            <Alert severity="warning">
+              Anyone with this code can claim this project, including its creator. Copy or download it now. It will not be stored here.
+              <TextField value={claimCode} fullWidth multiline InputProps={{ readOnly: true }} sx={{ mt: 1 }} />
+              <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+                <Button size="small" onClick={() => void navigator.clipboard.writeText(claimCode)}>Copy code</Button>
+                <Button size="small" onClick={() => downloadClaimCode(claimCode)}>Download code</Button>
+              </Stack>
+              <FormControlLabel
+                control={<Checkbox checked={claimCodeSaved} onChange={() => { setClaimCodeSaved(true); pendingTransitKey.current = null; pendingCreationHash.current = undefined }} />}
+                label="I saved this code. I understand that losing it can leave the project unclaimable."
+              />
+            </Alert>
+          )}
           {success && (
             <Alert severity="success">
               {success}
-              {createdProjectAddress && (
+              {createdProjectAddress && (!claimCode || claimCodeSaved) && (
                 <Button
                   size="small"
                   onClick={() => navigate(

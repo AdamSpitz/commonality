@@ -12,6 +12,7 @@ export async function deployProjectFactory() {
   const paymentToken = await ethers.deployContract('FreeERC20', ['USD Coin', 'USDC', 6]);
   const beneficiaryEscrow = await ethers.deployContract('BeneficiaryEscrow', [beneficiaryRegistry.target, paymentToken.target]);
   const workRegistry = await ethers.deployContract('ContentRegistry');
+  const claimTicketFactory = await ethers.deployContract('ClaimTicketFactory');
   const projectFactory = await ethers.deployContract('ProjectFactory', [
     tokenFactory.target,
     assuranceFactory.target,
@@ -20,6 +21,7 @@ export async function deployProjectFactory() {
     beneficiaryEscrow.target,
     fixedControllerFactory.target,
     workRegistry.target,
+    claimTicketFactory.target,
   ]);
   await workRegistry.setRegistrar(projectFactory.target, true);
   return { projectFactory, workRegistry, assuranceFactory, conditionFactory, beneficiaryRegistry, beneficiaryEscrow, verifier, beneficiaryPaymentToken: paymentToken };

@@ -67,6 +67,11 @@
     },
     {
       "kind": "check",
+      "id": "coverage.founder-ui",
+      "role": "coverage"
+    },
+    {
+      "kind": "check",
       "id": "coverage.readiness",
       "role": "coverage"
     },
@@ -118,6 +123,11 @@
     {
       "kind": "check",
       "id": "known-bad.workflows",
+      "role": "known-bad"
+    },
+    {
+      "kind": "check",
+      "id": "known-bad.founder-ui",
       "role": "known-bad"
     },
     {

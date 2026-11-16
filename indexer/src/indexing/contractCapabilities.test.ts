@@ -58,6 +58,8 @@ test("conceptspace selection drops funding contracts", () => {
     FixedControllerFactory: { kind: "funding" },
     FixedControllerAssuranceContract: { kind: "funding" },
     ProjectFactory: { kind: "funding" },
+    ClaimTicketFactory: { kind: "funding" },
+    ClaimTicketAssuranceContract: { kind: "funding" },
     ERC1155Factory: { kind: "funding" },
     AssuranceContract: { kind: "funding" },
     PremintingERC1155: { kind: "funding" },

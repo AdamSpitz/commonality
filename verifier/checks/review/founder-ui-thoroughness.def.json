@@ -1,0 +1,43 @@
+{
+  "id": "review.founder-ui-thoroughness",
+  "description": "Advisory manual LLM check: does the founder-authored Commonality brief mention the real UI surfaces, and do the conventional tests bound in coverage/founder-ui.json plausibly exercise those headings? Does not rewrite the brief. Incomplete writeup is uncertain, not a product failure.",
+  "expense": {
+    "llm": "expensive",
+    "estimatedSeconds": 180
+  },
+  "cost": "llm",
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 3,
+    "keepDays": 90
+  },
+  "command": [
+    "node",
+    "checks/review/founder-ui-thoroughness.mjs"
+  ],
+  "inputs": [
+    {
+      "kind": "file",
+      "path": "checks/review/founder-e2e/commonality.md",
+      "as": "founderBrief"
+    },
+    {
+      "kind": "file",
+      "path": "coverage/founder-ui.json",
+      "as": "founderSidecar"
+    },
+    {
+      "kind": "params",
+      "data": {
+        "commandTimeoutMs": 180000,
+        "taskKind": "big-picture-thinking"
+      }
+    }
+  ],
+  "timeoutMs": 210000,
+  "display": {
+    "preferredArtifact": "report.md"
+  }
+}

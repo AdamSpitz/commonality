@@ -36,6 +36,7 @@ const ADDRESS_KEYS = {
   NudgePublications: ['NUDGE_PUBLICATIONS_CONTRACT_ADDRESS'],
   PublishedData: ['PUBLISHED_DATA_CONTRACT_ADDRESS'],
   FixedControllerFactory: ['FIXED_CONTROLLER_FACTORY_ADDRESS'],
+  ClaimTicketFactory: ['CLAIM_TICKET_FACTORY_ADDRESS'],
   ProjectFactory: ['PROJECT_FACTORY_ADDRESS'],
   SponsoredGasEntryPoint: ['SPONSORED_GAS_ENTRY_POINT_ADDRESS'],
   CreatorGasTank: ['CREATOR_GAS_TANK_ADDRESS'],
@@ -420,7 +421,14 @@ async function main() {
       await (await d.setPrimaryMarketFactoryAuthorization(addresses.FixedControllerFactory, true)).wait();
     }
   }
-  await deployOrReuse('ProjectFactory', 'ProjectFactory', [addresses.PremintingERC1155Factory, addresses.AssuranceContractFactory, addresses.ValueThresholdConditionFactory, addresses.BeneficiaryRegistry, addresses.BeneficiaryEscrow, addresses.FixedControllerFactory, addresses.ContentRegistry]);
+  await deployOrReuse('ClaimTicketFactory', 'ClaimTicketFactory');
+  if (addresses.DelegatableNotes && addresses.ClaimTicketFactory && (freshlyDeployed.has('DelegatableNotes') || freshlyDeployed.has('ClaimTicketFactory'))) {
+    const d = await ownerCapable(await ethers.getContractAt('DelegatableNotes', addresses.DelegatableNotes));
+    if (!(await d.authorizedPrimaryMarketFactories(addresses.ClaimTicketFactory))) {
+      await (await d.setPrimaryMarketFactoryAuthorization(addresses.ClaimTicketFactory, true)).wait();
+    }
+  }
+  await deployOrReuse('ProjectFactory', 'ProjectFactory', [addresses.PremintingERC1155Factory, addresses.AssuranceContractFactory, addresses.ValueThresholdConditionFactory, addresses.BeneficiaryRegistry, addresses.BeneficiaryEscrow, addresses.FixedControllerFactory, addresses.ContentRegistry, addresses.ClaimTicketFactory]);
   if (!planOnly && addresses.CreatorAssuranceContractFactory && addresses.ProjectFactory) {
     const creatorFactory = await ownerCapable(await ethers.getContractAt('CreatorAssuranceContractFactory', addresses.CreatorAssuranceContractFactory));
     const registry = await ethers.getContractAt('ContentRegistry', addresses.ContentRegistry);

@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { CreateProjectPage } from './CreateProjectPage'
 import { hashBeneficiaryId } from '@commonality/sdk/content-funding'
+import { ClaimTicketCreationRevertedError } from '@commonality/sdk/claim-tickets'
 
 const mockNavigate = vi.fn()
 
@@ -25,6 +26,7 @@ const mockPublicClient = {
 
 vi.mock('wagmi', () => ({
   useAccount: () => mockAccount,
+  useChainId: () => 31337,
   useWalletClient: () => mockWalletClient,
   usePublicClient: () => mockPublicClient,
 }))
@@ -87,9 +89,17 @@ vi.mock('../../content-funding', async () => {
 
 import { createProject } from '@commonality/sdk/lazy-giving'
 
+const mockCreateClaimTicketProject = vi.fn()
+vi.mock('@commonality/sdk/claim-tickets', async () => ({
+  ...await vi.importActual('@commonality/sdk/claim-tickets'),
+  createClaimTicketProject: (...args: unknown[]) => mockCreateClaimTicketProject(...args),
+  encodeClaimTicketCode: () => 'ct1:recovered',
+}))
+
 describe('CreateProjectPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockCreateClaimTicketProject.mockReset()
     mockAccount.isConnected = true
     mockAccount.address = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266'
     mockDocumentStorePublish.mockReset()
@@ -694,6 +704,101 @@ describe('CreateProjectPage', () => {
       await waitFor(() => {
         expect(screen.getByText('Transaction reverted')).toBeInTheDocument()
       })
+    })
+  })
+
+  describe('claim tickets', () => {
+    function fillForm() {
+      setFieldValue(/project name/i, 'Ticket project')
+      setFieldValue(/description/i, 'A piece of work')
+      setFieldValue(/updates channel link/i, 'https://updates.example/project')
+      setFieldValue(/funding goal/i, '10')
+      setFieldValue(/deadline/i, futureDeadlineValue())
+      setFieldValue(/supply/i, '100')
+      setFieldValue(/price/i, '0.1')
+    }
+
+    it('hides the project link until the issuer acknowledges the saved code', async () => {
+      mockCreateClaimTicketProject.mockResolvedValue({
+        project: '0x9999999999999999999999999999999999999999',
+        code: 'ct1:shown-once',
+      })
+      render(<CreateProjectPage />)
+      const user = userEvent.setup()
+      fillForm()
+      await user.click(screen.getByLabelText(/claim ticket/i))
+      await submitAndConfirm(user)
+
+      expect(await screen.findByText(/copy or download it now/i)).toBeInTheDocument()
+      expect(screen.getByDisplayValue('ct1:shown-once')).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /view project/i })).not.toBeInTheDocument()
+
+      await user.click(screen.getByRole('checkbox', { name: /i saved this code/i }))
+      expect(screen.getByRole('button', { name: /view project/i })).toBeInTheDocument()
+    })
+
+    it('recovers the code from a confirmed creation instead of starting another project', async () => {
+      mockCreateClaimTicketProject.mockRejectedValue(new Error('timeout'))
+      mockPublicClient.readContract.mockImplementation(async (args: { functionName?: string }) => {
+        if (args.functionName === 'ticketProjectOf') return '0x9999999999999999999999999999999999999999'
+        return false
+      })
+      render(<CreateProjectPage />)
+      const user = userEvent.setup()
+      fillForm()
+      await user.click(screen.getByLabelText(/claim ticket/i))
+      await submitAndConfirm(user)
+
+      expect(await screen.findByDisplayValue('ct1:recovered')).toBeInTheDocument()
+      expect(screen.getByText(/earlier creation confirmed/i)).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /view project/i })).not.toBeInTheDocument()
+      expect(mockCreateClaimTicketProject).toHaveBeenCalledTimes(1)
+    })
+
+    it('retains the transit key and waits for the same transaction after an ambiguous timeout', async () => {
+      const hash = `0x${'ab'.repeat(32)}`
+      mockCreateClaimTicketProject.mockImplementationOnce(async (_clients, _factory, _params, options) => {
+        options.onSubmitted(hash)
+        throw new Error('Receipt timeout')
+      }).mockResolvedValueOnce({
+        project: '0x9999999999999999999999999999999999999999',
+        code: 'ct1:retried',
+      })
+      mockPublicClient.readContract.mockResolvedValue('0x0000000000000000000000000000000000000000')
+      render(<CreateProjectPage />)
+      const user = userEvent.setup()
+      fillForm()
+      await user.click(screen.getByLabelText(/claim ticket/i))
+      await submitAndConfirm(user)
+      expect(await screen.findByText('Receipt timeout')).toBeInTheDocument()
+      const firstKey = mockCreateClaimTicketProject.mock.calls[0][2].transitKey
+
+      await submitAndConfirm(user)
+      expect(await screen.findByDisplayValue('ct1:retried')).toBeInTheDocument()
+      expect(mockCreateClaimTicketProject.mock.calls[1][2].transitKey).toBe(firstKey)
+      expect(mockCreateClaimTicketProject.mock.calls[1][3].transactionHash).toBe(hash)
+    })
+
+    it('allows a new creation after a confirmed revert', async () => {
+      mockCreateClaimTicketProject.mockImplementationOnce(async (_clients, _factory, _params, options) => {
+        options.onSubmitted(`0x${'ab'.repeat(32)}`)
+        throw new ClaimTicketCreationRevertedError(`0x${'ab'.repeat(32)}`)
+      }).mockResolvedValueOnce({
+        project: '0x9999999999999999999999999999999999999999',
+        code: 'ct1:retried',
+      })
+      render(<CreateProjectPage />)
+      const user = userEvent.setup()
+      fillForm()
+      await user.click(screen.getByLabelText(/claim ticket/i))
+      await submitAndConfirm(user)
+      expect(await screen.findByText(/creation transaction reverted/i)).toBeInTheDocument()
+      const firstKey = mockCreateClaimTicketProject.mock.calls[0][2].transitKey
+
+      await submitAndConfirm(user)
+      expect(await screen.findByDisplayValue('ct1:retried')).toBeInTheDocument()
+      expect(mockCreateClaimTicketProject.mock.calls[1][2].transitKey).not.toBe(firstKey)
+      expect(mockCreateClaimTicketProject.mock.calls[1][3].transactionHash).toBeUndefined()
     })
   })
 })

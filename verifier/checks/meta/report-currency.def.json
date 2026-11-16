@@ -135,6 +135,11 @@
     },
     {
       "kind": "check",
+      "id": "review.founder-ui-thoroughness",
+      "role": "leaf"
+    },
+    {
+      "kind": "check",
       "id": "review.testnet-two-person-lab",
       "role": "leaf"
     },

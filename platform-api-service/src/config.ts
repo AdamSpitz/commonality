@@ -36,6 +36,12 @@ export interface PlatformApiServiceConfig {
   statementGasTankAddress?: Address;
   statementGasTankPaymasterV06Address?: Address;
   beliefsAddress?: Address;
+  claimTicketChainId?: number;
+  claimTicketFactoryAddress?: Address;
+  claimTicketRelayPrivateKey?: Hex;
+  claimTicketRpcUrl?: string;
+  claimTicketMaxGas?: bigint;
+  claimTicketMinSignerBalance?: bigint;
   blockedChannelIds?: string[];
   policyBundleUrl?: string;
   policyContentGatewayUrl?: string;
@@ -133,6 +139,12 @@ export function loadConfig(): PlatformApiServiceConfig {
     ),
     statementGasTankPaymasterV06Address: normalizeOptionalAddress(process.env.STATEMENT_GAS_TANK_PAYMASTER_V06_ADDRESS),
     beliefsAddress: normalizeOptionalAddress(process.env.BELIEFS_CONTRACT_ADDRESS),
+    claimTicketChainId: normalizeOptionalChainId(process.env.CLAIM_TICKET_CHAIN_ID || process.env.CHAIN_ID),
+    claimTicketFactoryAddress: normalizeOptionalAddress(process.env.CLAIM_TICKET_FACTORY_ADDRESS || process.env.PROJECT_FACTORY_ADDRESS),
+    claimTicketRelayPrivateKey: normalizeOptionalHex32('CLAIM_TICKET_RELAY_PRIVATE_KEY', process.env.CLAIM_TICKET_RELAY_PRIVATE_KEY),
+    claimTicketRpcUrl: normalizeOptionalUrl(process.env.CLAIM_TICKET_RPC_URL || process.env.RPC_URL),
+    claimTicketMaxGas: BigInt(parseInteger('CLAIM_TICKET_MAX_GAS', process.env.CLAIM_TICKET_MAX_GAS, 500_000)),
+    claimTicketMinSignerBalance: BigInt(process.env.CLAIM_TICKET_MIN_SIGNER_BALANCE || '1000000000000000'),
     blockedChannelIds: parseCommaSeparated(process.env.BLOCKED_CHANNEL_IDS),
     policyBundleUrl,
     policyContentGatewayUrl,
