@@ -1,6 +1,6 @@
 # Claim ticket (commit first, onboard the doer later)
 
-Status: product shape only. Not a contract design, and not scheduled work.
+Status: product shape with a [proposed technical design](/specs/tech/subsystems/claim-tickets.md). Implementation remains demand-gated, not scheduled work.
 
 Related: [fund now, claim later](fund-now-claim-later.md) (public identity, not a secret), [foolproof project creation](foolproof-project-creation.md) (recipient picker; its later email-bound embedded wallet is a different idea), [bridges.md](/specs/tech/bridges.md) (Linkdrop, for the donor direction).
 
@@ -30,7 +30,7 @@ That is the same shape as a Linkdrop transit key, aimed at a project recipient r
 
 ## Product shape
 
-1. Alice creates a project and chooses "claim ticket" instead of a recipient address. The form generates the transit address and shows the code once, with a copy warning.
+1. Alice creates a project and chooses "claim ticket" instead of a recipient address. The form generates the transit key locally. After creation confirms, it shows the code once, with a copy warning, and does not offer funding until she acknowledges that she saved it.
 2. The project is live immediately. Donations and delegate spends can land under the normal project rules. The recipient shown on the project is "unclaimed ticket," not a person we verified.
 3. Alice gets the code to Bob however she already talks to him. Loss or leak of the code is loss or theft of the claim. Say that in the UI.
 4. Bob creates an account on his own, opens the claim page, and redeems the code to that account. Redemption is a single rotation or sweep. It does not import the transit key into his wallet.
@@ -38,7 +38,9 @@ That is the same shape as a Linkdrop transit key, aimed at a project recipient r
 
 A delegate may be the one who creates the project and spends into it. A brand-new recipient address is not, by itself, a suspicious spend ([spend classification](/specs/tech/subsystems/delegation/spend-classification.md)). The receipt the donor wants is the project and the spend, not a verified identity for Bob.
 
-## Open questions (do not invent answers while implementing from this page)
+## Design questions
+
+The [technical design](/specs/tech/subsystems/claim-tickets.md) answers these questions: a ticket-aware project keeps proceeds in place, destination-bound signatures authorize a sponsored redemption, there is no cancel window, and a versioned `ct1:` code carries the bearer secret. These are proposed engineering decisions; use that design rather than implementing from this product page alone.
 
 - Whether the transit address is the project `recipient` directly, or a tiny one-shot claim contract in front of the existing proceeds rules. Either way, success, refusal, and the 90-day reclaim window in [fund now, claim later](fund-now-claim-later.md) still have to apply. A ticket must not create a second, stuck escrow.
 - Who runs the gas relay for redemption, and what it is allowed to submit. It may sponsor the claim transaction. It must not be able to choose the destination.
