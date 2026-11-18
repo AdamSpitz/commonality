@@ -13,7 +13,8 @@ interface ContentBatchEvaluationResult {
   contentCanonicalId: string;
   statementCid: IpfsCidV1;
   success: boolean;
-  decision?: boolean;
+  decision?: boolean | 'positive' | 'negative' | 'abstain';
+  deferred?: boolean;
   confidence?: 'high' | 'medium' | 'low';
   reasoning?: string;
   transactionHash?: string | null;

@@ -25,6 +25,8 @@ export interface BeatAgentConfig {
 	rateLimitWindowMs: number;
 	rateLimitMaxRequests: number;
 	minimumConfidence: BeatAgentConfidence;
+	evaluationVersionId?: string;
+	scorerPlanFilePath?: string;
 	memoryFilePath?: string;
 	evaluationLogFilePath?: string;
 	metricsLogFilePath?: string;
@@ -178,6 +180,8 @@ export function loadConfigFromEnv(
 			10,
 		),
 		minimumConfidence: readConfidenceFrom(env),
+		evaluationVersionId: readOptionalStringFrom(["BEAT_AGENT_EVALUATION_VERSION"], env),
+		scorerPlanFilePath: readOptionalStringFrom(["BEAT_AGENT_SCORER_PLAN_FILE"], env),
 		memoryFilePath: readOptionalStringFrom(["BEAT_AGENT_MEMORY_FILE"], env),
 		evaluationLogFilePath: readOptionalStringFrom(
 			["BEAT_AGENT_EVALUATION_LOG_FILE"],

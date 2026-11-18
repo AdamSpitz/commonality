@@ -10,13 +10,41 @@ export type BeatAgentAbstainReason =
 	| "insufficient_local_context"
 	| "insufficient_ambient_context"
 	| "unsupported_platform"
+	| "reply"
+	| "media_primary"
+	| "edit_window_open"
 	| "other";
+
+/** Prompt-defined fields such as side and substantive. Not a fixed civility schema. */
+export type BeatAgentResultExtensions = Record<string, unknown>;
+
+export interface BeatAgentScorerResult {
+	id: string;
+	decision: BeatAgentDecision;
+	confidence: BeatAgentConfidence;
+	reasoning: string;
+}
+
+export interface BeatAgentQuotedContent {
+	text: string;
+	contentCanonicalId?: string;
+	contentVersion?: string;
+}
+
+export interface BeatAgentEvaluationScope {
+	evaluationVersionId?: string;
+	contentVersion?: string;
+}
 
 export interface BeatAgentExistingAttestation {
 	decision: BeatAgentDecision;
 	confidence: BeatAgentConfidence;
 	reasoning: string;
 	abstainReason?: BeatAgentAbstainReason;
+	extensions?: BeatAgentResultExtensions;
+	scorerResults?: BeatAgentScorerResult[];
+	evaluationVersionId?: string;
+	contentVersion?: string;
 	subjectId: string;
 	explanationCid: IpfsCidV1 | null;
 	transactionHash: string | null;
@@ -28,6 +56,13 @@ export interface BeatAgentEvaluationRequest {
 	contentText?: string;
 	contentUrl?: string;
 	contentCid?: IpfsCidV1;
+	contentVersion?: string;
+	authorId?: string;
+	isReply?: boolean;
+	mediaIsPrimary?: boolean;
+	/** ISO time after which the source edit window is closed. */
+	editableUntil?: string;
+	quotedContent?: BeatAgentQuotedContent[];
 	declaredPerspective?: string;
 }
 
@@ -36,6 +71,8 @@ export interface BeatAgentEvaluationResult {
 	confidence: BeatAgentConfidence;
 	reasoning: string;
 	abstainReason?: BeatAgentAbstainReason;
+	extensions?: BeatAgentResultExtensions;
+	scorerResults?: BeatAgentScorerResult[];
 }
 
 export interface BeatAgentEvaluationContext {
@@ -75,6 +112,11 @@ export interface BeatAgentExplanationDocument {
 	confidence: BeatAgentConfidence;
 	reasoning: string;
 	abstainReason?: BeatAgentAbstainReason;
+	extensions?: BeatAgentResultExtensions;
+	scorerResults?: BeatAgentScorerResult[];
+	evaluationVersionId?: string;
+	contentVersion?: string;
+	authorId?: string;
 	localContextUsed: BeatAgentLocalContextCitation[];
 	ambientContextUsed: BeatAgentAmbientContextCitation[];
 	timestamp: string;
@@ -85,6 +127,12 @@ export interface BeatAgentEvaluateResponse extends BeatAgentEvaluationResult {
 	alreadyAttested: boolean;
 	/** True when this request reused an in-flight evaluation from another concurrent request. */
 	deduplicated?: boolean;
+	/** True when publishing was postponed because the source edit window is still open. Not cached. */
+	deferred?: boolean;
+	extensions?: BeatAgentResultExtensions;
+	scorerResults?: BeatAgentScorerResult[];
+	evaluationVersionId?: string;
+	contentVersion?: string;
 	subjectId: string;
 	explanationCid: IpfsCidV1 | null;
 	transactionHash: string | null;
@@ -96,9 +144,10 @@ export interface CreateBeatAgentExplanationDocumentParams {
 	attesterName: string;
 	request: Pick<
 		BeatAgentEvaluationRequest,
-		"contentCanonicalId" | "statementCid"
+		"contentCanonicalId" | "statementCid" | "contentVersion" | "authorId"
 	>;
 	result: BeatAgentEvaluationResult;
+	evaluationVersionId?: string;
 	context: BeatAgentEvaluationContext;
 	timestamp: string;
 }
@@ -152,6 +201,11 @@ export function createBeatAgentExplanationDocument(
 		confidence: params.result.confidence,
 		reasoning: params.result.reasoning,
 		abstainReason: params.result.abstainReason,
+		extensions: params.result.extensions,
+		scorerResults: params.result.scorerResults,
+		evaluationVersionId: params.evaluationVersionId,
+		contentVersion: params.request.contentVersion,
+		authorId: params.request.authorId,
 		localContextUsed: params.context.localContextUsed,
 		ambientContextUsed: params.context.ambientContextUsed,
 		timestamp: params.timestamp,

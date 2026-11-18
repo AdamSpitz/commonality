@@ -69,6 +69,7 @@ describe("beat ingestion", () => {
 				skippedSources: [],
 				newItemCount: 1,
 				duplicateItemCount: 1,
+				droppedForAuthorLimit: 0,
 				anomalies: [],
 			});
 

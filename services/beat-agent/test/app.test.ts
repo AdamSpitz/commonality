@@ -370,7 +370,7 @@ describe('beat-agent HTTP app', () => {
       await evaluationStarted;
 
       // Send second request while first is in-flight.
-      const req2 = fetch(`${server.baseUrl}/evaluate-content`, { method: 'POST', headers, body });
+      const req2 = fetch(`${server.baseUrl}/evaluate-content-batch`, { method: 'POST', headers, body: JSON.stringify({ evaluations: [JSON.parse(body)] }) });
 
       // Give req2 time to arrive at the server and find req1 in the in-flight map before we release req1.
       await new Promise((r) => setTimeout(r, 30));
@@ -382,7 +382,8 @@ describe('beat-agent HTTP app', () => {
       assert.equal(res1.status, 200);
       assert.equal(res2.status, 200);
       const json1 = await res1.json() as Record<string, unknown>;
-      const json2 = await res2.json() as Record<string, unknown>;
+      const batch = await res2.json() as { results: Record<string, unknown>[] };
+      const json2 = batch.results[0];
       assert.equal(json1.decision, 'positive');
       assert.equal(json2.decision, 'positive');
       // Only one actual LLM evaluation should have happened.

@@ -10,6 +10,7 @@ import type {
 	BeatAgentEvaluationContext,
 	BeatAgentEvaluationRequest,
 	BeatAgentEvaluationResult,
+	BeatAgentQuotedContent,
 } from "./types.js";
 import { validateBeatAgentEvaluationResult } from "./types.js";
 import { wrapUntrusted } from "@commonality/beat-memory";
@@ -24,7 +25,7 @@ export interface EvaluateBeatContentWithLlmParams {
 	content: string;
 	request: Pick<
 		BeatAgentEvaluationRequest,
-		"contentCanonicalId" | "declaredPerspective"
+		"contentCanonicalId" | "declaredPerspective" | "quotedContent"
 	>;
 	context: BeatAgentEvaluationContext;
 	apiKey: string;
@@ -104,7 +105,20 @@ export function buildBeatAgentPrompt(
 		.replaceAll(
 			"{ambient_context_json}",
 			JSON.stringify(safeAmbientContext, null, 2),
-		);
+		)
+		.replaceAll("{quoted_content}", formatQuotedContent(params.request.quotedContent, maxChars));
+}
+
+function formatQuotedContent(
+	quoted: BeatAgentQuotedContent[] | undefined,
+	maxChars: number | undefined,
+): string {
+	if (!quoted || quoted.length === 0) {
+		return "No quoted post was provided.";
+	}
+	return quoted
+		.map((item, index) => wrapUntrusted(`quoted_post_${index}`, item.text, { maxChars }))
+		.join("\n\n");
 }
 
 export function normalizeBeatAgentEvaluationResult(
@@ -121,12 +135,43 @@ export function normalizeBeatAgentEvaluationResult(
 		(typeof raw.explanation === "string" && raw.explanation.trim()) ||
 		"No reasoning provided";
 
+	const extensions = normalizeExtensions(raw);
 	return {
 		decision,
 		confidence,
 		reasoning,
 		abstainReason,
+		...(extensions ? { extensions } : {}),
 	};
+}
+
+const extensionKeys = [
+	"side",
+	"sideReason",
+	"substantive",
+	"substantiveReason",
+] as const;
+
+export function normalizeExtensions(
+	raw: Record<string, unknown>,
+): BeatAgentEvaluationResult["extensions"] {
+	const extensions: Record<string, unknown> = {};
+	if (raw.extensions && typeof raw.extensions === "object" && !Array.isArray(raw.extensions)) {
+		Object.assign(extensions, raw.extensions);
+	}
+	for (const key of extensionKeys) {
+		if (raw[key] !== undefined) {
+			extensions[key] = raw[key];
+		}
+	}
+	if (extensions.side !== undefined) {
+		const side = String(extensions.side).toLowerCase().trim();
+		extensions.side = side === "left" || side === "right" || side === "unclear" ? side : undefined;
+	}
+	if (extensions.substantive !== undefined) {
+		extensions.substantive = extensions.substantive === true || String(extensions.substantive).toLowerCase() === "true";
+	}
+	return Object.keys(extensions).length > 0 ? extensions : undefined;
 }
 
 function normalizeDecision(
@@ -173,6 +218,9 @@ function normalizeAbstainReason(reason: unknown): BeatAgentAbstainReason {
 		normalized === "insufficient_local_context" ||
 		normalized === "insufficient_ambient_context" ||
 		normalized === "unsupported_platform" ||
+		normalized === "reply" ||
+		normalized === "media_primary" ||
+		normalized === "edit_window_open" ||
 		normalized === "other"
 	) {
 		return normalized;

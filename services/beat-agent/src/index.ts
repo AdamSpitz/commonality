@@ -29,7 +29,13 @@ import {
 } from "./config.js";
 import { resolveBeatAgentContentForRequest } from "./content.js";
 import { buildBeatAgentEvaluationContext } from "./context.js";
+import { readFileSync } from "node:fs";
+import { evaluateContentWithLLM } from "@commonality/content-attester";
 import { evaluateBeatContentWithLLM } from "./evaluator.js";
+import {
+	applyScorerPlan,
+	type BeatAgentScorerPlan,
+} from "./scorerPlan.js";
 
 export type {
 	BeatAgentAppConfig,
@@ -98,7 +104,15 @@ export {
 	createBeatAgentServiceApp,
 	defaultUploadExplanation,
 	findExistingAttestationFromJsonl,
+	listEvaluationLogEntries,
 } from "./app.js";
+
+export { applyScorerPlan, selectScorerPlanRule } from "./scorerPlan.js";
+export type {
+	BeatAgentScorerPlan,
+	BeatAgentScorerPlanRule,
+	BeatAgentScorerDefinition,
+} from "./scorerPlan.js";
 
 export {
 	processBeatAgentEvaluation,
@@ -190,6 +204,53 @@ export interface BeatAgentRunHandle {
 	stop: () => Promise<void>;
 }
 
+function loadScorerPlan(filePath: string | undefined): BeatAgentScorerPlan | null {
+	if (!filePath) return null;
+	return JSON.parse(readFileSync(filePath, "utf-8")) as BeatAgentScorerPlan;
+}
+
+async function evaluateWithOptionalScorerPlan(
+	config: BeatAgentConfig,
+	request: import("./types.js").BeatAgentEvaluationRequest,
+	content: string,
+	context: import("./types.js").BeatAgentEvaluationContext,
+) {
+	const beatResult = await evaluateBeatContentWithLLM({
+		beatId: config.beatId,
+		attesterName: config.attesterName,
+		content,
+		request,
+		context,
+		apiKey: config.openRouterApiKey,
+		model: config.openRouterModel,
+		promptTemplate: config.promptTemplate,
+		maxUntrustedChars: config.maxUntrustedChars,
+	});
+	const plan = loadScorerPlan(config.scorerPlanFilePath);
+	if (!plan) return beatResult;
+	return applyScorerPlan({
+		plan,
+		beatResult,
+		evaluateScorer: async (scorer) => {
+			const result = await evaluateContentWithLLM({
+				content: request.quotedContent?.length
+					? `Author post:\n${content}\n\nQuoted posts (context only; evaluate the author's use of these quotes):\n${request.quotedContent.map((quote) => quote.text).join("\n\n")}`
+					: content,
+				declaredPerspective: request.declaredPerspective,
+				apiKey: config.openRouterApiKey,
+				model: config.openRouterModel,
+				promptTemplate: scorer.promptTemplate,
+				attesterName: `${config.attesterName}:${scorer.id}`,
+			});
+			return {
+				decision: result.decision,
+				confidence: result.confidence,
+				reasoning: result.reasoning,
+			};
+		},
+	});
+}
+
 export function createBeatAgentApp(config: BeatAgentConfig = loadConfig()) {
 	const findExistingAttestationInJsonl = config.evaluationLogFilePath
 		? findExistingAttestationFromJsonl(config.evaluationLogFilePath)
@@ -203,13 +264,19 @@ export function createBeatAgentApp(config: BeatAgentConfig = loadConfig()) {
 	async function findExistingAttestation(
 		contentCanonicalId: string,
 		statementCid: IpfsCidV1,
+		scope?: { evaluationVersionId?: string; contentVersion?: string },
 	) {
 		const localMatch = await findExistingAttestationInJsonl?.(
 			contentCanonicalId,
 			statementCid,
+			scope,
 		);
 		if (localMatch) {
 			return localMatch;
+		}
+		// A chain attestation is historical evidence, not a pass for the current evaluation version or content version.
+		if (scope?.evaluationVersionId || scope?.contentVersion) {
+			return null;
 		}
 		return findExistingAttestationOnChain(contentCanonicalId, statementCid);
 	}
@@ -227,7 +294,10 @@ export function createBeatAgentApp(config: BeatAgentConfig = loadConfig()) {
 	}
 
 	return createBeatAgentServiceApp({
-		getConfig: () => config,
+		getConfig: () => ({
+			...config,
+			capabilities: [...config.capabilities],
+		}),
 		getCurrentGasPrice,
 		getPaymentConfig: () => getPaymentConfig(config),
 		getIpfsConfig: () => getIpfsConfig(config),
@@ -252,17 +322,7 @@ export function createBeatAgentApp(config: BeatAgentConfig = loadConfig()) {
 				purposes: ["civility_context", "general_beat_context"],
 			}),
 		evaluateContent: ({ request, content, context }) =>
-			evaluateBeatContentWithLLM({
-				beatId: config.beatId,
-				attesterName: config.attesterName,
-				content,
-				request,
-				context,
-				apiKey: config.openRouterApiKey,
-				model: config.openRouterModel,
-				promptTemplate: config.promptTemplate,
-				maxUntrustedChars: config.maxUntrustedChars,
-			}),
+			evaluateWithOptionalScorerPlan(config, request, content, context),
 		uploadExplanation: defaultUploadExplanation,
 		publishAttestation: (contentCanonicalId, statementCid, topicStatementCid) =>
 			publishBeatAgentAttestation(

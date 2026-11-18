@@ -4,6 +4,8 @@ import { loadConfig, type ContentAttesterConfig } from './config.js';
 import { resolveContentForEvaluation } from './content.js';
 import { createContentAttesterServiceApp, defaultUploadExplanation } from './app.js';
 import { evaluateContentWithLLM } from './evaluator.js';
+export { evaluateContentWithLLM } from './evaluator.js';
+export type { EvaluateContentWithLlmParams, ContentAttesterEvaluationResult } from './evaluator.js';
 export type { ContentAttesterConfig } from './config.js';
 export { loadConfigFromEnv } from './config.js';
 

@@ -62,7 +62,7 @@ describe("Twitter/X beat source adapter", () => {
 
 		assert.deepEqual(requestedUrls, [
 			"https://api.x.test/2/users/by/username/alice?user.fields=id%2Cusername",
-			"https://api.x.test/2/users/123/tweets?max_results=10&tweet.fields=author_id%2Ccreated_at%2Ctext&expansions=author_id&user.fields=id%2Cname%2Cusername&since_id=199",
+			"https://api.x.test/2/users/123/tweets?max_results=10&tweet.fields=author_id%2Ccreated_at%2Ctext%2Cconversation_id%2Creferenced_tweets%2Cattachments%2Cedit_history_tweet_ids&expansions=author_id%2Creferenced_tweets.id&user.fields=id%2Cname%2Cusername&since_id=199",
 		]);
 		assert.equal(result.cursor, "201");
 		assert.deepEqual(
@@ -118,8 +118,8 @@ describe("Twitter/X beat source adapter", () => {
 		);
 		assert.equal(listResult?.cursor, "300");
 		assert.deepEqual(requestedUrls, [
-			"https://api.x.test/2/tweets/search/recent?query=%22common+ground%22+lang%3Aen&max_results=10&tweet.fields=author_id%2Ccreated_at%2Ctext&expansions=author_id&user.fields=id%2Cname%2Cusername",
-			"https://api.x.test/2/lists/777/tweets?max_results=10&tweet.fields=author_id%2Ccreated_at%2Ctext&expansions=author_id&user.fields=id%2Cname%2Cusername&since_id=299",
+			"https://api.x.test/2/tweets/search/recent?max_results=10&tweet.fields=author_id%2Ccreated_at%2Ctext%2Cconversation_id%2Creferenced_tweets%2Cattachments%2Cedit_history_tweet_ids&expansions=author_id%2Creferenced_tweets.id&user.fields=id%2Cname%2Cusername&query=%22common+ground%22+lang%3Aen",
+			"https://api.x.test/2/lists/777/tweets?max_results=10&tweet.fields=author_id%2Ccreated_at%2Ctext%2Cconversation_id%2Creferenced_tweets%2Cattachments%2Cedit_history_tweet_ids&expansions=author_id%2Creferenced_tweets.id&user.fields=id%2Cname%2Cusername&since_id=299",
 		]);
 	});
 });
