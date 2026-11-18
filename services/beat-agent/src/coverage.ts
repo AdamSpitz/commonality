@@ -11,6 +11,9 @@ export interface CoverageGapByReason {
   insufficient_local_context: CoverageGapCount;
   insufficient_ambient_context: CoverageGapCount;
   unsupported_platform: CoverageGapCount;
+  reply: CoverageGapCount;
+  media_primary: CoverageGapCount;
+  edit_window_open: CoverageGapCount;
   other: CoverageGapCount;
 }
 
@@ -56,6 +59,9 @@ function emptyByReason(): CoverageGapByReason {
     insufficient_local_context: emptyGapCount(),
     insufficient_ambient_context: emptyGapCount(),
     unsupported_platform: emptyGapCount(),
+    reply: emptyGapCount(),
+    media_primary: emptyGapCount(),
+    edit_window_open: emptyGapCount(),
     other: emptyGapCount(),
   };
 }

@@ -27,6 +27,7 @@ interface TwitterTweetCollectionResponse {
 	data?: TwitterTweet[];
 	includes?: {
 		users?: TwitterUser[];
+		tweets?: TwitterTweet[];
 	};
 }
 
@@ -35,6 +36,10 @@ interface TwitterTweet {
 	text?: string;
 	author_id?: string;
 	created_at?: string;
+	conversation_id?: string;
+	edit_history_tweet_ids?: string[];
+	referenced_tweets?: Array<{ type?: string; id?: string }>;
+	attachments?: { media_keys?: string[] };
 }
 
 interface TwitterUser {
@@ -90,12 +95,7 @@ export class TwitterBeatSourceClient {
 		cursor: BeatSourceCursor | undefined,
 	): Promise<BeatSourceFetchResult> {
 		const userId = await this.resolveUserId(source.locator);
-		const params = new URLSearchParams({
-			max_results: String(this.maxResults),
-			"tweet.fields": "author_id,created_at,text",
-			expansions: "author_id",
-			"user.fields": "id,name,username",
-		});
+		const params = tweetQueryParams(this.maxResults);
 		addSinceId(params, cursor);
 
 		return this.fetchTweetCollection(
@@ -108,13 +108,8 @@ export class TwitterBeatSourceClient {
 		source: BeatSource,
 		cursor: BeatSourceCursor | undefined,
 	): Promise<BeatSourceFetchResult> {
-		const params = new URLSearchParams({
-			query: source.locator,
-			max_results: String(this.maxResults),
-			"tweet.fields": "author_id,created_at,text",
-			expansions: "author_id",
-			"user.fields": "id,name,username",
-		});
+		const params = tweetQueryParams(this.maxResults);
+		params.set("query", source.locator);
 		addSinceId(params, cursor);
 
 		return this.fetchTweetCollection(
@@ -128,12 +123,7 @@ export class TwitterBeatSourceClient {
 		cursor: BeatSourceCursor | undefined,
 	): Promise<BeatSourceFetchResult> {
 		const listId = normalizeNumericLocator(source.locator, "Twitter/X list ID");
-		const params = new URLSearchParams({
-			max_results: String(this.maxResults),
-			"tweet.fields": "author_id,created_at,text",
-			expansions: "author_id",
-			"user.fields": "id,name,username",
-		});
+		const params = tweetQueryParams(this.maxResults);
 		addSinceId(params, cursor);
 
 		return this.fetchTweetCollection(
@@ -165,7 +155,7 @@ export class TwitterBeatSourceClient {
 	): Promise<BeatSourceFetchResult> {
 		const response = await this.fetchJson<TwitterTweetCollectionResponse>(path);
 		const items = (response.data ?? [])
-			.map((tweet) => tweetToBeatItem(tweet, response.includes?.users, source))
+			.map((tweet) => tweetToBeatItem(tweet, response.includes, source))
 			.filter(isDefined);
 
 		return {
@@ -198,9 +188,21 @@ export class TwitterBeatSourceClient {
 	}
 }
 
+const TWEET_FIELDS =
+	"author_id,created_at,text,conversation_id,referenced_tweets,attachments,edit_history_tweet_ids";
+
+function tweetQueryParams(maxResults: number): URLSearchParams {
+	return new URLSearchParams({
+		max_results: String(maxResults),
+		"tweet.fields": TWEET_FIELDS,
+		expansions: "author_id,referenced_tweets.id",
+		"user.fields": "id,name,username",
+	});
+}
+
 function tweetToBeatItem(
 	tweet: TwitterTweet,
-	users: TwitterUser[] | undefined,
+	includes: TwitterTweetCollectionResponse["includes"],
 	source: BeatSource,
 ): BeatIngestedItem | undefined {
 	if (!tweet.id || !tweet.author_id) {
@@ -208,7 +210,14 @@ function tweetToBeatItem(
 	}
 
 	const channelId = buildCanonicalChannelId("twitter", tweet.author_id);
+	const users = includes?.users;
 	const author = users?.find((user) => user.id === tweet.author_id);
+	const quoteRef = tweet.referenced_tweets?.find((ref) => ref.type === "quoted");
+	const quoted = quoteRef?.id
+		? includes?.tweets?.find((candidate) => candidate.id === quoteRef.id)
+		: undefined;
+	const editIds = tweet.edit_history_tweet_ids ?? [];
+	const contentVersion = editIds.length > 0 ? editIds[editIds.length - 1] : tweet.id;
 	const observedAt = tweet.created_at ?? new Date().toISOString();
 	return {
 		contentCanonicalId: buildCanonicalContentId(channelId, tweet.id),
@@ -220,6 +229,11 @@ function tweetToBeatItem(
 		authorHandle: author?.username ? `@${author.username}` : undefined,
 		authorId: `twitter:uid:${tweet.author_id}`,
 		text: tweet.text ?? "",
+		contentVersion,
+		isReply: tweet.referenced_tweets?.some((ref) => ref.type === "replied_to")
+			|| (tweet.conversation_id !== undefined && tweet.conversation_id !== tweet.id),
+		mediaIsPrimary: Boolean(tweet.attachments?.media_keys?.length) && !(tweet.text ?? "").replace(/https:\/\/t\.co\/\S+/gu, "").trim(),
+		quotedText: quoted?.text,
 		observedAt,
 		ingestedAt: "",
 		raw: tweet,

@@ -20,6 +20,10 @@ Evaluate the content on these dimensions:
 
 5. **Emotional manipulation**: Does the content use fear, outrage, or disgust as a *substitute* for argument? Using emotion to *illustrate* a point is fine (e.g., telling a compelling story). Using emotion to bypass critical thinking is inflammatory.
 
+# Disputed facts
+
+You are not a fact-checking service. A claim does not fail because another perspective considers it obviously false. When a central assertion is controversial, it fails if the author presents it as uncontested fact, or acknowledges the disagreement only with a formulaic or snarky disclaimer. A respectful acknowledgment plus a reason the author believes the claim can still pass. Disagreement about facts is part of the discussion.
+
 # The key question
 
 Ask yourself: **If I handed this to a thoughtful, open-minded person who holds the opposing political view, would they feel that the author took their perspective seriously — even if the author ultimately disagrees?**

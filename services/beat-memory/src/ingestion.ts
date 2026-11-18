@@ -34,6 +34,10 @@ export interface BeatIngestedItem {
 	text: string;
 	observedAt: string;
 	ingestedAt: string;
+	contentVersion?: string;
+	isReply?: boolean;
+	mediaIsPrimary?: boolean;
+	quotedText?: string;
 	raw?: unknown;
 }
 
@@ -66,6 +70,8 @@ export interface RunBeatIngestionOnceParams {
 	adapters: Partial<Record<BeatSourceType, BeatSourceAdapter>>;
 	now?: Date;
 	env?: Record<string, string | undefined>;
+	/** Hard cap on newly stored items per immutable author id in one run. */
+	maxNewItemsPerAuthor?: number;
 }
 
 export interface BeatIngestionRunSummary {
@@ -73,6 +79,7 @@ export interface BeatIngestionRunSummary {
 	skippedSources: BeatIngestionSkippedSource[];
 	newItemCount: number;
 	duplicateItemCount: number;
+	droppedForAuthorLimit: number;
 	anomalies: BeatIngestionAnomaly[];
 }
 
@@ -199,8 +206,10 @@ export async function runBeatIngestionOnce(
 		skippedSources: [],
 		newItemCount: 0,
 		duplicateItemCount: 0,
+		droppedForAuthorLimit: 0,
 		anomalies: [],
 	};
+	const newItemsByAuthor = new Map<string, number>();
 	const newlyAddedItems: BeatIngestedItem[] = [];
 
 	for (const source of params.definition.sources) {
@@ -244,6 +253,14 @@ export async function runBeatIngestionOnce(
 			if (knownIds.has(item.contentCanonicalId)) {
 				summary.duplicateItemCount += 1;
 				continue;
+			}
+			if (params.maxNewItemsPerAuthor !== undefined && item.authorId) {
+				const seen = newItemsByAuthor.get(item.authorId) ?? 0;
+				if (seen >= params.maxNewItemsPerAuthor) {
+					summary.droppedForAuthorLimit += 1;
+					continue;
+				}
+				newItemsByAuthor.set(item.authorId, seen + 1);
 			}
 
 			knownIds.add(item.contentCanonicalId);

@@ -37,7 +37,13 @@ Beat agents extend the result shape from boolean decisions to three-valued decis
 }
 ```
 
-Only `positive` decisions at or above the configured confidence threshold should publish on-chain attestations. Negative decisions and abstentions are paid evaluations but do not publish positive attestations.
+Only `positive` decisions at or above the configured confidence threshold should publish on-chain attestations. Negative decisions and abstentions are paid evaluations but do not publish positive attestations. Rejections are not published as attestations.
+
+Optional prompt fields `side`, `sideReason`, `substantive`, and `substantiveReason` are kept on the result, the JSONL log, and the public explanation. `BEAT_AGENT_EVALUATION_VERSION` is the cache key together with content version: an older on-chain attestation does not skip re-evaluation. `BEAT_AGENT_SCORER_PLAN_FILE` is a JSON rule table of extra scorer prompts to run after the beat prompt; their results are stored on the one attestation, not published separately. `POST /evaluate-content-batch` matches the content-finder client. Replies, media-primary posts, and still-open edit windows are skipped before the LLM (edit-window skips are not cached).
+
+Candidates for a bot are `getAlignedSubjects` (SDK) for the attester and statement, joined to `listEvaluationLogEntries` for the current evaluation version. The chain record does not include scorer detail.
+
+Set a new `BEAT_AGENT_EVALUATION_VERSION` whenever the prompt, model, scorer plan, or confidence policy changes, and configure the evaluation log for versioned caching. Scorer-plan rules match in order; only a positive beat judgment runs extra scorers. All required scorers must pass the plan's minimum confidence, and the final positive confidence cannot exceed the beat judgment's confidence. Requests must supply authoritative post-shape and content-version metadata; these fields are not inferred by the HTTP attester.
 
 ## Minimal beat ingestion
 

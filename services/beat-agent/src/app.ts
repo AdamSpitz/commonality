@@ -38,6 +38,7 @@ export interface BeatAgentAppConfig extends CommonAttesterConfigSnapshot {
   alignmentTopicStatementCid: IpfsCidV1;
   attesterName: string;
   minimumConfidence?: 'high' | 'medium' | 'low';
+  evaluationVersionId?: string;
   trustedFinderKey?: string;
   minAuthorsForFullWeight?: number;
   minHoursForFullWeight?: number;
@@ -65,7 +66,11 @@ export interface BeatAgentAppDependencies {
     topicStatementCid: IpfsCidV1,
   ) => Promise<string>;
   appendEvaluationLog?: (entry: BeatAgentEvaluationLogEntry) => Promise<void>;
-  findExistingAttestation?: (contentCanonicalId: string, statementCid: IpfsCidV1) => Promise<BeatAgentExistingAttestation | null>;
+  findExistingAttestation?: (
+    contentCanonicalId: string,
+    statementCid: IpfsCidV1,
+    scope?: import('./types.js').BeatAgentEvaluationScope,
+  ) => Promise<BeatAgentExistingAttestation | null>;
   queryBeatContext?: (params: { topic: string }) => Promise<BeatAgentAmbientContextCitation[]>;
   version: string;
 }
@@ -162,38 +167,92 @@ export function createBeatAgentServiceApp(dependencies: BeatAgentAppDependencies
       return;
     }
 
-    const config = dependencies.getConfig();
-    const ipfsConfig = dependencies.getIpfsConfig(config);
-    const dedupeKey = `${request.contentCanonicalId}:${request.statementCid}`;
+    try {
+      const handled = await evaluateOne(request);
+      res.status(handled.status).json(handled.body);
+    } catch (error) {
+      res.status(500).json({ error: "internal_error", message: String(error) });
+    }
+  });
 
-    const inflight = inFlightEvaluations.get(dedupeKey);
-    if (inflight) {
-      try {
-        const result = await inflight;
-        res.json({
-          alreadyAttested: result.alreadyAttested,
-          deduplicated: true,
-          decision: result.decision,
-          confidence: result.confidence,
-          reasoning: result.reasoning,
-          abstainReason: result.abstainReason,
-          subjectId: result.subjectId,
-          explanationCid: result.explanationCid,
-          transactionHash: result.transactionHash,
+  app.post('/evaluate-content-batch', evaluationRateLimiter, requirePayment, async (req: Request, res: Response) => {
+    const evaluations = (req.body as { evaluations?: BeatAgentEvaluationRequest[] } | null)?.evaluations;
+    if (!Array.isArray(evaluations) || evaluations.length === 0) {
+      res.status(400).json({
+        error: 'invalid_request',
+        message: 'Missing required field: evaluations (must be a non-empty array)',
+      });
+      return;
+    }
+    if (evaluations.length > 10) {
+      res.status(400).json({
+        error: 'batch_too_large',
+        message: 'Batch size exceeds maximum of 10 evaluations',
+      });
+      return;
+    }
+
+    const results = [];
+    for (const evaluation of evaluations) {
+      const validationError = validateBeatAgentEvaluationRequest(evaluation);
+      if (validationError) {
+        results.push({
+          contentCanonicalId: evaluation?.contentCanonicalId,
+          statementCid: evaluation?.statementCid,
+          success: false,
+          error: validationError,
           processingTime: 0,
         });
-        return;
-      } catch {
-        // First request failed — fall through to try our own evaluation.
+        continue;
+      }
+      try {
+        const handled = await evaluateOne(evaluation);
+        results.push({
+          contentCanonicalId: evaluation.contentCanonicalId,
+          statementCid: evaluation.statementCid,
+          success: handled.status < 400,
+          ...handled.body,
+          error: handled.status >= 400 ? handled.body.message : undefined,
+          processingTime: handled.body.processingTime ?? 0,
+        });
+      } catch (error) {
+        results.push({
+          contentCanonicalId: evaluation.contentCanonicalId,
+          statementCid: evaluation.statementCid,
+          success: false,
+          error: error instanceof Error ? error.message : 'Unexpected error',
+          processingTime: 0,
+        });
       }
     }
 
+    res.json({
+      total: evaluations.length,
+      successful: results.filter((result) => result.success).length,
+      failed: results.filter((result) => !result.success).length,
+      results,
+    });
+  });
+
+  async function evaluateOne(request: BeatAgentEvaluationRequest): Promise<{ status: number; body: Record<string, unknown> }> {
+    const config = dependencies.getConfig();
+    const ipfsConfig = dependencies.getIpfsConfig(config);
+    const dedupeKey = JSON.stringify([request.contentCanonicalId, request.statementCid, request.contentVersion, config.evaluationVersionId]);
+    const inflight = inFlightEvaluations.get(dedupeKey);
+    if (inflight) {
+      try {
+        return { status: 200, body: toEvaluateResponse(await inflight, { deduplicated: true, processingTime: 0 }) };
+      } catch {
+        // A failed evaluation can be retried.
+      }
+    }
     const evaluationPromise = processBeatAgentEvaluation(
       {
         beatId: config.beatId,
         attesterName: config.attesterName,
         alignmentTopicStatementCid: config.alignmentTopicStatementCid,
         minimumConfidence: config.minimumConfidence,
+        evaluationVersionId: config.evaluationVersionId,
       },
       request,
       {
@@ -208,63 +267,51 @@ export function createBeatAgentServiceApp(dependencies: BeatAgentAppDependencies
       },
     );
     inFlightEvaluations.set(dedupeKey, evaluationPromise);
-
     try {
       const result = await evaluationPromise;
-      res.json({
-        alreadyAttested: result.alreadyAttested,
-        decision: result.decision,
-        confidence: result.confidence,
-        reasoning: result.reasoning,
-        abstainReason: result.abstainReason,
-        subjectId: result.subjectId,
-        explanationCid: result.explanationCid,
-        transactionHash: result.transactionHash,
-        processingTime: result.processingTime,
-      });
+      return { status: 200, body: toEvaluateResponse(result) };
     } catch (error) {
-      if (error instanceof Error && error.message.startsWith('Content canonical ID mismatch:')) {
-        res.status(400).json({
-          error: 'invalid_request',
-          message: error.message,
-        });
-        return;
+      const message = error instanceof Error ? error.message : 'An unexpected error occurred';
+      if (message.startsWith('Content canonical ID mismatch:')) {
+        return { status: 400, body: { error: 'invalid_request', message } };
       }
-      if (
-        error instanceof Error &&
-        (
-          error.message.startsWith('Failed to resolve content URL through platform API:') ||
-          error.message.startsWith('Platform API local-context response did not include target.canonicalId')
-        )
-      ) {
-        res.status(502).json({
-          error: 'upstream_resolution_failed',
-          message: error.message,
-        });
-        return;
+      if (message.startsWith('Failed to resolve content URL through platform API:') || message.startsWith('Platform API local-context response did not include target.canonicalId')) {
+        return { status: 502, body: { error: 'upstream_resolution_failed', message } };
       }
-
       const blockchainError = classifyBlockchainError(error);
       if (blockchainError.code !== 'unknown_error') {
-        const formattedError = formatBlockchainError(blockchainError);
-        res.status(getHttpStatusForError(blockchainError)).json({
-          error: blockchainError.code,
-          message: formattedError.message,
-          details: formattedError.details,
-        });
-        return;
+        return { status: getHttpStatusForError(blockchainError), body: { ...formatBlockchainError(blockchainError), error: blockchainError.code } };
       }
-
-      res.status(500).json({
-        error: 'internal_error',
-        message: error instanceof Error ? error.message : 'An unexpected error occurred',
-      });
+      return { status: 500, body: { error: 'internal_error', message, processingTime: 0 } };
     } finally {
-      inFlightEvaluations.delete(dedupeKey);
+      if (inFlightEvaluations.get(dedupeKey) === evaluationPromise) inFlightEvaluations.delete(dedupeKey);
     }
-  });
+  }
 
   return app;
+}
+
+function toEvaluateResponse(
+  result: ProcessBeatAgentEvaluationResult,
+  overrides: { deduplicated?: boolean; processingTime?: number } = {},
+): Record<string, unknown> {
+  return {
+    alreadyAttested: result.alreadyAttested,
+    deduplicated: overrides.deduplicated,
+    deferred: result.deferred,
+    decision: result.decision,
+    confidence: result.confidence,
+    reasoning: result.reasoning,
+    abstainReason: result.abstainReason,
+    extensions: result.extensions,
+    scorerResults: result.scorerResults,
+    evaluationVersionId: result.evaluationVersionId,
+    contentVersion: result.contentVersion,
+    subjectId: result.subjectId,
+    explanationCid: result.explanationCid,
+    transactionHash: result.transactionHash,
+    processingTime: overrides.processingTime ?? result.processingTime,
+  };
 }
 
 export const defaultUploadExplanation = uploadToIpfs;
@@ -277,7 +324,11 @@ export function appendEvaluationLogToJsonl(filePath: string) {
 }
 
 export function findExistingAttestationFromJsonl(filePath: string) {
-  return async (contentCanonicalId: string, statementCid: IpfsCidV1): Promise<BeatAgentExistingAttestation | null> => {
+  return async (
+    contentCanonicalId: string,
+    statementCid: IpfsCidV1,
+    scope?: import('./types.js').BeatAgentEvaluationScope,
+  ): Promise<BeatAgentExistingAttestation | null> => {
     try {
       const raw = await readFile(filePath, 'utf-8');
       const lines = raw.split('\n').filter((line) => line.trim());
@@ -286,22 +337,36 @@ export function findExistingAttestationFromJsonl(filePath: string) {
       for (let i = lines.length - 1; i >= 0; i--) {
         try {
           const entry = JSON.parse(lines[i]) as BeatAgentEvaluationLogEntry;
-          if (
-            entry.contentCanonicalId === contentCanonicalId &&
-            entry.statementCid === statementCid &&
-            entry.decision === 'positive' &&
-            entry.transactionHash
-          ) {
-            return {
-              decision: entry.decision,
-              confidence: entry.confidence,
-              reasoning: entry.reasoning,
-              abstainReason: entry.abstainReason,
-              subjectId: getSubjectIdForContentCanonicalId(entry.contentCanonicalId),
-              explanationCid: entry.explanationCid,
-              transactionHash: entry.transactionHash,
-            };
+          if (entry.contentCanonicalId !== contentCanonicalId || entry.statementCid !== statementCid) {
+            continue;
           }
+          if (entry.abstainReason === 'edit_window_open') {
+            continue;
+          }
+          if (scope?.evaluationVersionId && entry.evaluationVersionId !== scope.evaluationVersionId) {
+            continue;
+          }
+          if (scope?.contentVersion && entry.contentVersion !== scope.contentVersion) {
+            continue;
+          }
+          const versionScoped = Boolean(scope?.evaluationVersionId);
+          const legacyPositive = entry.decision === 'positive' && Boolean(entry.transactionHash);
+          if (!versionScoped && !legacyPositive) {
+            continue;
+          }
+          return {
+            decision: entry.decision,
+            confidence: entry.confidence,
+            reasoning: entry.reasoning,
+            abstainReason: entry.abstainReason,
+            extensions: entry.extensions,
+            scorerResults: entry.scorerResults,
+            evaluationVersionId: entry.evaluationVersionId,
+            contentVersion: entry.contentVersion,
+            subjectId: getSubjectIdForContentCanonicalId(entry.contentCanonicalId),
+            explanationCid: entry.explanationCid,
+            transactionHash: entry.transactionHash,
+          };
         } catch {
           // Skip malformed log lines.
         }
@@ -312,4 +377,22 @@ export function findExistingAttestationFromJsonl(filePath: string) {
       return null;
     }
   };
+}
+
+export async function listEvaluationLogEntries(filePath: string): Promise<BeatAgentEvaluationLogEntry[]> {
+  try {
+    const raw = await readFile(filePath, 'utf-8');
+    return raw
+      .split('\n')
+      .filter((line) => line.trim())
+      .flatMap((line) => {
+        try {
+          return [JSON.parse(line) as BeatAgentEvaluationLogEntry];
+        } catch {
+          return [];
+        }
+      });
+  } catch {
+    return [];
+  }
 }

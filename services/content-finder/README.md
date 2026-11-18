@@ -22,6 +22,10 @@ Each poll cycle:
 4. Submits the resolved content to the content attester in batches.
 5. Marks successfully submitted items as processed in the state file.
 
+The suggestion queue is bounded by `CONTENT_FINDER_SUGGESTION_QUEUE_CAPACITY` (default 100). Repeat submissions retain their original queue position; resolved aliases of one post and statement share one evaluation. Submitter identity is never passed to the attester. Deferred beat-agent results remain queued.
+
+Set `CONTENT_FINDER_MONTHLY_SPEND_CEILING_USD` together with a positive `CONTENT_FINDER_ESTIMATED_EVALUATION_USD` to cap estimated evaluation spending per UTC month. Reservations are persisted before requests; failed responses are conservatively charged because the remote work may have completed. After a crash, unresolved reservations remain charged against the ceiling. Use one finder process per state file. This accounts for configured estimates, not actual provider billing or platform resolution costs; choose a conservative estimate. The shared queue helper supports separate finder and suggestion lanes, but this service currently receives suggestions only.
+
 ## Submission file
 
 `SUBMISSIONS_FILE_PATH` points to a JSON file containing an array like:

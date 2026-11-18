@@ -4,8 +4,8 @@ import { buildCidV1FromDigest, cidToBytes32 } from '@commonality/sdk/utils';
 import { AlignmentAttestationsAbi } from '@commonality/sdk/abis';
 import { getSubjectIdForContentCanonicalId, hasBeatAgentAttestation } from '../src/index.js';
 
-const statementCid = buildCidV1FromDigest(0x70, new Uint8Array(32).fill(1)) as IpfsCidV1;
-const topicStatementCid = buildCidV1FromDigest(0x70, new Uint8Array(32).fill(2)) as IpfsCidV1;
+const statementCid = buildCidV1FromDigest(0x55, new Uint8Array(32).fill(1)) as IpfsCidV1;
+const topicStatementCid = buildCidV1FromDigest(0x55, new Uint8Array(32).fill(2)) as IpfsCidV1;
 
 describe('beat-agent blockchain helpers', () => {
   it('checks durable on-chain idempotency using the same tuple published by attestAlignment', async () => {
