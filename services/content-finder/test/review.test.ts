@@ -49,6 +49,40 @@ describe('bounded content review', () => {
     }
   });
 
+  it('does not consume the monthly ceiling when the attester defers before a paid call', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'content-review-deferred-'));
+    const originalFetch = globalThis.fetch;
+    const stateFilePath = join(directory, 'state.json');
+    const submissionsFilePath = join(directory, 'submissions.json');
+    try {
+      await writeFile(submissionsFilePath, JSON.stringify([
+        { contentUrl: 'https://x.com/a/status/2', statementCid: 'bafytest' },
+      ]));
+      globalThis.fetch = async (url) => {
+        if (String(url).endsWith('/resolve/content')) {
+          return Response.json({ canonicalId: 'twitter:uid:1:2', metadata: { text: 'Post' } });
+        }
+        return Response.json({ results: [{ contentCanonicalId: 'twitter:uid:1:2', statementCid: 'bafytest', success: true, deferred: true, decision: 'abstain' }] });
+      };
+      const config = {
+        platformApiUrl: 'http://platform', attesterUrl: 'http://attester', attesterFinderKey: 'key',
+        pollIntervalMs: 1000, stateFilePath, submissionsFilePath,
+        suggestionQueueCapacity: 10, finderQueueCapacity: 10,
+        monthlySpendCeilingUsd: 1, estimatedEvaluationUsd: 1,
+      };
+      await runOnce(config);
+      await runOnce(config);
+      const state = JSON.parse(await readFile(stateFilePath, 'utf8'));
+      assert.equal(state.settledUsd, 0);
+      assert.equal(state.reservedUsd, 0);
+      assert.equal(state.droppedBudgetCount ?? 0, 0);
+      assert.equal(state.queuedKeys.length, 1);
+    } finally {
+      globalThis.fetch = originalFetch;
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
+
   it('rejects invalid spending and queue configuration', () => {
     const env = {
       CONTENT_FINDER_PLATFORM_API_URL: 'http://platform', CONTENT_FINDER_ATTESTER_URL: 'http://attester',

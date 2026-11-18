@@ -1,5 +1,5 @@
 import { pathToFileURL } from 'node:url';
-import { enqueueReview, reserveSpend, runPollingFinder, settleSpend, type PollingFinderRunHandle, type ReviewQueueItem } from '@commonality/finder-core';
+import { enqueueReview, releaseSpend, reserveSpend, runPollingFinder, settleSpend, type PollingFinderRunHandle, type ReviewQueueItem } from '@commonality/finder-core';
 import { loadConfig, loadConfigFromEnv, type ContentFinderConfig } from './config.js';
 export { loadConfigFromEnv };
 export type { ContentFinderConfig };
@@ -140,8 +140,13 @@ export async function runOnce(config: ContentFinderConfig): Promise<void> {
     }
 
     succeeded++;
+    if (result.deferred) {
+      // The attester postponed work before a paid model call. Keep the item queued without consuming the ceiling.
+      releaseSpend(budget, config.estimatedEvaluationUsd);
+      console.log(`  DEFERRED ${result.contentCanonicalId}`);
+      continue;
+    }
     settleSpend(budget, config.estimatedEvaluationUsd);
-    if (result.deferred) continue;
     for (const key of evaluation.submissionKeys) processedKeys.add(key);
     state.queuedKeys = (state.queuedKeys ?? []).filter((key) => !evaluation.submissionKeys.includes(key));
 
