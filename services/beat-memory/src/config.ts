@@ -20,6 +20,12 @@ export interface BeatMemoryConfig {
 	openRouterApiKey?: string;
 	openRouterModel: string;
 	maxUntrustedChars: number;
+	/** Newly stored items per immutable author id in one ingestion run. Unset means no cap. */
+	maxNewItemsPerAuthor?: number;
+	spendStateFilePath?: string;
+	monthlySpendCeilingUsd?: number;
+	/** Charged per post returned by a paid source fetch. X pay-per-use post reads are $0.005. */
+	estimatedReadUsdPerPost: number;
 }
 
 function readOptionalStringFrom(
@@ -168,7 +174,37 @@ export function loadConfigFromEnv(
 			env,
 			4000,
 		),
+		maxNewItemsPerAuthor: readOptionalNumberFrom(
+			["BEAT_MEMORY_MAX_NEW_ITEMS_PER_AUTHOR"],
+			env,
+		),
+		spendStateFilePath: readOptionalStringFrom(
+			["BEAT_MEMORY_SPEND_STATE_FILE"],
+			env,
+		),
+		monthlySpendCeilingUsd: readOptionalNumberFrom(
+			["BEAT_MEMORY_MONTHLY_SPEND_CEILING_USD"],
+			env,
+		),
+		estimatedReadUsdPerPost: readNumberFrom(
+			["BEAT_MEMORY_ESTIMATED_READ_USD_PER_POST"],
+			env,
+			0.005,
+		),
 	};
+}
+
+function readOptionalNumberFrom(
+	names: readonly string[],
+	env: NodeJS.ProcessEnv,
+): number | undefined {
+	const raw = readOptionalStringFrom(names, env);
+	if (!raw) return undefined;
+	const parsed = Number(raw);
+	if (!Number.isFinite(parsed) || parsed < 0) {
+		throw new Error(`Invalid numeric environment variable: ${names[0]}`);
+	}
+	return parsed;
 }
 
 export const loadConfig = loadConfigFromEnv;

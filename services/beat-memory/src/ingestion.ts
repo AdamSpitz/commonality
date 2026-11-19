@@ -73,6 +73,9 @@ export interface RunBeatIngestionOnceParams {
 	env?: Record<string, string | undefined>;
 	/** Hard cap on newly stored items per immutable author id in one run. */
 	maxNewItemsPerAuthor?: number;
+	/** Return false to skip a paid source fetch because the monthly ceiling would be exceeded. */
+	beforeSourceFetch?: (source: BeatSource) => Promise<boolean> | boolean;
+	afterSourceFetch?: (source: BeatSource, itemCount: number) => Promise<void> | void;
 }
 
 export interface BeatIngestionRunSummary {
@@ -108,7 +111,8 @@ export interface BeatIngestionSkippedSource {
 		| "rate_limited"
 		| "missing_credentials"
 		| "missing_adapter"
-		| "fetch_failed";
+		| "fetch_failed"
+		| "budget";
 	errorMessage?: string;
 	errorName?: string;
 }
@@ -237,10 +241,16 @@ export async function runBeatIngestionOnce(
 			continue;
 		}
 
+		if (params.beforeSourceFetch && await params.beforeSourceFetch(source) === false) {
+			summary.skippedSources.push({ sourceId: source.id, reason: "budget" });
+			continue;
+		}
+
 		let result: BeatSourceFetchResult;
 		try {
 			result = await adapter.fetchSource(source, previousCursor);
 		} catch (error) {
+			if (params.afterSourceFetch) await params.afterSourceFetch(source, 0);
 			summary.skippedSources.push({
 				sourceId: source.id,
 				reason: "fetch_failed",
@@ -249,6 +259,7 @@ export async function runBeatIngestionOnce(
 			continue;
 		}
 		summary.fetchedSourceIds.push(source.id);
+		if (params.afterSourceFetch) await params.afterSourceFetch(source, result.items.length);
 
 		for (const item of result.items) {
 			if (knownIds.has(item.contentCanonicalId)) {

@@ -10,6 +10,11 @@ export interface ContentFinderConfig {
   finderQueueCapacity: number;
   monthlySpendCeilingUsd?: number;
   estimatedEvaluationUsd: number;
+  ingestionStateFilePath?: string;
+  finderStatementCid?: string;
+  /** Fraction of each review batch reserved for finder-lane items. Leftover slots go to the other lane. */
+  finderLaneShare: number;
+  reviewBatchSize: number;
 }
 
 function requireEnvFrom(name: string, env: NodeJS.ProcessEnv): string {
@@ -80,6 +85,10 @@ export function loadConfigFromEnv(env: NodeJS.ProcessEnv = process.env): Content
     finderQueueCapacity: readNumberFrom(['CONTENT_FINDER_FINDER_QUEUE_CAPACITY'], env, 100),
     monthlySpendCeilingUsd: readOptionalNumberFrom(['CONTENT_FINDER_MONTHLY_SPEND_CEILING_USD'], env),
     estimatedEvaluationUsd: readNumberFrom(['CONTENT_FINDER_ESTIMATED_EVALUATION_USD'], env, 0),
+    ingestionStateFilePath: readOptionalStringFrom(['CONTENT_FINDER_INGESTION_STATE_FILE'], env),
+    finderStatementCid: readOptionalStringFrom(['CONTENT_FINDER_FINDER_STATEMENT_CID'], env),
+    finderLaneShare: readNumberFrom(['CONTENT_FINDER_FINDER_LANE_SHARE'], env, 0.5),
+    reviewBatchSize: readNumberFrom(['CONTENT_FINDER_REVIEW_BATCH_SIZE'], env, 10),
   });
 }
 
@@ -115,6 +124,10 @@ export function loadConfig(): ContentFinderConfig {
       ? Number(process.env.CONTENT_FINDER_MONTHLY_SPEND_CEILING_USD)
       : undefined,
     estimatedEvaluationUsd: Number(process.env.CONTENT_FINDER_ESTIMATED_EVALUATION_USD || 0),
+    ingestionStateFilePath: process.env.CONTENT_FINDER_INGESTION_STATE_FILE,
+    finderStatementCid: process.env.CONTENT_FINDER_FINDER_STATEMENT_CID,
+    finderLaneShare: Number(process.env.CONTENT_FINDER_FINDER_LANE_SHARE || 0.5),
+    reviewBatchSize: Number(process.env.CONTENT_FINDER_REVIEW_BATCH_SIZE || 10),
   });
 }
 
@@ -127,6 +140,15 @@ function validateConfig(config: ContentFinderConfig): ContentFinderConfig {
   }
   if (config.monthlySpendCeilingUsd !== undefined && config.estimatedEvaluationUsd <= 0) {
     throw new Error('A monthly spend ceiling requires a positive evaluation cost estimate');
+  }
+  if (config.finderLaneShare < 0 || config.finderLaneShare > 1) {
+    throw new Error('Finder lane share must be between 0 and 1');
+  }
+  if (!Number.isSafeInteger(config.reviewBatchSize) || config.reviewBatchSize < 1) {
+    throw new Error('Review batch size must be a positive integer');
+  }
+  if (config.ingestionStateFilePath && !config.finderStatementCid) {
+    throw new Error('Finder ingestion requires CONTENT_FINDER_FINDER_STATEMENT_CID');
   }
   return config;
 }

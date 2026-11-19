@@ -62,3 +62,35 @@ export function settleSpend(budget: SpendBudget, estimatedUsd: number, actualUsd
 export function releaseSpend(budget: SpendBudget, estimatedUsd: number): void {
 	budget.reservedUsd = Math.max(0, budget.reservedUsd - estimatedUsd);
 }
+
+/**
+ * Take up to batchSize items, filling each lane's share first.
+ * Unused slots from an empty lane go to the other lane.
+ */
+export function takeReviewBatch<T extends ReviewQueueItem>(
+	queue: readonly T[],
+	batchSize: number,
+	finderShare: number,
+): T[] {
+	if (batchSize <= 0) return [];
+	const share = Math.min(1, Math.max(0, finderShare));
+	const finderSlots = Math.round(batchSize * share);
+	const suggestionSlots = batchSize - finderSlots;
+	const taken: T[] = [];
+	let finder = 0;
+	let suggestion = 0;
+	for (const item of queue) {
+		if (item.lane === "finder" && finder < finderSlots) {
+			taken.push(item);
+			finder++;
+		} else if (item.lane === "suggestion" && suggestion < suggestionSlots) {
+			taken.push(item);
+			suggestion++;
+		}
+	}
+	for (const item of queue) {
+		if (taken.length >= batchSize) break;
+		if (!taken.includes(item)) taken.push(item);
+	}
+	return taken;
+}

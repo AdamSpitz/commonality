@@ -30,6 +30,7 @@ import { createTallyIndexerBeatSourceAdapter } from "./tallyIndexerAdapter.js";
 import { createTwitterBeatSourceAdapters } from "./twitterAdapter.js";
 import { createBeatMemoryApp, createJsonFileBeatContextQuery } from "./app.js";
 import { loadConfigFromEnv, type BeatMemoryConfig } from "./config.js";
+import { reserveSourceRead, settleSourceRead } from "./readSpend.js";
 
 export { createBeatMemoryApp, createJsonFileBeatContextQuery } from "./app.js";
 export type {
@@ -201,6 +202,13 @@ export async function runBeatMemoryWorkerOnce(
 		},
 		now,
 		env,
+		maxNewItemsPerAuthor: config.maxNewItemsPerAuthor,
+		beforeSourceFetch: config.spendStateFilePath && config.monthlySpendCeilingUsd !== undefined
+			? (source) => reserveSourceRead(config, source, now)
+			: undefined,
+		afterSourceFetch: config.spendStateFilePath
+			? (source, itemCount) => settleSourceRead(config, source, itemCount, now)
+			: undefined,
 	});
 	log("Beat-memory ingestion completed.", { summary: summary.ingestion });
 
