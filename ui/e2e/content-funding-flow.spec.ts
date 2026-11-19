@@ -61,6 +61,7 @@ test.describe('Content Funding Flow', () => {
         contentSupplies: [100n],
         contentPrices: [parseUnits('0.01', 6)],
         threshold: parseUnits('1', 6),
+        paymentToken: process.env.VITE_PAYMENT_TOKEN_ADDRESS as `0x${string}`,
         deadline: BigInt(Math.floor(Date.now() / 1000) + 86400 * 30),
         metadataCid,
         erc1155MetadataUri: `ipfs://${metadataCid}/`,
@@ -163,6 +164,7 @@ test.describe('Content Funding Flow', () => {
         isThirdParty: true,
         initialPurchaseIndices: [0n],
         initialPurchaseCounts: [purchaseCount],
+        paymentToken: paymentTokenAddress as `0x${string}`,
       }
     )
     console.log(`  Third-party contract created: ${contractDetails.contractAddress}`)

@@ -196,12 +196,17 @@ export function isProjectDisavowed(
 export const foldChannelState = foldBeneficiaryState;
 
 /** Bump when the content-funding accumulator shape or fold rules change. */
-export const CONTENT_FUNDING_FOLD_VERSION = 1;
+export const CONTENT_FUNDING_FOLD_VERSION = 2;
+
+export function escrowBalanceKey(channelId: string, token: string): string {
+  return `${channelId}:${token.toLowerCase()}`;
+}
 
 /** Folded state of the BeneficiaryEscrow contract. */
 export interface BeneficiaryEscrowState {
   /** Map from channelId (bytes32) to balance tracking. */
-  balances: Map<string, { balance: bigint; totalDeposited: bigint; totalWithdrawn: bigint }>;
+  /** Keyed by `escrowBalanceKey(channelId, token)`, never by channel alone. */
+  balances: Map<string, { token: `0x${string}`; balance: bigint; totalDeposited: bigint; totalWithdrawn: bigint }>;
 }
 
 /**
@@ -214,14 +219,15 @@ export function foldBeneficiaryEscrow(
   events: (DepositedEvent | WithdrawnEvent)[],
   initial?: BeneficiaryEscrowState,
 ): BeneficiaryEscrowState {
-  const balances = new Map<string, { balance: bigint; totalDeposited: bigint; totalWithdrawn: bigint }>(
+  const balances = new Map<string, { token: `0x${string}`; balance: bigint; totalDeposited: bigint; totalWithdrawn: bigint }>(
     initial
       ? [...initial.balances.entries()].map(([id, entry]) => [id, { ...entry }])
       : [],
   );
 
   for (const event of events) {
-    const entry = balances.get(event.channelId) ?? { balance: 0n, totalDeposited: 0n, totalWithdrawn: 0n };
+    const key = escrowBalanceKey(event.channelId, event.token);
+    const entry = balances.get(key) ?? { token: event.token, balance: 0n, totalDeposited: 0n, totalWithdrawn: 0n };
 
     if (event.type === 'Deposited') {
       entry.balance += event.amount;
@@ -231,7 +237,7 @@ export function foldBeneficiaryEscrow(
       entry.totalWithdrawn += event.amount;
     }
 
-    balances.set(event.channelId, entry);
+    balances.set(key, entry);
   }
 
   return { balances };
@@ -247,6 +253,7 @@ export interface CreatorContractInfo {
   creator: string;
   /** Whether created by a third party (not the channel owner). */
   isThirdParty: boolean;
+  paymentToken: string;
 }
 
 /** Folded state of the CreatorAssuranceContractFactory. */
@@ -273,6 +280,7 @@ export function foldCreatorContracts(
       channelId: event.channelId,
       creator: event.creator,
       isThirdParty: event.isThirdParty,
+      paymentToken: event.paymentToken,
     });
   }
 

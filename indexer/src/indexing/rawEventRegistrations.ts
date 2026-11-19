@@ -109,10 +109,10 @@ export function registerRawEvents(register: (name: string) => void): void {
   register("BeneficiaryRegistry:ProjectDisavowalWithdrawn");
   register("BeneficiaryRegistry:PayoutAddressRotated");
   register("CreatorAssuranceVeto:ContractVetoed");
-  register("BeneficiaryEscrow:Deposited");
-  register("BeneficiaryEscrow:Withdrawn");
-  register("CreatorAssuranceContractFactory:CreatorContractCreated");
-  register("ProspectiveContentRoundFactory:ProspectiveRoundCreated");
+  register("BeneficiaryEscrow:DepositedV2");
+  register("BeneficiaryEscrow:WithdrawnV2");
+  register("CreatorAssuranceContractFactory:CreatorContractCreatedV2");
+  register("ProspectiveContentRoundFactory:ProspectiveRoundCreatedV2");
   register("ProspectiveContentRoundFactory:ProspectiveRoundMaterialized");
   register("MaterializedContentTokens:ContentMaterialized");
   register("MaterializedContentTokens:ContentTokenClaimed");

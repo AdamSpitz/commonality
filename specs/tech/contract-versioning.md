@@ -116,11 +116,12 @@ it's effectively Class 1).
   SDK fold outputs, UI URLs, caches — must key by `(contractAddress, id)` *before*
   any v2 exists. (The indexer's raw-events table is keyed by block/log-index and is
   fine; the folds and UI are where collisions bite.)
-- **The payment token is a hidden version axis.** `paymentToken` is immutable in the
-  escrow, the creator factory, every market, and every assurance contract. Switching
-  testnet USDZZZ → real USDC at mainnet, or a future USDC migration, triggers the
-  same cascade as a contract v2. Token migration and contract v2 are the same
-  playbook.
+- **The payment token is a per-project choice, not a deployment-wide version.**
+  Assurance contracts still store an immutable `paymentToken`, but factories take
+  it per create call and check `PaymentTokenRegistry`. Creation and escrow events
+  that include the token are `CreatorContractCreatedV2`, `ProspectiveRoundCreatedV2`,
+  `DepositedV2`, and `WithdrawnV2`. Switching the whole deployment from USDZZZ to
+  USDC is still a fresh deploy, not a migration of existing escrows.
 
 ## Playbook for shipping a v2
 

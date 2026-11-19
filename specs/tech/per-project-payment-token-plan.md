@@ -1,6 +1,6 @@
 # Plan: per-project payment token
 
-Status: planned, not started (2026-11-19). Background and decisions: [currency.md](../product/currency.md).
+Status: done. Background and decisions: [currency.md](../product/currency.md).
 
 ## Goal
 

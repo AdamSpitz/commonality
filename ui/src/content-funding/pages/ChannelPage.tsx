@@ -26,7 +26,8 @@ import { parseCanonicalChannelId, getChannelOverview, getContentItemKey, getPros
 import { useContentFundingState, type ContentAttestationInfo } from '../hooks/useContentFundingState'
 import { getChannelDisplayLabels } from '../channelDisplay'
 import { getAppUrl, contentContractPathForAddress, InfoChip, useTrustedContentAttesters } from '../../shared'
-import { formatCurrencyAmount } from '../../shared/funding'
+import { formatCurrencyAmount, formatCurrencyTotals } from '../../shared/funding'
+import { formatContractFundingTotals } from '../channelTotals'
 import {
   FAN_CREATED_TOOLTIP,
   CHANNEL_STATE_TOOLTIPS,
@@ -82,16 +83,6 @@ function getContentUrl(canonicalId: string): string | null {
     return `https://${substackMatch[1]}.substack.com/p/${substackMatch[2]}`
   }
   return null
-}
-
-function getTotalFunding(overview: ChannelOverview): bigint {
-  let total = 0n
-  for (const contract of overview.contracts) {
-    if (contract.project) {
-      total += BigInt(contract.project.totalReceived)
-    }
-  }
-  return total
 }
 
 function getOverviewFundingCurrency(overview: ChannelOverview): Currency {
@@ -448,8 +439,15 @@ export function ChannelPage({
   const { channel, escrow, contracts, contentItems } = overview
   const displayLabels = getChannelDisplayLabels(canonicalChannelId, channelDisplayMetadata.get(canonicalChannelId))
   const displayName = displayLabels.primary
-  const totalFunding = aggregationOverview ? getTotalFunding(aggregationOverview) : 0n
+  const totalFundingLabel = formatContractFundingTotals((aggregationOverview ?? overview).contracts)
   const fundingCurrency = getOverviewFundingCurrency(aggregationOverview ?? overview)
+  const escrowEntries = ((escrow as { entries?: Array<{ token: `0x${string}`; balance: bigint }> }).entries ?? []).filter((entry) => entry.balance > 0n)
+  const escrowLabel = escrowEntries.length > 0
+    ? formatCurrencyTotals(escrowEntries.map((entry) => ({
+      amount: entry.balance,
+      currency: (aggregationOverview ?? overview).contracts.find((contract) => contract.project?.fundingCurrency.tokenAddress?.toLowerCase() === entry.token.toLowerCase())?.project?.fundingCurrency ?? fundingCurrency,
+    })))
+    : formatCurrencyAmount(escrow.balance, fundingCurrency)
   const trustedContentItems = contentItems.filter((item) => (
     getTrustedContentAttestationMatches(contentAttestations.get(item.canonicalId), trustedAttesters).length > 0
   ))
@@ -458,9 +456,9 @@ export function ChannelPage({
   const isUnclaimed = channel.state === 'unclaimed'
   const claimUrl = getAppUrl(`/content/${platform ?? 'unknown'}/${encodeURIComponent(canonicalChannelId)}`)
 
-  const suggestedFunding = escrow.balance > 0n ? escrow.balance : totalFunding
+  const suggestedFundingLabel = escrow.balance > 0n || escrowEntries.length > 0 ? escrowLabel : totalFundingLabel
   const suggestedMessage = [
-    `${suggestedMessagePrefix} ${formatCurrencyAmount(suggestedFunding, fundingCurrency)} for your work on-chain.`,
+    `${suggestedMessagePrefix} ${suggestedFundingLabel} for your work on-chain.`,
     `You can claim it here: ${claimUrl}`,
   ].join(' ')
 
@@ -496,13 +494,13 @@ export function ChannelPage({
         <Stack direction="row" spacing={4} sx={{ mt: 2 }}>
           <Box>
             <Typography variant="body2" color="text.secondary">Total Funding Raised</Typography>
-            <Typography variant="h6">{formatCurrencyAmount(totalFunding, fundingCurrency)}</Typography>
+            <Typography variant="h6">{totalFundingLabel}</Typography>
           </Box>
           {escrow.balance > 0n && (
             <Box>
               <Typography variant="body2" color="text.secondary">Waiting to be claimed</Typography>
               <Typography variant="h6" color="warning.main">
-                {formatCurrencyAmount(escrow.balance, fundingCurrency)}
+                {escrowLabel}
               </Typography>
             </Box>
           )}
@@ -524,7 +522,7 @@ export function ChannelPage({
           elevation={0}
         >
           <Typography variant="h5" gutterBottom>
-            Contributors have pooled {formatCurrencyAmount(escrow.balance, fundingCurrency)} for {displayName}&apos;s work.
+            Contributors have pooled {escrowLabel} for {displayName}&apos;s work.
           </Typography>
           <Typography variant="body1" sx={{ mb: 2 }}>
             {unclaimedHeroDescription}

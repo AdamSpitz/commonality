@@ -106,9 +106,11 @@ export function useMachinery(): SDKMachinery {
     const publicClient = ethRpcUrl
       ? createPublicClient({ chain: chainForId(defaultChainId ?? hardhat.id), transport: http(ethRpcUrl) })
       : undefined
-    const settlementTokenAddresses = getRuntimeConfigValue('VITE_PAYMENT_TOKEN_ADDRESS')
-      ? [getRuntimeConfigValue('VITE_PAYMENT_TOKEN_ADDRESS') as `0x${string}`]
-      : []
+    const settlementTokenAddresses = [
+      getRuntimeConfigValue('VITE_PAYMENT_TOKEN_ADDRESS'),
+      getRuntimeConfigValue('VITE_POINTS_TOKEN_ADDRESS'),
+      getRuntimeConfigValue('VITE_ALT_PAYMENT_TOKEN_ADDRESS'),
+    ].filter((address): address is `0x${string}` => Boolean(address))
     const machinery = createSDKMachinery({
       ipfsConfig,
       twitterApiConfig,

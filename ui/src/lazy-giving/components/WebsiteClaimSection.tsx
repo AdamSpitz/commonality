@@ -47,9 +47,10 @@ export function WebsiteClaimSection({ domain, projectAddress }: WebsiteClaimSect
   const beneficiaryId = useMemo(() => hashBeneficiaryId('dns', domain), [domain])
   const registryAddress = getRuntimeConfigValue('VITE_BENEFICIARY_REGISTRY_ADDRESS') as `0x${string}` | undefined
   const escrowAddress = getRuntimeConfigValue('VITE_BENEFICIARY_ESCROW_ADDRESS') as `0x${string}` | undefined
+  const paymentToken = getRuntimeConfigValue('VITE_PAYMENT_TOKEN_ADDRESS') as `0x${string}` | undefined
 
   const reload = async () => {
-    if (!publicClient || !registryAddress || !escrowAddress) return
+    if (!publicClient || !registryAddress || !escrowAddress || !paymentToken) return
     try {
       setLoadError(null)
       const [state, balance, payout] = await Promise.all([
@@ -63,7 +64,7 @@ export function WebsiteClaimSection({ domain, projectAddress }: WebsiteClaimSect
           address: escrowAddress,
           abi: BeneficiaryEscrowAbi,
           functionName: 'balance',
-          args: [beneficiaryId],
+          args: [beneficiaryId, paymentToken],
         }) as Promise<bigint>,
         publicClient.readContract({
           address: registryAddress,

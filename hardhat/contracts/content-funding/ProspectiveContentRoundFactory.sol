@@ -21,6 +21,11 @@ error NotProspectiveRound(address round);
 error ProspectiveRoundNotSuccessful(address round);
 error MaterializedCollectionAlreadyCreated(address round);
 error UnsupportedChannelCanonicalId(string canonicalId);
+error PaymentTokenNotAllowed(address token);
+
+interface IPaymentTokenRegistry {
+    function isAllowed(address token) external view returns (bool);
+}
 
 interface IRegistrarAuthority {
     function authorizeMaterializedRegistrar(address registrar) external;
@@ -54,12 +59,13 @@ contract ProspectiveContentRoundFactory is ReentrancyGuard {
         string metadataCid;
         string receiptMetadataUri;
         string receiptContractUri;
+        address paymentToken;
     }
 
     BeneficiaryRegistry public immutable beneficiaryRegistry;
     ContentRegistry public immutable contentRegistry;
     ValueThresholdConditionFactory public immutable conditionFactory;
-    address public immutable paymentToken;
+    IPaymentTokenRegistry public immutable paymentTokenRegistry;
     address public immutable registrarAuthority;
     ProspectiveRoundDeploymentHelper public immutable roundDeploymentHelper;
     MaterializedContentDeploymentHelper public immutable materializedDeploymentHelper;
@@ -72,14 +78,14 @@ contract ProspectiveContentRoundFactory is ReentrancyGuard {
     mapping(address => string) private _channelCanonicalIdByRound;
     mapping(address => string) private _contentIdSeparatorByRound;
 
-    event ProspectiveRoundCreated(address indexed round, bytes32 indexed channelId, address indexed receiptToken, uint256 receiptTokenId, address condition);
+    event ProspectiveRoundCreatedV2(address indexed round, bytes32 indexed channelId, address indexed receiptToken, uint256 receiptTokenId, address condition, address paymentToken);
     event ProspectiveRoundMaterialized(address indexed round, address indexed tokenContract);
 
-    constructor(address channels, address contents, address conditions, address settlementToken, address authority, address roundHelper, address materializedHelper) {
+    constructor(address channels, address contents, address conditions, address tokenRegistry, address authority, address roundHelper, address materializedHelper) {
         beneficiaryRegistry = BeneficiaryRegistry(channels);
         contentRegistry = ContentRegistry(contents);
         conditionFactory = ValueThresholdConditionFactory(conditions);
-        paymentToken = settlementToken;
+        paymentTokenRegistry = IPaymentTokenRegistry(tokenRegistry);
         registrarAuthority = authority;
         roundDeploymentHelper = ProspectiveRoundDeploymentHelper(roundHelper);
         materializedDeploymentHelper = MaterializedContentDeploymentHelper(materializedHelper);
@@ -93,9 +99,10 @@ contract ProspectiveContentRoundFactory is ReentrancyGuard {
         string memory contentIdSeparator = _contentIdSeparator(p.channelCanonicalId);
         if (p.threshold == 0 || p.deadline <= block.timestamp) revert InvalidFundingTerms();
         if (p.supply == 0 || p.price == 0) revert InvalidReceiptTerms();
+        if (!paymentTokenRegistry.isAllowed(p.paymentToken)) revert PaymentTokenNotAllowed(p.paymentToken);
 
         ProspectiveContentTokens token = roundDeploymentHelper.deployToken(address(this), p.channelId, p.channelCanonicalId, p.receiptMetadataUri, p.receiptContractUri);
-        ProspectiveContentAssuranceContract round = roundDeploymentHelper.deployRound(address(this), msg.sender, paymentToken, address(token), p.metadataCid, p.channelId);
+        ProspectiveContentAssuranceContract round = roundDeploymentHelper.deployRound(address(this), msg.sender, p.paymentToken, address(token), p.metadataCid, p.channelId);
         ValueThresholdCondition condition = conditionFactory.createCondition(address(round), p.threshold, p.deadline);
         round.setCondition(condition);
         uint256[] memory ids = new uint256[](1);
@@ -117,7 +124,7 @@ contract ProspectiveContentRoundFactory is ReentrancyGuard {
         conditionByRound[roundAddress] = address(condition);
         _channelCanonicalIdByRound[roundAddress] = p.channelCanonicalId;
         _contentIdSeparatorByRound[roundAddress] = contentIdSeparator;
-        emit ProspectiveRoundCreated(roundAddress, p.channelId, address(token), p.tokenId, address(condition));
+        emit ProspectiveRoundCreatedV2(roundAddress, p.channelId, address(token), p.tokenId, address(condition), p.paymentToken);
         return roundAddress;
     }
 

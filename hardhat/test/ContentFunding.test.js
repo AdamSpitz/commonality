@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import hre from "hardhat";
 const { ethers } = hre;
+let activePaymentToken;
 const proofHash = ethers.id("https://x.com/commonality/status/proof");
 
 function channelIdFromCanonical(channelCanonicalId) {
@@ -35,15 +36,12 @@ async function createContentFundingContract({
   initialPurchaseContentSuffixes = [],
   initialPurchaseCounts = [],
   initialPurchaseValue,
+  paymentToken = activePaymentToken,
 }) {
   const channelId = channelIdFromCanonical(channelCanonicalId);
   const initialPurchaseIndices = initialPurchaseContentSuffixes.map((suffix) => contentSuffixes.indexOf(suffix));
 
   if (initialPurchaseValue !== undefined && initialPurchaseValue > 0n) {
-    const paymentToken = await ethers.getContractAt(
-      "PremintingERC20",
-      await factory.paymentToken()
-    );
     await paymentToken.connect(signer).approve(await factory.getAddress(), initialPurchaseValue);
   }
 
@@ -59,7 +57,8 @@ async function createContentFundingContract({
     erc1155MetadataUri,
     erc1155ContractUri,
     initialPurchaseIndices,
-    initialPurchaseCounts
+    initialPurchaseCounts,
+    paymentToken: await paymentToken.getAddress(),
   };
 
   return isThirdParty
@@ -70,7 +69,7 @@ async function createContentFundingContract({
 describe("ContentFunding", function () {
   let contentRegistry, beneficiaryIdentity, beneficiaryRegistry, beneficiaryEscrow;
   let factory, contentVeto, erc1155Factory, conditionFactory;
-  let paymentToken;
+  let paymentToken, paymentTokenRegistry;
   let mockVerifier;
   let owner, recipient, alice, bob, charlie, thirdParty;
 
@@ -90,7 +89,7 @@ describe("ContentFunding", function () {
     beneficiaryRegistry = await BeneficiaryRegistry.deploy(await beneficiaryIdentity.getAddress());
 
     const PremintingERC20 = await ethers.getContractFactory("PremintingERC20");
-    paymentToken = await PremintingERC20.deploy(
+    paymentToken = activePaymentToken = await PremintingERC20.deploy(
       owner.address,
       "Content Funding Payment Token",
       "CFPT",
@@ -102,9 +101,11 @@ describe("ContentFunding", function () {
 
     const BeneficiaryEscrow = await ethers.getContractFactory("BeneficiaryEscrow");
     beneficiaryEscrow = await BeneficiaryEscrow.deploy(
-      await beneficiaryRegistry.getAddress(),
-      await paymentToken.getAddress()
+      await beneficiaryRegistry.getAddress()
     );
+    const registry = await ethers.deployContract("PaymentTokenRegistry", [owner.address]);
+    await registry.allow(await paymentToken.getAddress());
+    paymentTokenRegistry = registry;
 
     const PremintingERC1155Factory = await ethers.getContractFactory("PremintingERC1155Factory");
     erc1155Factory = await PremintingERC1155Factory.deploy();
@@ -120,7 +121,7 @@ describe("ContentFunding", function () {
       await beneficiaryEscrow.getAddress(),
       await erc1155Factory.getAddress(),
       await conditionFactory.getAddress(),
-      await paymentToken.getAddress(),
+      await paymentTokenRegistry.getAddress(),
       ":",
       await assuranceDeployer.getAddress()
     );
@@ -137,7 +138,7 @@ describe("ContentFunding", function () {
 
   async function depositIntoEscrow(signer, channelId, amount) {
     await paymentToken.connect(signer).approve(await beneficiaryEscrow.getAddress(), amount);
-    return beneficiaryEscrow.connect(signer).deposit(channelId, amount);
+    return beneficiaryEscrow.connect(signer).deposit(channelId, await paymentToken.getAddress(), amount);
   }
 
   describe("ContentRegistry", function () {
@@ -179,6 +180,7 @@ describe("ContentFunding", function () {
         erc1155ContractUri: "ipfs://QmContract",
         initialPurchaseIndices: [],
         initialPurchaseCounts: [],
+        paymentToken: await paymentToken.getAddress(),
       });
 
       expect(await contentRegistry.isRegistered(contentId1)).to.be.true;
@@ -233,6 +235,7 @@ describe("ContentFunding", function () {
         erc1155ContractUri: "ipfs://QmContract",
         initialPurchaseIndices: [],
         initialPurchaseCounts: [],
+        paymentToken: await paymentToken.getAddress(),
       };
 
       await factory.connect(owner).createCreatorContract(params);
@@ -397,14 +400,14 @@ describe("ContentFunding", function () {
 
       const depositAmount = ethers.parseEther("1.0");
       await depositIntoEscrow(alice, beneficiaryId, depositAmount);
-      await expect(beneficiaryEscrow.connect(alice).withdraw(beneficiaryId))
+      await expect(beneficiaryEscrow.connect(alice).withdraw(beneficiaryId, await paymentToken.getAddress()))
         .to.be.revertedWithCustomError(beneficiaryEscrow, "ClaimWaitingPeriodNotElapsed");
 
       await ethers.provider.send("evm_increaseTime", [waitingPeriod]);
       await ethers.provider.send("evm_mine", []);
-      await expect(beneficiaryEscrow.connect(alice).withdraw(beneficiaryId))
-        .to.emit(beneficiaryEscrow, "Withdrawn")
-        .withArgs(beneficiaryId, alice.address, depositAmount);
+      await expect(beneficiaryEscrow.connect(alice).withdraw(beneficiaryId, await paymentToken.getAddress()))
+        .to.emit(beneficiaryEscrow, "WithdrawnV2")
+        .withArgs(beneficiaryId, await paymentToken.getAddress(), alice.address, depositAmount);
     });
 
     it("Should keep the content verify path immediately withdrawable", async function () {
@@ -554,14 +557,14 @@ describe("ContentFunding", function () {
       const depositAmount = ethers.parseEther("1.0");
 
       await expect(depositIntoEscrow(alice, channelId, depositAmount))
-        .to.emit(beneficiaryEscrow, "Deposited")
-        .withArgs(channelId, await alice.getAddress(), depositAmount);
+        .to.emit(beneficiaryEscrow, "DepositedV2")
+        .withArgs(channelId, await paymentToken.getAddress(), await alice.getAddress(), depositAmount);
 
-      expect(await beneficiaryEscrow.balance(channelId)).to.equal(depositAmount);
+      expect(await beneficiaryEscrow.balance(channelId, await paymentToken.getAddress())).to.equal(depositAmount);
     });
 
     it("Should revert when depositing zero tokens", async function () {
-      await expect(beneficiaryEscrow.deposit(channelId, 0))
+      await expect(beneficiaryEscrow.deposit(channelId, await paymentToken.getAddress(), 0))
         .to.be.revertedWithCustomError(beneficiaryEscrow, "MustSendTokens");
     });
 
@@ -580,11 +583,11 @@ describe("ContentFunding", function () {
 
       await depositIntoEscrow(bob, channelId, depositAmount);
 
-      await expect(beneficiaryEscrow.connect(bob).withdraw(channelId))
-        .to.emit(beneficiaryEscrow, "Withdrawn")
-        .withArgs(channelId, await bob.getAddress(), depositAmount);
+      await expect(beneficiaryEscrow.connect(bob).withdraw(channelId, await paymentToken.getAddress()))
+        .to.emit(beneficiaryEscrow, "WithdrawnV2")
+        .withArgs(channelId, await paymentToken.getAddress(), await bob.getAddress(), depositAmount);
 
-      expect(await beneficiaryEscrow.balance(channelId)).to.equal(0);
+      expect(await beneficiaryEscrow.balance(channelId, await paymentToken.getAddress())).to.equal(0);
     });
 
     it("Should allow cumulative escrow withdrawal after multiple deposits for the same channel", async function () {
@@ -615,7 +618,7 @@ describe("ContentFunding", function () {
       });
 
       const firstReceipt = await firstTx.wait();
-      const firstEvent = firstReceipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
+      const firstEvent = firstReceipt.logs.find((log) => log.fragment?.name === "CreatorContractCreatedV2");
       const firstContract = await ethers.getContractAt(
         "CreatorAssuranceContract",
         firstEvent.args.contractAddress
@@ -641,7 +644,7 @@ describe("ContentFunding", function () {
       });
 
       const secondReceipt = await secondTx.wait();
-      const secondEvent = secondReceipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
+      const secondEvent = secondReceipt.logs.find((log) => log.fragment?.name === "CreatorContractCreatedV2");
       const secondContract = await ethers.getContractAt(
         "CreatorAssuranceContract",
         secondEvent.args.contractAddress
@@ -684,11 +687,11 @@ describe("ContentFunding", function () {
       await secondContract.connect(alice).claim();
 
       expect(await paymentToken.balanceOf(alice.address) - before).to.equal(totalProceeds);
-      expect(await beneficiaryEscrow.balance(escrowedChannelId)).to.equal(0);
+      expect(await beneficiaryEscrow.balance(escrowedChannelId, await paymentToken.getAddress())).to.equal(0);
     });
 
     it("Should revert withdraw when channel not verified", async function () {
-      await expect(beneficiaryEscrow.withdraw(channelId))
+      await expect(beneficiaryEscrow.withdraw(channelId, await paymentToken.getAddress()))
         .to.be.revertedWithCustomError(beneficiaryEscrow, "BeneficiaryNotVerified");
     });
 
@@ -705,7 +708,7 @@ describe("ContentFunding", function () {
 
       await depositIntoEscrow(bob, channelId, ethers.parseEther("1.0"));
 
-      await expect(beneficiaryEscrow.connect(alice).withdraw(channelId))
+      await expect(beneficiaryEscrow.connect(alice).withdraw(channelId, await paymentToken.getAddress()))
         .to.be.revertedWithCustomError(beneficiaryEscrow, "OnlyBeneficiaryPayoutAddress");
     });
 
@@ -720,7 +723,7 @@ describe("ContentFunding", function () {
         "0x"
       );
 
-      await expect(beneficiaryEscrow.connect(bob).withdraw(channelId))
+      await expect(beneficiaryEscrow.connect(bob).withdraw(channelId, await paymentToken.getAddress()))
         .to.be.revertedWithCustomError(beneficiaryEscrow, "NoBalance");
     });
 
@@ -739,11 +742,11 @@ describe("ContentFunding", function () {
 
       await beneficiaryRegistry.connect(alice).rotatePayoutAddress(channelId, bob.address);
 
-      await expect(beneficiaryEscrow.connect(alice).withdraw(channelId))
+      await expect(beneficiaryEscrow.connect(alice).withdraw(channelId, await paymentToken.getAddress()))
         .to.be.revertedWithCustomError(beneficiaryEscrow, "OnlyBeneficiaryPayoutAddress");
-      await expect(beneficiaryEscrow.connect(bob).withdraw(channelId))
-        .to.emit(beneficiaryEscrow, "Withdrawn")
-        .withArgs(channelId, bob.address, depositAmount);
+      await expect(beneficiaryEscrow.connect(bob).withdraw(channelId, await paymentToken.getAddress()))
+        .to.emit(beneficiaryEscrow, "WithdrawnV2")
+        .withArgs(channelId, await paymentToken.getAddress(), bob.address, depositAmount);
     });
   });
 
@@ -814,7 +817,7 @@ describe("ContentFunding", function () {
 
       const receipt = await tx.wait();
       const creatorContractCreatedEvent = receipt.logs.find(
-        (log) => log.fragment?.name === "CreatorContractCreated"
+        (log) => log.fragment?.name === "CreatorContractCreatedV2"
       );
 
       const contractAddress = creatorContractCreatedEvent.args.contractAddress;
@@ -853,7 +856,7 @@ describe("ContentFunding", function () {
 
       const receipt = await tx.wait();
       const creatorContractCreatedEvent = receipt.logs.find(
-        (log) => log.fragment?.name === "CreatorContractCreated"
+        (log) => log.fragment?.name === "CreatorContractCreatedV2"
       );
       const contractAddress = creatorContractCreatedEvent.args.contractAddress;
       const erc1155Address = await factory.contractERC1155(contractAddress);
@@ -900,7 +903,7 @@ describe("ContentFunding", function () {
 
       const receipt = await tx.wait();
       const creatorContractCreatedEvent = receipt.logs.find(
-        (log) => log.fragment?.name === "CreatorContractCreated"
+        (log) => log.fragment?.name === "CreatorContractCreatedV2"
       );
 
       const contractAddress = creatorContractCreatedEvent.args.contractAddress;
@@ -992,7 +995,7 @@ describe("ContentFunding", function () {
 
       const receipt = await tx.wait();
       const creatorContractCreatedEvent = receipt.logs.find(
-        (log) => log.fragment?.name === "CreatorContractCreated"
+        (log) => log.fragment?.name === "CreatorContractCreatedV2"
       );
 
       const contractAddress = creatorContractCreatedEvent.args.contractAddress;
@@ -1003,7 +1006,7 @@ describe("ContentFunding", function () {
       expect(await factory.isThirdPartyCreated(contractAddress)).to.be.true;
       expect(await erc1155.balanceOf(owner.address, contentIds[0])).to.equal(1);
       expect(await createdContract.getAssuranceContractProgress()).to.equal(purchaseAmount);
-      expect(await beneficiaryEscrow.balance(channelId)).to.equal(0);
+      expect(await beneficiaryEscrow.balance(channelId, await paymentToken.getAddress())).to.equal(0);
     });
 
     it("Should create third-party contract on Unclaimed channel without upfront escrow deposit", async function () {
@@ -1033,13 +1036,13 @@ describe("ContentFunding", function () {
       });
 
       const receipt = await tx.wait();
-      const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
+      const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreatedV2");
       const contractAddress = event.args.contractAddress;
       const erc1155Address = await factory.contractERC1155(contractAddress);
       const erc1155 = await ethers.getContractAt("PremintingERC1155", erc1155Address);
 
       // Creation fee now buys tokens instead of depositing to escrow.
-      expect(await beneficiaryEscrow.balance(unclaimedChannel)).to.equal(0);
+      expect(await beneficiaryEscrow.balance(unclaimedChannel, await paymentToken.getAddress())).to.equal(0);
       expect(await factory.isThirdPartyCreated(contractAddress)).to.be.true;
       expect(await erc1155.balanceOf(thirdParty.address, unclaimedContentIds[0])).to.equal(1);
 
@@ -1071,7 +1074,7 @@ describe("ContentFunding", function () {
       });
 
       const receipt = await tx.wait();
-      const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
+      const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreatedV2");
       const contractAddress = event.args.contractAddress;
       const createdContract = await ethers.getContractAt("CreatorAssuranceContract", contractAddress);
 
@@ -1102,7 +1105,7 @@ describe("ContentFunding", function () {
       await createdContract.connect(alice).claim();
 
       expect(await paymentToken.balanceOf(alice.address) - before).to.equal(purchaseAmount * 2n);
-      expect(await beneficiaryEscrow.balance(unclaimedChannel)).to.equal(0);
+      expect(await beneficiaryEscrow.balance(unclaimedChannel, await paymentToken.getAddress())).to.equal(0);
     });
 
     it("Should keep creator-owned proceeds in the contract until claim", async function () {
@@ -1122,7 +1125,7 @@ describe("ContentFunding", function () {
       });
 
       const receipt = await tx.wait();
-      const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
+      const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreatedV2");
       const contractAddress = event.args.contractAddress;
       const createdContract = await ethers.getContractAt("CreatorAssuranceContract", contractAddress);
 
@@ -1382,6 +1385,7 @@ describe("ContentFunding", function () {
         erc1155ContractUri,
         initialPurchaseIndices: [],
         initialPurchaseCounts: [],
+        paymentToken: await paymentToken.getAddress(),
       })).to.be.revertedWithCustomError(factory, "InvalidChannelId");
     });
 
@@ -1399,6 +1403,7 @@ describe("ContentFunding", function () {
         erc1155ContractUri,
         initialPurchaseIndices: [],
         initialPurchaseCounts: [],
+        paymentToken: await paymentToken.getAddress(),
       })).to.be.revertedWithCustomError(factory, "ChannelCanonicalIdMismatch");
     });
 
@@ -1456,7 +1461,7 @@ describe("ContentFunding", function () {
       });
 
       creationReceipt = await tx.wait();
-      const event = creationReceipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
+      const event = creationReceipt.logs.find((log) => log.fragment?.name === "CreatorContractCreatedV2");
       createdContract = await ethers.getContractAt("CreatorAssuranceContract", event.args.contractAddress);
     });
 
@@ -1535,7 +1540,7 @@ describe("ContentFunding", function () {
       });
 
       const receipt = await tx.wait();
-      const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
+      const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreatedV2");
       const thirdPartyContractAddr = event.args.contractAddress;
       const erc1155Address = await factory.contractERC1155(thirdPartyContractAddr);
       const erc1155 = await ethers.getContractAt("PremintingERC1155", erc1155Address);
@@ -1611,7 +1616,7 @@ describe("ContentFunding", function () {
       });
 
       const receipt = await tx.wait();
-      const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
+      const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreatedV2");
       const thirdPartyContractAddr = event.args.contractAddress;
       const conditionAddress = await factory.contractCondition(thirdPartyContractAddr);
       const condition = await ethers.getContractAt("CancellableCondition", conditionAddress);
@@ -1666,7 +1671,7 @@ describe("ContentFunding", function () {
       });
 
       const receipt = await tx.wait();
-      const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
+      const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreatedV2");
       const thirdPartyContractAddr = event.args.contractAddress;
 
       await beneficiaryRegistry.connect(alice).takeBeneficiaryControl(channelId);
@@ -1718,7 +1723,7 @@ describe("ContentFunding", function () {
         initialPurchaseValue: ethers.parseEther("0.1"),
       });
       const receipt = await tx.wait();
-      const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
+      const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreatedV2");
       const addr = event.args.contractAddress;
 
       await beneficiaryRegistry.connect(alice).takeBeneficiaryControl(channelId);
@@ -1752,7 +1757,7 @@ describe("ContentFunding", function () {
         isThirdParty: false,
       });
       const receipt = await tx.wait();
-      const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
+      const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreatedV2");
       const addr = event.args.contractAddress;
 
       await beneficiaryRegistry.connect(alice).takeBeneficiaryControl(channelId);
@@ -1790,7 +1795,7 @@ describe("ContentFunding", function () {
         isThirdParty: false,
       });
       const receipt = await tx.wait();
-      const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
+      const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreatedV2");
       const contractAddress = event.args.contractAddress;
 
       // Content should be registered
@@ -1833,7 +1838,7 @@ describe("ContentFunding", function () {
         isThirdParty: false,
       });
       const receipt = await tx.wait();
-      const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
+      const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreatedV2");
 
       await expect(factory.releaseContentOnFailure(event.args.contractAddress))
         .to.be.revertedWithCustomError(factory, "ConditionNotFailed");
@@ -1889,7 +1894,7 @@ describe("ContentFunding", function () {
       });
 
       const receipt = await tx.wait();
-      const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
+      const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreatedV2");
       const contractAddress = event.args.contractAddress;
 
       expect(await contentRegistry.contentContract(contentIds[0])).to.equal(contractAddress);
@@ -1940,10 +1945,10 @@ describe("ContentFunding", function () {
         initialPurchaseValue: purchaseAmount,
       });
       const receipt = await tx.wait();
-      const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
+      const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreatedV2");
       const thirdPartyContract = event.args.contractAddress;
 
-      expect(await beneficiaryEscrow.balance(thirdPartyChannelId)).to.equal(0);
+      expect(await beneficiaryEscrow.balance(thirdPartyChannelId, await paymentToken.getAddress())).to.equal(0);
       expect(await factory.isThirdPartyCreated(thirdPartyContract)).to.be.true;
 
       // Charlie takes control and vetoes

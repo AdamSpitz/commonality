@@ -50,8 +50,7 @@ describe('ProjectFactory', function () {
 
   it('creates and fully wires a threshold project', async function () {
     const [creator, owner, recipient] = await ethers.getSigners();
-    const paymentToken = await ethers.deployContract('FreeERC20', ['USD Coin', 'USDC', 6]);
-    const { projectFactory, conditionFactory } = await deployProjectFactory();
+    const { projectFactory, conditionFactory, beneficiaryPaymentToken: paymentToken } = await deployProjectFactory();
     const deadline = BigInt((await ethers.provider.getBlock('latest')).timestamp + 3600);
 
     const tx = await projectFactory
@@ -91,8 +90,7 @@ describe('ProjectFactory', function () {
 
   it('lets a fixed recipient claim proceeds without a beneficiary registry', async function () {
     const [contributor, owner, recipient] = await ethers.getSigners();
-    const paymentToken = await ethers.deployContract('FreeERC20', ['USD Coin', 'USDC', 6]);
-    const { projectFactory } = await deployProjectFactory();
+    const { projectFactory, beneficiaryPaymentToken: paymentToken } = await deployProjectFactory();
     const deadline = BigInt((await ethers.provider.getBlock('latest')).timestamp + 3600);
     const args = defaultProjectParams(owner.address, recipient.address, paymentToken.target, deadline);
     args[5] = 5n;
@@ -111,8 +109,7 @@ describe('ProjectFactory', function () {
 
   it('lets a fixed recipient refuse and contributors reclaim immediately after success', async function () {
     const [contributor, owner, recipient, other] = await ethers.getSigners();
-    const paymentToken = await ethers.deployContract('FreeERC20', ['USD Coin', 'USDC', 6]);
-    const { projectFactory } = await deployProjectFactory();
+    const { projectFactory, beneficiaryPaymentToken: paymentToken } = await deployProjectFactory();
     const deadline = BigInt((await ethers.provider.getBlock('latest')).timestamp + 3600);
     const args = defaultProjectParams(owner.address, recipient.address, paymentToken.target, deadline);
     args[5] = 5n;
@@ -134,8 +131,7 @@ describe('ProjectFactory', function () {
 
   it('opens unclaimed fixed-recipient funds 90 days after success is noted', async function () {
     const [contributor, owner, recipient] = await ethers.getSigners();
-    const paymentToken = await ethers.deployContract('FreeERC20', ['USD Coin', 'USDC', 6]);
-    const { projectFactory } = await deployProjectFactory();
+    const { projectFactory, beneficiaryPaymentToken: paymentToken } = await deployProjectFactory();
     const deadline = BigInt((await ethers.provider.getBlock('latest')).timestamp + 3600);
     const args = defaultProjectParams(owner.address, recipient.address, paymentToken.target, deadline);
     args[5] = 5n;
@@ -158,8 +154,7 @@ describe('ProjectFactory', function () {
 
   it('rejects unsafe project parameters before deployment', async function () {
     const [, owner, recipient] = await ethers.getSigners();
-    const paymentToken = await ethers.deployContract('FreeERC20', ['USD Coin', 'USDC', 6]);
-    const { projectFactory } = await deployProjectFactory();
+    const { projectFactory, beneficiaryPaymentToken: paymentToken } = await deployProjectFactory();
     const deadline = BigInt((await ethers.provider.getBlock('latest')).timestamp + 3600);
     const valid = defaultProjectParams(owner.address, recipient.address, paymentToken.target, deadline);
 
@@ -203,7 +198,7 @@ describe('ProjectFactory', function () {
 
     expect(await assurance.beneficiaryId()).to.equal(beneficiaryId);
     expect(await assurance.recipient()).to.equal(assurance.target);
-    expect(await beneficiaryEscrow.balance(beneficiaryId)).to.equal(0n);
+    expect(await beneficiaryEscrow.balance(beneficiaryId, paymentToken.target)).to.equal(0n);
 
     const token = await ethers.getContractAt('PremintingERC1155', event.args.token);
     await paymentToken.connect(creator).mint(105n);
@@ -221,13 +216,14 @@ describe('ProjectFactory', function () {
     await ethers.provider.send('evm_mine', []);
     await assurance.connect(owner).claim();
     expect(await paymentToken.balanceOf(owner.address)).to.equal(105n);
-    expect(await beneficiaryEscrow.balance(beneficiaryId)).to.equal(0n);
+    expect(await beneficiaryEscrow.balance(beneficiaryId, paymentToken.target)).to.equal(0n);
   });
 
   it('accepts a beneficiary project in a token other than the legacy escrow token', async function () {
     const [, owner] = await ethers.getSigners();
     const otherToken = await ethers.deployContract('FreeERC20', ['Other', 'OTHER', 6]);
-    const { projectFactory } = await deployProjectFactory();
+    const { projectFactory, paymentTokenRegistry } = await deployProjectFactory();
+    await paymentTokenRegistry.allow(otherToken.target);
     const deadline = BigInt((await ethers.provider.getBlock('latest')).timestamp + 3600);
     const args = defaultProjectParams(owner.address, ethers.ZeroAddress, otherToken.target, deadline);
 
@@ -339,8 +335,7 @@ describe('ProjectFactory', function () {
 
   it('assigns one default work id and lets a failed request be retried once', async function () {
     const [creator, owner, recipient] = await ethers.getSigners();
-    const paymentToken = await ethers.deployContract('FreeERC20', ['USD Coin', 'USDC', 6]);
-    const { projectFactory } = await deployProjectFactory();
+    const { projectFactory, beneficiaryPaymentToken: paymentToken } = await deployProjectFactory();
     const registry = await ethers.getContractAt('ContentRegistry', await projectFactory.workRegistry());
     const deadline = BigInt((await ethers.provider.getBlock('latest')).timestamp + 10);
     const create = () => projectFactory.connect(creator).createERC1155AndAssuranceContract(

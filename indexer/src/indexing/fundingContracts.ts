@@ -28,13 +28,13 @@ const erc1155ContractCreatedEvent = PremintingERC1155FactoryAbi.find(
   (item) => item.type === "event" && item.name === "LazyGivingERC1155ContractCreated",
 )!;
 const prospectiveRoundCreatedEvent = ProspectiveContentRoundFactoryAbi.find(
-  (item) => item.type === "event" && item.name === "ProspectiveRoundCreated",
+  (item) => item.type === "event" && item.name === "ProspectiveRoundCreatedV2",
 )!;
 const prospectiveRoundMaterializedEvent = ProspectiveContentRoundFactoryAbi.find(
   (item) => item.type === "event" && item.name === "ProspectiveRoundMaterialized",
 )!;
 const creatorContractCreatedEvent = CreatorAssuranceContractFactoryAbi.find(
-  (item) => item.type === "event" && item.name === "CreatorContractCreated",
+  (item) => item.type === "event" && item.name === "CreatorContractCreatedV2",
 )!;
 const claimTicketCreatedEvent = ClaimTicketFactoryAbi.find(
   (item) => item.type === "event" && item.name === "ClaimTicketAssuranceCreated",

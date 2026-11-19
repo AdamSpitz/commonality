@@ -1,6 +1,7 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { DepositPage } from './DepositPage'
+import { getRuntimeConfig } from '../../shared'
 
 const USER_ADDR = '0x1111111111111111111111111111111111111111'
 const OTHER_ADDR = '0x2222222222222222222222222222222222222222'
@@ -307,7 +308,7 @@ describe('DepositPage', () => {
           expect.any(Object),
           expect.objectContaining({
             delegateTo: OTHER_ADDR,
-            token: '0x4444444444444444444444444444444444444444',
+            token: getRuntimeConfig().VITE_PAYMENT_TOKEN_ADDRESS,
             causeRef: TEST_STATEMENT.cid,
             spendDelay: 72n * 3600n,
             unsuspiciousDelay: 0n,

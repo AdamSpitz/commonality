@@ -5,15 +5,27 @@ import {FixedControllerAssuranceContract} from "./FixedControllerAssuranceContra
 
 /// @notice Deploys fixed-controller assurance contracts. DelegatableNotes authorizes
 ///         this factory on its own so AssuranceContractFactory stays under the size limit.
+interface IPaymentTokenRegistry {
+    function isAllowed(address token) external view returns (bool);
+}
+
+error PaymentTokenNotAllowed(address token);
+
 contract FixedControllerFactory {
     uint256 public constant UNCLAIMED_PROCEEDS_WINDOW = 90 days;
     error InvalidRegistry();
     address public immutable beneficiaryRegistry;
+    IPaymentTokenRegistry public immutable paymentTokenRegistry;
     mapping(address => bool) public isDeployedPrimaryMarket;
 
-    constructor(address registry) {
-        if (registry == address(0)) revert InvalidRegistry();
+    constructor(address registry, address tokenRegistry) {
+        if (registry == address(0) || tokenRegistry == address(0)) revert InvalidRegistry();
         beneficiaryRegistry = registry;
+        paymentTokenRegistry = IPaymentTokenRegistry(tokenRegistry);
+    }
+
+    function _requireToken(address paymentToken) private view {
+        if (!paymentTokenRegistry.isAllowed(paymentToken)) revert PaymentTokenNotAllowed(paymentToken);
     }
 
     event FixedControllerAssuranceCreated(address indexed assuranceContract);
@@ -28,6 +40,7 @@ contract FixedControllerFactory {
         address registry
     ) external returns (FixedControllerAssuranceContract ac) {
         if (registry != beneficiaryRegistry) revert InvalidRegistry();
+        _requireToken(paymentToken);
         ac = new FixedControllerAssuranceContract(
             owner, recipient, paymentToken, erc1155Addr, projectMetadataCid, beneficiaryId, registry,
             UNCLAIMED_PROCEEDS_WINDOW
@@ -43,6 +56,7 @@ contract FixedControllerFactory {
         address erc1155Addr,
         string memory projectMetadataCid
     ) external returns (FixedControllerAssuranceContract ac) {
+        _requireToken(paymentToken);
         ac = new FixedControllerAssuranceContract(
             owner, recipient, paymentToken, erc1155Addr, projectMetadataCid, bytes32(0), address(0),
             UNCLAIMED_PROCEEDS_WINDOW
