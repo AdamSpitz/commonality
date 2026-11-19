@@ -27,6 +27,8 @@ CAD stablecoin landscape, evaluated 2026-07 — see [`spikes/cad-stablecoins/`](
 
 Both viable tokens use **18 decimals** (USDC is 6) — nothing may assume 6. Pool depth (~$130–170k) handles C$100–C$1,000 swaps but not five-figure ones, which is acceptable only because CADC acquisition is direct rather than swap-based. Before adopting: confirm addresses against issuer docs, do one real Paytrie→Base→offramp round trip (like `spikes/coinbase-onramp/`), and ask the issuer what happens if a contract is wrongly blacklisted.
 
+Implementation plan for per-project tokens: [per-project-payment-token-plan.md](../tech/per-project-payment-token-plan.md).
+
 ## Safety constraints
 
 Keep these in place whenever contract changes touch fund flows:
