@@ -28,6 +28,9 @@ interface TwitterTweet {
   author_id?: string;
   created_at?: string;
   conversation_id?: string;
+  edit_history_tweet_ids?: string[];
+  edit_controls?: { editable_until?: string };
+  attachments?: { media_keys?: string[] };
   referenced_tweets?: Array<{
     type?: 'replied_to' | 'quoted' | 'retweeted';
     id?: string;
@@ -133,7 +136,7 @@ export class TwitterClient implements TwitterClientLike {
 
     const parsedUrl = parseTwitterStatusUrl(url);
     const response = await this.fetchJson<TwitterTweetLookupResponse>(
-      `/2/tweets/${encodeURIComponent(parsedUrl.tweetId)}?expansions=author_id&tweet.fields=created_at,text&user.fields=id,name,username`,
+      `/2/tweets/${encodeURIComponent(parsedUrl.tweetId)}?expansions=author_id,referenced_tweets.id&tweet.fields=author_id,created_at,text,conversation_id,referenced_tweets,attachments,edit_history_tweet_ids,edit_controls&user.fields=id,name,username`,
     );
 
     const tweet = response.data;
@@ -153,6 +156,24 @@ export class TwitterClient implements TwitterClientLike {
         authorDisplayName: author.name,
         text: tweet.text ?? '',
         createdAt: tweet.created_at,
+        authorId: channelId,
+        // Identify the text actually returned, never label an old version with the latest history ID.
+        contentVersion: tweet.id,
+        editableUntil: tweet.edit_controls?.editable_until,
+        isReply: Boolean(tweet.referenced_tweets?.some((ref) => ref.type === 'replied_to')
+          || (tweet.conversation_id && tweet.conversation_id !== tweet.id)),
+        mediaIsPrimary: Boolean(tweet.attachments?.media_keys?.length)
+          && !(tweet.text ?? '').replace(/https:\/\/t\.co\/\S+/gu, '').trim(),
+        quotedContent: (tweet.referenced_tweets ?? []).filter((ref) => ref.type === 'quoted').map((ref) => {
+          const quote = response.includes?.tweets?.find((item) => item.id === ref.id);
+          return {
+            text: quote?.text ?? '',
+            contentVersion: quote?.id,
+            contentCanonicalId: quote?.author_id && quote.id
+              ? buildCanonicalContentId(buildCanonicalChannelId('twitter', quote.author_id), quote.id)
+              : undefined,
+          };
+        }),
       },
     };
   }

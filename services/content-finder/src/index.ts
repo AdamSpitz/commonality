@@ -70,6 +70,12 @@ export async function runOnce(config: ContentFinderConfig): Promise<void> {
         continue;
       }
       const request: ContentAttesterRequest = {
+        contentVersion: resolved.contentVersion,
+        authorId: resolved.authorId,
+        isReply: resolved.isReply,
+        mediaIsPrimary: resolved.mediaIsPrimary,
+        editableUntil: resolved.editableUntil,
+        quotedContent: resolved.quotedContent,
         contentCanonicalId: resolved.canonicalId,
         statementCid: submission.statementCid,
         declaredPerspective: submission.declaredPerspective,

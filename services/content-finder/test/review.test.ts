@@ -20,13 +20,23 @@ describe('bounded content review', () => {
       ]));
       globalThis.fetch = async (url, options) => {
         if (String(url).endsWith('/resolve/content')) {
-          return Response.json({ canonicalId: 'twitter:uid:1:1', metadata: { text: 'Post' } });
+          return Response.json({ canonicalId: 'twitter:uid:1:1', metadata: {
+            text: 'Post', contentVersion: '1', authorId: 'twitter:uid:1',
+            isReply: false, mediaIsPrimary: false, editableUntil: '2026-01-01T00:00:00Z',
+            quotedContent: [{ text: 'Quoted argument', contentVersion: '9' }],
+          } });
         }
         paidCalls++;
         const persisted = JSON.parse(await readFile(stateFilePath, 'utf8'));
         assert.equal(persisted.reservedUsd, 1);
         const { evaluations } = JSON.parse(String(options?.body));
         assert.equal(evaluations.length, 1);
+        assert.equal(evaluations[0].contentVersion, '1');
+        assert.equal(evaluations[0].authorId, 'twitter:uid:1');
+        assert.equal(evaluations[0].isReply, false);
+        assert.equal(evaluations[0].mediaIsPrimary, false);
+        assert.equal(evaluations[0].editableUntil, '2026-01-01T00:00:00Z');
+        assert.deepEqual(evaluations[0].quotedContent, [{ text: 'Quoted argument', contentVersion: '9' }]);
         return Response.json({ results: evaluations.map((item: object) => ({ ...item, success: true, decision: 'positive' })) });
       };
       const config = {

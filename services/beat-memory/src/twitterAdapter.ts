@@ -38,6 +38,7 @@ interface TwitterTweet {
 	created_at?: string;
 	conversation_id?: string;
 	edit_history_tweet_ids?: string[];
+	edit_controls?: { editable_until?: string };
 	referenced_tweets?: Array<{ type?: string; id?: string }>;
 	attachments?: { media_keys?: string[] };
 }
@@ -189,7 +190,7 @@ export class TwitterBeatSourceClient {
 }
 
 const TWEET_FIELDS =
-	"author_id,created_at,text,conversation_id,referenced_tweets,attachments,edit_history_tweet_ids";
+	"author_id,created_at,text,conversation_id,referenced_tweets,attachments,edit_history_tweet_ids,edit_controls";
 
 function tweetQueryParams(maxResults: number): URLSearchParams {
 	return new URLSearchParams({
@@ -216,8 +217,7 @@ function tweetToBeatItem(
 	const quoted = quoteRef?.id
 		? includes?.tweets?.find((candidate) => candidate.id === quoteRef.id)
 		: undefined;
-	const editIds = tweet.edit_history_tweet_ids ?? [];
-	const contentVersion = editIds.length > 0 ? editIds[editIds.length - 1] : tweet.id;
+	const contentVersion = tweet.id;
 	const observedAt = tweet.created_at ?? new Date().toISOString();
 	return {
 		contentCanonicalId: buildCanonicalContentId(channelId, tweet.id),
@@ -230,6 +230,7 @@ function tweetToBeatItem(
 		authorId: `twitter:uid:${tweet.author_id}`,
 		text: tweet.text ?? "",
 		contentVersion,
+		editableUntil: tweet.edit_controls?.editable_until,
 		isReply: tweet.referenced_tweets?.some((ref) => ref.type === "replied_to")
 			|| (tweet.conversation_id !== undefined && tweet.conversation_id !== tweet.id),
 		mediaIsPrimary: Boolean(tweet.attachments?.media_keys?.length) && !(tweet.text ?? "").replace(/https:\/\/t\.co\/\S+/gu, "").trim(),

@@ -121,7 +121,9 @@ export async function runBeatFinderOnce(
 		BeatFinderState
 	>({
 		stateFilePath: params.finderStateFilePath,
-		items: ingestionState.items,
+		// Leave editable posts unprocessed so a later tick can review them after the window closes.
+		items: ingestionState.items.filter((item) => !item.editableUntil
+			|| Date.parse(item.editableUntil) <= (params.now ?? new Date()).getTime()),
 		parseState: parseBeatFinderState,
 		createEmptyState: createEmptyBeatFinderState,
 		getItemId: (item) => item.contentCanonicalId,
@@ -213,7 +215,21 @@ export function createScoredBeatFinderCandidateSelector(
 
 	return async (params) => {
 		const candidate = await selector({ item: params });
-		return candidate ? { ...candidate, item: params.item } : null;
+		if (!candidate) return null;
+		const item = params.item;
+		return {
+			...candidate,
+			item,
+			request: {
+				...candidate.request,
+				contentVersion: item.contentVersion,
+				authorId: item.authorId,
+				isReply: item.isReply,
+				mediaIsPrimary: item.mediaIsPrimary,
+				editableUntil: item.editableUntil,
+				quotedContent: item.quotedText !== undefined ? [{ text: item.quotedText }] : undefined,
+			},
+		};
 	};
 }
 

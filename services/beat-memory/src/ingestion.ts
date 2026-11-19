@@ -35,6 +35,7 @@ export interface BeatIngestedItem {
 	observedAt: string;
 	ingestedAt: string;
 	contentVersion?: string;
+	editableUntil?: string;
 	isReply?: boolean;
 	mediaIsPrimary?: boolean;
 	quotedText?: string;

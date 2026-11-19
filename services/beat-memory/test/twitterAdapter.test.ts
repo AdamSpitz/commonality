@@ -24,6 +24,8 @@ describe("Twitter/X beat source adapter", () => {
 					data: [
 						{
 							id: "200",
+							edit_history_tweet_ids: ['200', '202'],
+							edit_controls: { editable_until: '2026-05-16T11:00:00Z' },
 							text: "A contextual post from the beat.",
 							author_id: "123",
 							created_at: "2026-05-16T10:00:00Z",
@@ -62,7 +64,7 @@ describe("Twitter/X beat source adapter", () => {
 
 		assert.deepEqual(requestedUrls, [
 			"https://api.x.test/2/users/by/username/alice?user.fields=id%2Cusername",
-			"https://api.x.test/2/users/123/tweets?max_results=10&tweet.fields=author_id%2Ccreated_at%2Ctext%2Cconversation_id%2Creferenced_tweets%2Cattachments%2Cedit_history_tweet_ids&expansions=author_id%2Creferenced_tweets.id&user.fields=id%2Cname%2Cusername&since_id=199",
+			"https://api.x.test/2/users/123/tweets?max_results=10&tweet.fields=author_id%2Ccreated_at%2Ctext%2Cconversation_id%2Creferenced_tweets%2Cattachments%2Cedit_history_tweet_ids%2Cedit_controls&expansions=author_id%2Creferenced_tweets.id&user.fields=id%2Cname%2Cusername&since_id=199",
 		]);
 		assert.equal(result.cursor, "201");
 		assert.deepEqual(
@@ -72,6 +74,8 @@ describe("Twitter/X beat source adapter", () => {
 		assert.equal(result.items[0]?.contentUrl, "https://x.com/alice/status/200");
 		assert.equal(result.items[0]?.authorHandle, "@alice");
 		assert.equal(result.items[0]?.platform, "twitter");
+		assert.equal(result.items[0]?.contentVersion, '200');
+		assert.equal(result.items[0]?.editableUntil, '2026-05-16T11:00:00Z');
 	});
 
 	it("creates query and list adapters using recent-search and list endpoints", async () => {
@@ -118,8 +122,8 @@ describe("Twitter/X beat source adapter", () => {
 		);
 		assert.equal(listResult?.cursor, "300");
 		assert.deepEqual(requestedUrls, [
-			"https://api.x.test/2/tweets/search/recent?max_results=10&tweet.fields=author_id%2Ccreated_at%2Ctext%2Cconversation_id%2Creferenced_tweets%2Cattachments%2Cedit_history_tweet_ids&expansions=author_id%2Creferenced_tweets.id&user.fields=id%2Cname%2Cusername&query=%22common+ground%22+lang%3Aen",
-			"https://api.x.test/2/lists/777/tweets?max_results=10&tweet.fields=author_id%2Ccreated_at%2Ctext%2Cconversation_id%2Creferenced_tweets%2Cattachments%2Cedit_history_tweet_ids&expansions=author_id%2Creferenced_tweets.id&user.fields=id%2Cname%2Cusername&since_id=299",
+			"https://api.x.test/2/tweets/search/recent?max_results=10&tweet.fields=author_id%2Ccreated_at%2Ctext%2Cconversation_id%2Creferenced_tweets%2Cattachments%2Cedit_history_tweet_ids%2Cedit_controls&expansions=author_id%2Creferenced_tweets.id&user.fields=id%2Cname%2Cusername&query=%22common+ground%22+lang%3Aen",
+			"https://api.x.test/2/lists/777/tweets?max_results=10&tweet.fields=author_id%2Ccreated_at%2Ctext%2Cconversation_id%2Creferenced_tweets%2Cattachments%2Cedit_history_tweet_ids%2Cedit_controls&expansions=author_id%2Creferenced_tweets.id&user.fields=id%2Cname%2Cusername&since_id=299",
 		]);
 	});
 });

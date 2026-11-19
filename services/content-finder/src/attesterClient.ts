@@ -7,6 +7,12 @@ export interface ContentAttesterRequest {
   contentUrl?: string;
   contentText?: string;
   declaredPerspective?: string;
+  contentVersion?: string;
+  authorId?: string;
+  isReply?: boolean;
+  mediaIsPrimary?: boolean;
+  editableUntil?: string;
+  quotedContent?: Array<{ text: string; contentCanonicalId?: string; contentVersion?: string }>;
 }
 
 interface ContentBatchEvaluationResult {
