@@ -311,12 +311,8 @@ async function createCreatorContract(
     initialPurchaseValue += prices[idx] * initialPurchaseCounts[i];
   }
 
-  const paymentToken = await clients.publicClient.readContract({
-    address: factoryAddress,
-    abi: CreatorAssuranceContractFactoryAbi,
-    functionName: 'paymentToken',
-    args: [],
-  }) as `0x${string}`;
+  const paymentToken = process.env.PAYMENT_TOKEN_ADDRESS as `0x${string}` | undefined;
+  if (!paymentToken) throw new Error('PAYMENT_TOKEN_ADDRESS is required to create a content-funding contract');
 
   if (initialPurchaseValue > 0n) {
     const approvalHash = await clients.walletClient.writeContract({
@@ -349,6 +345,7 @@ async function createCreatorContract(
       erc1155ContractUri: `ipfs://${metadataCid}`,
       initialPurchaseIndices,
       initialPurchaseCounts,
+      paymentToken,
     }],
     chain: hardhat,
     account: clients.walletClient.account!,
@@ -361,7 +358,7 @@ async function createCreatorContract(
     try {
       // Topic[0] = keccak256("CreatorContractCreated(address,bytes32,address,bool)")
       const eventSig = keccak256(
-        toBytes('CreatorContractCreated(address,bytes32,address,bool)'),
+        toBytes('CreatorContractCreatedV2(address,bytes32,address,bool,address)'),
       );
       if (log.topics[0] === eventSig) {
         // contractAddress is indexed (topics[1]) — strip leading zeros.
@@ -374,7 +371,7 @@ async function createCreatorContract(
     }
   }
 
-  throw new Error(`CreatorContractCreated event not found in tx ${createHash}`);
+  throw new Error(`CreatorContractCreatedV2 event not found in tx ${createHash}`);
 }
 
 /** Buy tokens on a creator assurance contract. */
@@ -914,6 +911,7 @@ export async function generateProspectiveContentRoundScenarios(
       metadataCid,
       receiptMetadataUri: `ipfs://${metadataCid}`,
       receiptContractUri: `ipfs://${metadataCid}`,
+      paymentToken: process.env.PAYMENT_TOKEN_ADDRESS as `0x${string}`,
     });
     await buyTokens(buyerAClients, created.roundAddress, created.receiptTokenAddress, [0n], [2n], [tokenPrice]);
     console.log(`  ✓ Open prospective round ${created.roundAddress} (below threshold, not materialized).`);
@@ -953,6 +951,7 @@ export async function generateProspectiveContentRoundScenarios(
       metadataCid,
       receiptMetadataUri: `ipfs://${metadataCid}`,
       receiptContractUri: `ipfs://${metadataCid}`,
+      paymentToken: process.env.PAYMENT_TOKEN_ADDRESS as `0x${string}`,
     });
     await buyTokens(buyerAClients, created.roundAddress, created.receiptTokenAddress, [0n], [6n], [tokenPrice]);
     const materialized = await createMaterializedContentTokens(

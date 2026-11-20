@@ -22,6 +22,7 @@ import SortIcon from '@mui/icons-material/Sort'
 import { ETH_CURRENCY } from '@commonality/sdk/utils'
 import { parseCanonicalChannelId, type ContentFundingPlatform } from '@commonality/sdk/content-funding'
 import { getChannelDisplayLabels } from '../channelDisplay'
+import { contractFundingTotals, formatContractFundingTotals } from '../channelTotals'
 import { useContentFundingState } from '../hooks/useContentFundingState'
 import type { ChannelWithCanonicalId } from '@commonality/sdk/content-funding'
 import type { Currency } from '@commonality/sdk/utils'
@@ -51,14 +52,10 @@ const STATE_COLORS: Record<ChannelState, 'default' | 'warning' | 'success'> = {
   'beneficiary-controlled': 'success',
 }
 
+
+
 function getTotalFunding(channel: ChannelWithCanonicalId): bigint {
-  let total = 0n
-  for (const contract of channel.contracts) {
-    if (contract.project) {
-      total += BigInt(contract.project.totalReceived)
-    }
-  }
-  return total
+  return contractFundingTotals(channel.contracts).reduce((sum, entry) => sum + entry.amount, 0n)
 }
 
 function getChannelFundingCurrency(channel: ChannelWithCanonicalId): Currency {
@@ -244,7 +241,6 @@ export function BrowseCreatorsPage({
               channel.canonicalChannelId,
               channel.canonicalChannelId ? channelDisplayMetadata.get(channel.canonicalChannelId) : null,
             )
-            const totalFunding = aggregateChannel ? getTotalFunding(aggregateChannel) : 0n
             const fundingCurrency = getChannelFundingCurrency(aggregateChannel ?? channel)
             const activeContracts = aggregateChannel ? getActiveContractCount(aggregateChannel) : 0
             const escrowBalance = channel.escrow.balance
@@ -302,7 +298,7 @@ export function BrowseCreatorsPage({
                           Total Funding
                         </Typography>
                         <Typography variant="body1">
-                          {formatCurrencyAmount(totalFunding, fundingCurrency)}
+                          {formatContractFundingTotals((aggregateChannel ?? channel).contracts)}
                         </Typography>
                       </Box>
                       {escrowBalance > 0n && (

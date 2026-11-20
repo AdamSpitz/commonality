@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { enqueueReview, reserveSpend, type ReviewQueueItem } from "../src/reviewQueue.js";
+import { enqueueReview, reserveSpend, takeReviewBatch, type ReviewQueueItem } from "../src/reviewQueue.js";
 
 describe("review queue", () => {
 	it("does not raise priority when the same post is suggested again", () => {
@@ -24,6 +24,17 @@ describe("review queue", () => {
 			suggestionCapacity: 1,
 		});
 		assert.equal(suggestion.accepted, true);
+	});
+
+	it("fills each lane's share before giving leftovers to the other lane", () => {
+		const queue: ReviewQueueItem[] = [
+			{ lane: "finder", dedupeKey: "f1", enqueuedAt: "t" },
+			{ lane: "finder", dedupeKey: "f2", enqueuedAt: "t" },
+			{ lane: "suggestion", dedupeKey: "s1", enqueuedAt: "t" },
+		];
+		const batch = takeReviewBatch(queue, 2, 0.5);
+		assert.deepEqual(batch.map((item) => item.dedupeKey), ["f1", "s1"]);
+		assert.deepEqual(takeReviewBatch(queue, 2, 1).map((item) => item.dedupeKey), ["f1", "f2"]);
 	});
 
 	it("reserves spend against in-flight cost", () => {

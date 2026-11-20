@@ -28,6 +28,7 @@ vi.mock('../../shared', async (importOriginal) => {
     getRuntimeConfigValue: (key: string) => {
       if (key === 'VITE_BENEFICIARY_REGISTRY_ADDRESS') return '0x2222222222222222222222222222222222222222'
       if (key === 'VITE_BENEFICIARY_ESCROW_ADDRESS') return '0x3333333333333333333333333333333333333333'
+      if (key === 'VITE_PAYMENT_TOKEN_ADDRESS') return '0x4444444444444444444444444444444444444444'
       return undefined
     },
     useWriteClients: () => ({ walletClient: {}, publicClient: {} }),

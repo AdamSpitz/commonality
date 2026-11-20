@@ -88,7 +88,9 @@ describe("DelegatableNotes spend classification", function () {
   });
 
   it("rejects a forged beneficiary registry on an authorized fixed-controller factory", async function () {
-    const factory = await ethers.deployContract("FixedControllerFactory", [registry.target]);
+    const tokenRegistry = await ethers.deployContract("PaymentTokenRegistry", [alice.address]);
+    await tokenRegistry.allow(alice.address);
+    const factory = await ethers.deployContract("FixedControllerFactory", [registry.target, tokenRegistry.target]);
     await notes.setPrimaryMarketFactoryAuthorization(factory.target, true);
     const forged = await ethers.deployContract("MockPayoutRegistry");
     await forged.setPayout(bob.address);
@@ -99,7 +101,9 @@ describe("DelegatableNotes spend classification", function () {
   });
 
   it("records an immediate direct unsuspicious purchase from an authorized fixed route", async function () {
-    const factory = await ethers.deployContract("FixedControllerFactory", [registry.target]);
+    const tokenRegistry = await ethers.deployContract("PaymentTokenRegistry", [alice.address]);
+    await tokenRegistry.allow(token.target);
+    const factory = await ethers.deployContract("FixedControllerFactory", [registry.target, tokenRegistry.target]);
     await notes.setPrimaryMarketFactoryAuthorization(factory.target, true);
     const receiptToken = await ethers.deployContract("PremintingERC1155", [
       bob.address, "ipfs://tokens/{id}", "ipfs://contract",

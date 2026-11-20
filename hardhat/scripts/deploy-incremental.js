@@ -22,6 +22,9 @@ const ADDRESS_KEYS = {
   RecurringPledges: ['RECURRING_PLEDGES_CONTRACT_ADDRESS', 'RECURRING_PLEDGES_ADDRESS'],
   ValueThresholdConditionFactory: ['ETH_THRESHOLD_CONDITION_FACTORY_ADDRESS'],
   FreeERC20: ['PAYMENT_TOKEN_ADDRESS'],
+  PaymentTokenRegistry: ['PAYMENT_TOKEN_REGISTRY_ADDRESS'],
+  ReputationPointsToken: ['POINTS_TOKEN_ADDRESS'],
+  AltPaymentToken: ['ALT_PAYMENT_TOKEN_ADDRESS'],
   BeneficiaryVerifier: ['BENEFICIARY_VERIFIER_ADDRESS'],
   BeneficiaryIdentity: ['BENEFICIARY_IDENTITY_ADDRESS'],
   ContentRegistry: ['CONTENT_REGISTRY_ADDRESS'],
@@ -251,6 +254,7 @@ async function main() {
   await deployOrReuse('AlignmentAttestations', 'AlignmentAttestations');
   await deployOrReuse('NoteIntent', 'NoteIntent');
   await deployOrReuse('MutableRefUpdater', 'MutableRefUpdater');
+  await deployOrReuse('PaymentTokenRegistry', 'PaymentTokenRegistry', [deployer.address]);
   await deployOrReuse('AssuranceContractFactory', 'AssuranceContractFactory');
   await deployOrReuse('PremintingERC1155Factory', 'PremintingERC1155Factory');
   await deployOrReuse('DelegatableNotes', 'DelegatableNotes', [addresses.AssuranceContractFactory]);
@@ -293,13 +297,21 @@ async function main() {
       (await fingerprint('CreatorAssuranceContractFactory', [], ['implementation-only'])),
       addresses.PremintingERC1155Factory,
       addresses.ValueThresholdConditionFactory,
-      addresses.FreeERC20,
+      addresses.PaymentTokenRegistry,
     ],
   });
   await deployOrReuse('BeneficiaryRegistry', 'BeneficiaryRegistry', [addresses.BeneficiaryIdentity]);
-  await deployOrReuse('BeneficiaryEscrow', 'BeneficiaryEscrow', [addresses.BeneficiaryRegistry, addresses.FreeERC20]);
+  await deployOrReuse('ReputationPointsToken', 'ReputationPointsToken', [deployer.address]);
+  await deployOrReuse('AltPaymentToken', 'FreeERC20', ['Alt Settlement', 'ALT', 18]);
+  if (!planOnly && addresses.PaymentTokenRegistry) {
+    const registry = await ownerCapable(await ethers.getContractAt('PaymentTokenRegistry', addresses.PaymentTokenRegistry));
+    for (const token of [addresses.FreeERC20, addresses.ReputationPointsToken, addresses.AltPaymentToken]) {
+      if (token && !(await registry.isAllowed(token))) await (await registry.allow(token)).wait();
+    }
+  }
+  await deployOrReuse('BeneficiaryEscrow', 'BeneficiaryEscrow', [addresses.BeneficiaryRegistry]);
   await deployOrReuse('CreatorAssuranceDeployer', 'CreatorAssuranceDeployer', []);
-  await deployOrReuse('CreatorAssuranceContractFactory', 'CreatorAssuranceContractFactory', [addresses.ContentRegistry, addresses.BeneficiaryRegistry, addresses.BeneficiaryEscrow, addresses.PremintingERC1155Factory, addresses.ValueThresholdConditionFactory, addresses.FreeERC20, ':', addresses.CreatorAssuranceDeployer]);
+  await deployOrReuse('CreatorAssuranceContractFactory', 'CreatorAssuranceContractFactory', [addresses.ContentRegistry, addresses.BeneficiaryRegistry, addresses.BeneficiaryEscrow, addresses.PremintingERC1155Factory, addresses.ValueThresholdConditionFactory, addresses.PaymentTokenRegistry, ':', addresses.CreatorAssuranceDeployer]);
   if (addresses.CreatorAssuranceContractFactory) {
     try {
       const factory = await ethers.getContractAt('CreatorAssuranceContractFactory', addresses.CreatorAssuranceContractFactory);
@@ -350,7 +362,7 @@ async function main() {
     addresses.BeneficiaryRegistry,
     addresses.ContentRegistry,
     addresses.ValueThresholdConditionFactory,
-    addresses.FreeERC20,
+    addresses.PaymentTokenRegistry,
     addresses.CreatorAssuranceContractFactory,
     addresses.ProspectiveRoundDeploymentHelper,
     addresses.MaterializedContentDeploymentHelper,
@@ -414,14 +426,14 @@ async function main() {
   }
   await deployOrReuse('NudgePublications', 'NudgePublications');
   await deployOrReuse('PublishedData', 'PublishedData');
-  await deployOrReuse('FixedControllerFactory', 'FixedControllerFactory', [addresses.BeneficiaryRegistry]);
+  await deployOrReuse('FixedControllerFactory', 'FixedControllerFactory', [addresses.BeneficiaryRegistry, addresses.PaymentTokenRegistry]);
   if (addresses.DelegatableNotes && addresses.FixedControllerFactory && (freshlyDeployed.has('DelegatableNotes') || freshlyDeployed.has('FixedControllerFactory'))) {
     const d = await ownerCapable(await ethers.getContractAt('DelegatableNotes', addresses.DelegatableNotes));
     if (!(await d.authorizedPrimaryMarketFactories(addresses.FixedControllerFactory))) {
       await (await d.setPrimaryMarketFactoryAuthorization(addresses.FixedControllerFactory, true)).wait();
     }
   }
-  await deployOrReuse('ClaimTicketFactory', 'ClaimTicketFactory');
+  await deployOrReuse('ClaimTicketFactory', 'ClaimTicketFactory', [addresses.PaymentTokenRegistry]);
   if (addresses.DelegatableNotes && addresses.ClaimTicketFactory && (freshlyDeployed.has('DelegatableNotes') || freshlyDeployed.has('ClaimTicketFactory'))) {
     const d = await ownerCapable(await ethers.getContractAt('DelegatableNotes', addresses.DelegatableNotes));
     if (!(await d.authorizedPrimaryMarketFactories(addresses.ClaimTicketFactory))) {
@@ -612,6 +624,9 @@ async function main() {
     PAYMENT_TOKEN_ADDRESS: addresses.FreeERC20,
     PAYMENT_TOKEN_SYMBOL: 'USDZZZ',
     PAYMENT_TOKEN_DECIMALS: '6',
+    PAYMENT_TOKEN_REGISTRY_ADDRESS: addresses.PaymentTokenRegistry,
+    POINTS_TOKEN_ADDRESS: addresses.ReputationPointsToken,
+    ALT_PAYMENT_TOKEN_ADDRESS: addresses.AltPaymentToken,
     FIXED_CONTROLLER_FACTORY_ADDRESS: addresses.FixedControllerFactory,
     PROJECT_FACTORY_ADDRESS: addresses.ProjectFactory,
     DEPLOYER_ADDRESS: deployer.address,
@@ -675,7 +690,10 @@ async function main() {
     VITE_PROSPECTIVE_CONTENT_ROUND_FACTORY_ADDRESS: addresses.ProspectiveContentRoundFactory,
     VITE_CREATOR_GAS_TANK_ADDRESS: addresses.CreatorGasTank, VITE_STATEMENT_GAS_TANK_ADDRESS: addresses.StatementGasTank, VITE_SPONSORED_GAS_ENTRY_POINT_ADDRESS: addresses.SponsoredGasEntryPoint,
     ...(addresses.GasTankFunder ? { VITE_GAS_TANK_FUNDER_ADDRESS: addresses.GasTankFunder } : {}),
-    VITE_PAYMENT_TOKEN_ADDRESS: addresses.FreeERC20, VITE_PAYMENT_TOKEN_SYMBOL: 'USDZZZ', VITE_PAYMENT_TOKEN_DECIMALS: '6', ...(isLocal ? { VITE_IPFS_GATEWAY: 'http://localhost:8080/ipfs', VITE_DEFAULT_NUDGERS: LOCAL_SEED_NUDGER_ADDRESS } : {})
+    VITE_PAYMENT_TOKEN_ADDRESS: addresses.FreeERC20, VITE_PAYMENT_TOKEN_SYMBOL: 'USDZZZ', VITE_PAYMENT_TOKEN_DECIMALS: '6',
+    VITE_PAYMENT_TOKEN_REGISTRY_ADDRESS: addresses.PaymentTokenRegistry,
+    VITE_POINTS_TOKEN_ADDRESS: addresses.ReputationPointsToken,
+    VITE_ALT_PAYMENT_TOKEN_ADDRESS: addresses.AltPaymentToken, ...(isLocal ? { VITE_IPFS_GATEWAY: 'http://localhost:8080/ipfs', VITE_DEFAULT_NUDGERS: LOCAL_SEED_NUDGER_ADDRESS } : {})
   };
   await updateEnvFile(join(root, 'ui', '.env'), viteAddressEntries);
   // Commonality package .env is optional at runtime (Docker injects config.json),

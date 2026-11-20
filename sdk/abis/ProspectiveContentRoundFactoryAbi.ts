@@ -21,7 +21,7 @@ export const ProspectiveContentRoundFactoryAbi = [
       },
       {
         "internalType": "address",
-        "name": "settlementToken",
+        "name": "tokenRegistry",
         "type": "address"
       },
       {
@@ -122,6 +122,17 @@ export const ProspectiveContentRoundFactoryAbi = [
     "inputs": [
       {
         "internalType": "address",
+        "name": "token",
+        "type": "address"
+      }
+    ],
+    "name": "PaymentTokenNotAllowed",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
         "name": "round",
         "type": "address"
       }
@@ -177,9 +188,15 @@ export const ProspectiveContentRoundFactoryAbi = [
         "internalType": "address",
         "name": "condition",
         "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "paymentToken",
+        "type": "address"
       }
     ],
-    "name": "ProspectiveRoundCreated",
+    "name": "ProspectiveRoundCreatedV2",
     "type": "event"
   },
   {
@@ -360,6 +377,11 @@ export const ProspectiveContentRoundFactoryAbi = [
             "internalType": "string",
             "name": "receiptContractUri",
             "type": "string"
+          },
+          {
+            "internalType": "address",
+            "name": "paymentToken",
+            "type": "address"
           }
         ],
         "internalType": "struct ProspectiveContentRoundFactory.CreateRoundParams",
@@ -431,10 +453,10 @@ export const ProspectiveContentRoundFactoryAbi = [
   },
   {
     "inputs": [],
-    "name": "paymentToken",
+    "name": "paymentTokenRegistry",
     "outputs": [
       {
-        "internalType": "address",
+        "internalType": "contract IPaymentTokenRegistry",
         "name": "",
         "type": "address"
       }

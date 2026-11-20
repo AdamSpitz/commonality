@@ -38,7 +38,7 @@ import { createDefaultDocumentStore, createDisplayableDocument } from '@commonal
 import { isValidCidV1 } from '@commonality/sdk/utils'
 import { parseUnits } from 'viem'
 import { useMachinery } from '../../shared'
-import { DEFAULT_PAYMENT_CURRENCY, getConfiguredPaymentCurrency } from '../../shared/funding'
+import { DEFAULT_PAYMENT_CURRENCY, getConfiguredPaymentCurrency, PaymentTokenPicker, useAllowedPaymentTokens } from '../../shared/funding'
 import { usePaymentTokenCurrency } from '../../shared/funding'
 import { projectPathForAddress } from '../../shared'
 import { useWriteClients } from '../../shared'
@@ -132,7 +132,20 @@ export function CreateProjectPage() {
   const [success, setSuccess] = useState<string | null>(null)
   const [createdProjectAddress, setCreatedProjectAddress] = useState<string | null>(null)
   const [confirmOpen, setConfirmOpen] = useState(false)
-  const paymentTokenAddress = import.meta.env.VITE_PAYMENT_TOKEN_ADDRESS
+  const { tokens: allowedPaymentTokens } = useAllowedPaymentTokens(publicClient)
+  const [paymentTokenAddress, setPaymentTokenAddress] = useState<string | null>(import.meta.env.VITE_PAYMENT_TOKEN_ADDRESS ?? null)
+  useEffect(() => {
+    if (allowedPaymentTokens.length === 0) {
+      setPaymentTokenAddress(null)
+      return
+    }
+    const configured = import.meta.env.VITE_PAYMENT_TOKEN_ADDRESS?.toLowerCase()
+    const preferred = allowedPaymentTokens.find((token) => token.address.toLowerCase() === configured) ?? allowedPaymentTokens[0]
+    setPaymentTokenAddress((current) => {
+      if (current && allowedPaymentTokens.some((token) => token.address.toLowerCase() === current.toLowerCase())) return current
+      return preferred?.address ?? null
+    })
+  }, [allowedPaymentTokens])
   const { currency: loadedPaymentCurrency, loading: paymentCurrencyLoading } = usePaymentTokenCurrency(publicClient, paymentTokenAddress)
   const paymentCurrency = loadedPaymentCurrency ?? getConfiguredPaymentCurrency() ?? DEFAULT_PAYMENT_CURRENCY
   const paymentSymbol = paymentCurrency.symbol
@@ -380,7 +393,7 @@ export function CreateProjectPage() {
         throw new Error('ProjectFactory contract address not configured (VITE_PROJECT_FACTORY_CONTRACT_ADDRESS)')
       }
       if (!paymentTokenAddress) {
-        throw new Error('Payment token address not configured (VITE_PAYMENT_TOKEN_ADDRESS)')
+        throw new Error('Choose an allowed settlement token')
       }
 
       const projectFactoryContract: ProjectFactoryContract = {
@@ -632,6 +645,8 @@ export function CreateProjectPage() {
               <ExistingBeneficiaryProjects domain={beneficiaryDomain} />
             </Stack>
           )}
+
+          <PaymentTokenPicker tokens={allowedPaymentTokens} value={paymentTokenAddress} onChange={setPaymentTokenAddress} />
 
           <TextField
             label={`Funding goal (${paymentSymbol})`}

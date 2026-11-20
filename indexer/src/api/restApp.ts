@@ -28,7 +28,7 @@ import { isBareContractLogQuery, projectReadDemandReport, recordUnindexedProject
 import { followCheckpointFromSync } from "./syncWatermark";
 
 const TOPIC_IN_LIMIT = 32;
-const PROJECT_CREATION_EVENTS = ["LazyGivingAssuranceContractCreated", "CreatorContractCreated", "FixedControllerAssuranceCreated"];
+const PROJECT_CREATION_EVENTS = ["LazyGivingAssuranceContractCreated", "CreatorContractCreatedV2", "FixedControllerAssuranceCreated"];
 
 class TopicInError extends Error {}
 

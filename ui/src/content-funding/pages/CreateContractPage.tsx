@@ -32,7 +32,7 @@ import { useContentFundingState } from '../hooks/useContentFundingState'
 import { usePlatformApi } from '../hooks/usePlatformApi'
 import { getAppUrl } from '../../shared'
 import { InfoChip } from '../../shared'
-import { DEFAULT_PAYMENT_CURRENCY, formatCurrencyAmount, getConfiguredPaymentCurrency } from '../../shared/funding'
+import { DEFAULT_PAYMENT_CURRENCY, formatCurrencyAmount, getConfiguredPaymentCurrency, PaymentTokenPicker, useAllowedPaymentTokens } from '../../shared/funding'
 import { CHANNEL_STATE_TOOLTIPS } from '../chipTooltips'
 import { usePaymentTokenCurrency } from '../../shared/funding'
 import { projectPathForAddress } from '../../shared'
@@ -207,7 +207,20 @@ export function CreateContractPage({
     : null
 
   const factoryAddress = import.meta.env.VITE_CREATOR_CONTRACT_FACTORY_ADDRESS
-  const [paymentTokenAddress, setPaymentTokenAddress] = useState<string | null>(null)
+  const { tokens: allowedPaymentTokens } = useAllowedPaymentTokens(publicClient)
+  const [paymentTokenAddress, setPaymentTokenAddress] = useState<string | null>(getConfiguredPaymentCurrency()?.tokenAddress ?? null)
+  useEffect(() => {
+    if (allowedPaymentTokens.length === 0) {
+      setPaymentTokenAddress(null)
+      return
+    }
+    const configured = getConfiguredPaymentCurrency()?.tokenAddress?.toLowerCase()
+    const preferred = allowedPaymentTokens.find((token) => token.address.toLowerCase() === configured) ?? allowedPaymentTokens[0]
+    setPaymentTokenAddress((current) => {
+      if (current && allowedPaymentTokens.some((token) => token.address.toLowerCase() === current.toLowerCase())) return current
+      return preferred?.address ?? null
+    })
+  }, [allowedPaymentTokens])
   const { currency: loadedPaymentCurrency, loading: paymentCurrencyLoading } = usePaymentTokenCurrency(publicClient, paymentTokenAddress)
   const paymentCurrency = loadedPaymentCurrency ?? getConfiguredPaymentCurrency() ?? DEFAULT_PAYMENT_CURRENCY
   const paymentSymbol = paymentCurrency.symbol
@@ -215,29 +228,6 @@ export function CreateContractPage({
   const parsePaymentAmount = (value: string) => {
     return parseUnits(value, paymentCurrency.decimals)
   }
-
-  useEffect(() => {
-    const configuredPaymentCurrency = getConfiguredPaymentCurrency()
-    if (!publicClient || !factoryAddress || typeof publicClient.readContract !== 'function') {
-      setPaymentTokenAddress(configuredPaymentCurrency?.tokenAddress ?? null)
-      return
-    }
-
-    let cancelled = false
-    publicClient.readContract({
-      address: factoryAddress as `0x${string}`,
-      abi: CreatorAssuranceContractFactoryAbi,
-      functionName: 'paymentToken',
-    }).then((tokenAddress) => {
-      if (!cancelled) setPaymentTokenAddress(tokenAddress as string)
-    }).catch(() => {
-      if (!cancelled) setPaymentTokenAddress(configuredPaymentCurrency?.tokenAddress ?? null)
-    })
-
-    return () => {
-      cancelled = true
-    }
-  }, [factoryAddress, publicClient])
 
   useEffect(() => {
     if (!state) return
@@ -340,6 +330,7 @@ export function CreateContractPage({
           channelCanonicalId: canonicalChannelId, tokenId: 0n, supply, price, threshold: thresholdValue,
           deadline: BigInt(Math.floor(new Date(deadline).getTime() / 1000)), metadataCid: publication.cid,
           receiptMetadataUri: receiptMetadataUri || `ipfs://${publication.cid}`, receiptContractUri: receiptContractUri || `ipfs://${publication.cid}`,
+          paymentToken: paymentTokenAddress as `0x${string}`,
         })
         setCreatedContractAddress(result.roundAddress); setSuccess('Contract created successfully!')
       } catch (err) { setSubmitError(err instanceof Error ? err.message : 'Failed to create future-content round') }
@@ -501,6 +492,7 @@ export function CreateContractPage({
         isThirdParty,
         initialPurchaseIndices,
         initialPurchaseCounts,
+        paymentToken: paymentTokenAddress as `0x${string}`,
       })
 
       setSuccess('Contract created successfully!')
@@ -762,7 +754,8 @@ export function CreateContractPage({
                 Funding Details
               </Typography>
 
-              <Stack direction="row" spacing={2} alignItems="flex-start">
+              <PaymentTokenPicker tokens={allowedPaymentTokens} value={paymentTokenAddress} onChange={setPaymentTokenAddress} />
+              <Stack direction="row" spacing={2} alignItems="flex-start" sx={{ mt: 2 }}>
                 <TextField
                   label={`Funding Threshold (${paymentSymbol})`}
                   type="number"

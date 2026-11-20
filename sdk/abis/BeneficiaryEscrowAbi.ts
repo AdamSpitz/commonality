@@ -8,11 +8,6 @@ export const BeneficiaryEscrowAbi = [
         "internalType": "address",
         "name": "_beneficiaryRegistry",
         "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "_paymentToken",
-        "type": "address"
       }
     ],
     "stateMutability": "nonpayable",
@@ -82,6 +77,12 @@ export const BeneficiaryEscrowAbi = [
       {
         "indexed": true,
         "internalType": "address",
+        "name": "token",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
         "name": "from",
         "type": "address"
       },
@@ -92,7 +93,7 @@ export const BeneficiaryEscrowAbi = [
         "type": "uint256"
       }
     ],
-    "name": "Deposited",
+    "name": "DepositedV2",
     "type": "event"
   },
   {
@@ -107,6 +108,12 @@ export const BeneficiaryEscrowAbi = [
       {
         "indexed": true,
         "internalType": "address",
+        "name": "token",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
         "name": "to",
         "type": "address"
       },
@@ -117,7 +124,7 @@ export const BeneficiaryEscrowAbi = [
         "type": "uint256"
       }
     ],
-    "name": "Withdrawn",
+    "name": "WithdrawnV2",
     "type": "event"
   },
   {
@@ -126,6 +133,11 @@ export const BeneficiaryEscrowAbi = [
         "internalType": "bytes32",
         "name": "beneficiaryId",
         "type": "bytes32"
+      },
+      {
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
       }
     ],
     "name": "balance",
@@ -160,6 +172,11 @@ export const BeneficiaryEscrowAbi = [
         "type": "bytes32"
       },
       {
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      },
+      {
         "internalType": "uint256",
         "name": "amount",
         "type": "uint256"
@@ -171,24 +188,16 @@ export const BeneficiaryEscrowAbi = [
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "paymentToken",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "bytes32",
         "name": "beneficiaryId",
         "type": "bytes32"
+      },
+      {
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
       }
     ],
     "name": "withdraw",

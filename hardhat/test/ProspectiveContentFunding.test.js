@@ -27,11 +27,13 @@ async function fixture({ verified = true, creatorCaller = true, threshold = 10n 
   const MaterializedHelper = await ethers.getContractFactory("MaterializedContentDeploymentHelper");
   const materializedHelper = await MaterializedHelper.deploy();
   const Factory = await ethers.getContractFactory("ProspectiveContentRoundFactory");
-  const factory = await Factory.deploy(await channels.getAddress(), await registry.getAddress(), await conditions.getAddress(), await payment.getAddress(), await authority.getAddress(), await roundHelper.getAddress(), await materializedHelper.getAddress());
+  const tokenRegistry = await ethers.deployContract("PaymentTokenRegistry", [owner.address]);
+  await tokenRegistry.allow(await payment.getAddress());
+  const factory = await Factory.deploy(await channels.getAddress(), await registry.getAddress(), await conditions.getAddress(), await tokenRegistry.getAddress(), await authority.getAddress(), await roundHelper.getAddress(), await materializedHelper.getAddress());
   await authority.setFactory(await factory.getAddress());
 
   const now = (await ethers.provider.getBlock("latest")).timestamp;
-  const params = [channelId, canonicalChannel, tokenId, 100n, 1n, threshold, now + 100, "ipfs://round", "ipfs://receipt/{id}", "ipfs://receipt"];
+  const params = [channelId, canonicalChannel, tokenId, 100n, 1n, threshold, now + 100, "ipfs://round", "ipfs://receipt/{id}", "ipfs://receipt", await payment.getAddress()];
   const caller = creatorCaller ? creator : bob;
   const roundAddress = await factory.connect(caller).createProspectiveRound.staticCall(params).catch(() => ethers.ZeroAddress);
   if (roundAddress !== ethers.ZeroAddress) await factory.connect(caller).createProspectiveRound(params);

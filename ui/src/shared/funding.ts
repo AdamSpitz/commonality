@@ -15,6 +15,8 @@ export {
 } from './currency/currency'
 export { MoneyText, USDZZZ_TOOLTIP } from './currency/MoneyText'
 export { usePaymentTokenCurrency } from './currency/usePaymentTokenCurrency'
+export { useAllowedPaymentTokens } from './currency/useAllowedPaymentTokens'
+export { PaymentTokenPicker } from './currency/PaymentTokenPicker'
 
 export { loadProjectWithCache, projectFoldCacheOptions, useCachedProject } from './hooks/useCachedProject'
 export { useCachedProjects } from './hooks/useCachedProjects'

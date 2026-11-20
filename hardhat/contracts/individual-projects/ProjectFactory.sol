@@ -25,8 +25,13 @@ interface IProjectBeneficiaryRegistry {
 
 interface IProjectBeneficiaryEscrow {
   function beneficiaryRegistry() external view returns (address);
-  function paymentToken() external view returns (address);
 }
+
+interface IPaymentTokenRegistry {
+  function isAllowed(address token) external view returns (bool);
+}
+
+error PaymentTokenNotAllowed(address token);
 
 error InvalidOwnerAddress();
 error InvalidRecipientAddress();
@@ -239,6 +244,12 @@ contract ProjectFactory {
     claimTicketFactory = ClaimTicketFactory(_claimTicketFactory);
     if (IProjectBeneficiaryEscrow(_beneficiaryEscrow).beneficiaryRegistry() != _beneficiaryRegistry) {
       revert BeneficiaryEscrowRegistryMismatch();
+    }
+  }
+
+  function _requirePaymentToken(address token) private view {
+    if (!IPaymentTokenRegistry(address(fixedControllerFactory.paymentTokenRegistry())).isAllowed(token)) {
+      revert PaymentTokenNotAllowed(token);
     }
   }
 
@@ -596,9 +607,10 @@ contract ProjectFactory {
     return (t, ac);
   }
 
-  function _validateProjectParams(CreateProjectParams memory params) private pure {
+  function _validateProjectParams(CreateProjectParams memory params) private view {
     if (params.owner == address(0)) revert InvalidOwnerAddress();
     if (params.recipient == address(0)) revert InvalidRecipientAddress();
+    _requirePaymentToken(params.paymentToken);
     _validateTokenArrays(params.ids, params.counts, params.prices);
   }
 

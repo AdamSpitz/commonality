@@ -35,6 +35,7 @@ export interface BeatIngestedItem {
 	observedAt: string;
 	ingestedAt: string;
 	contentVersion?: string;
+	editableUntil?: string;
 	isReply?: boolean;
 	mediaIsPrimary?: boolean;
 	quotedText?: string;
@@ -55,9 +56,13 @@ export interface BeatSourceCursor {
 export interface BeatSourceFetchResult {
 	items: BeatIngestedItem[];
 	cursor?: string;
+	/** Paid reads, including expanded posts that are not stored as primary items. */
+	readItemCount?: number;
 }
 
 export interface BeatSourceAdapter {
+	/** Maximum paid post reads in one fetch; omitted for free adapters. */
+	maxReadItemsPerFetch?: number;
 	fetchSource: (
 		source: BeatSource,
 		cursor: BeatSourceCursor | undefined,
@@ -72,6 +77,9 @@ export interface RunBeatIngestionOnceParams {
 	env?: Record<string, string | undefined>;
 	/** Hard cap on newly stored items per immutable author id in one run. */
 	maxNewItemsPerAuthor?: number;
+	/** Return false to skip a paid source fetch because the monthly ceiling would be exceeded. */
+	beforeSourceFetch?: (source: BeatSource, maxReadItems: number) => Promise<boolean> | boolean;
+	afterSourceFetch?: (source: BeatSource, itemCount: number) => Promise<void> | void;
 }
 
 export interface BeatIngestionRunSummary {
@@ -107,7 +115,8 @@ export interface BeatIngestionSkippedSource {
 		| "rate_limited"
 		| "missing_credentials"
 		| "missing_adapter"
-		| "fetch_failed";
+		| "fetch_failed"
+		| "budget";
 	errorMessage?: string;
 	errorName?: string;
 }
@@ -236,10 +245,18 @@ export async function runBeatIngestionOnce(
 			continue;
 		}
 
+		const maxReadItems = adapter.maxReadItemsPerFetch ?? 0;
+		if (params.beforeSourceFetch && await params.beforeSourceFetch(source, maxReadItems) === false) {
+			summary.skippedSources.push({ sourceId: source.id, reason: "budget" });
+			continue;
+		}
+
 		let result: BeatSourceFetchResult;
 		try {
 			result = await adapter.fetchSource(source, previousCursor);
 		} catch (error) {
+			// A failed response does not prove that the provider did not charge for the reads.
+			if (params.afterSourceFetch) await params.afterSourceFetch(source, maxReadItems);
 			summary.skippedSources.push({
 				sourceId: source.id,
 				reason: "fetch_failed",
@@ -248,6 +265,7 @@ export async function runBeatIngestionOnce(
 			continue;
 		}
 		summary.fetchedSourceIds.push(source.id);
+		if (params.afterSourceFetch) await params.afterSourceFetch(source, result.readItemCount ?? (maxReadItems > 0 ? result.items.length : 0));
 
 		for (const item of result.items) {
 			if (knownIds.has(item.contentCanonicalId)) {

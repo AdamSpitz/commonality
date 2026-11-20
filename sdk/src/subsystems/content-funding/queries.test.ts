@@ -11,7 +11,7 @@ import type {
   DepositedEvent,
   ProspectiveContentEvent,
 } from './events.js';
-import { foldAllContentFundingEvents, foldContentRegistry } from './folds.js';
+import { foldAllContentFundingEvents, foldContentRegistry, foldBeneficiaryEscrow, escrowBalanceKey } from './folds.js';
 import {
   buildChannelCanonicalIdMap,
   getChannelOverview,
@@ -32,7 +32,8 @@ import { ETH_CURRENCY } from '../../utils/currency.js';
 import { cidToBytes32 } from '../../utils/cid-types.js';
 import { fakeIpfsCidV1 } from '../../utils/test-helpers.js';
 import type { RawEventFromCache } from '../../utils/eventCacheClient.js';
-import { AlignmentAttestationsAbi, ContentRegistryAbi } from '../../abis.js';
+import { AlignmentAttestationsAbi, ContentRegistryAbi, BeneficiaryEscrowAbi } from '../../abis.js';
+import { decodeDepositedEvent, decodeWithdrawnEvent } from '../../utils/event-decoders/content-funding.js';
 
 const CHANNEL_A = 'twitter:uid:creator-a';
 const CHANNEL_B = 'twitter:uid:creator-b';
@@ -123,6 +124,7 @@ function makeDepositedEvent(overrides: Partial<DepositedEvent> = {}): DepositedE
     type: 'Deposited',
     contractAddress: '0x9999999999999999999999999999999999999997',
     channelId: CHANNEL_A,
+    token: '0x0000000000000000000000000000000000000001',
     from: OWNER_A,
     amount: 25n,
     blockNumber: 121n,
@@ -140,6 +142,7 @@ function makeContractCreatedEvent(overrides: Partial<CreatorContractCreatedEvent
     channelId: CHANNEL_A,
     creator: OWNER_A,
     isThirdParty: true,
+    paymentToken: '0x0000000000000000000000000000000000000001',
     blockNumber: 100n,
     blockTimestamp: 1000n,
     transactionHash: TX_HASH,
@@ -181,6 +184,57 @@ function makeProject(overrides: Partial<Project> = {}): Project {
 }
 
 describe('content-funding query helpers', () => {
+  it('decodes V2 escrow logs with their beneficiary and settlement token', () => {
+    const beneficiaryId = `0x${'12'.repeat(32)}` as const;
+    const depositTopics = encodeEventTopics({
+      abi: BeneficiaryEscrowAbi, eventName: 'DepositedV2',
+      args: { beneficiaryId, token: CONTRACT_A, from: OWNER_A },
+    });
+    const withdrawalTopics = encodeEventTopics({
+      abi: BeneficiaryEscrowAbi, eventName: 'WithdrawnV2',
+      args: { beneficiaryId, token: CONTRACT_B, to: OWNER_B },
+    });
+    const raw = (eventName: string, topics: readonly unknown[]): RawEventFromCache => ({
+      id: eventName, eventName, contractAddress: CONTRACT_C,
+      blockNumber: '100', blockTimestamp: '1000', transactionHash: TX_HASH, logIndex: 0,
+      topic0: topics[0] as string, topic1: topics[1] as string,
+      topic2: topics[2] as string, topic3: topics[3] as string,
+      data: encodeAbiParameters([{ type: 'uint256' }], [25n]),
+    });
+    const deposited = decodeDepositedEvent(raw('DepositedV2', depositTopics));
+    const withdrawn = decodeWithdrawnEvent(raw('WithdrawnV2', withdrawalTopics));
+    assert.strictEqual(deposited?.channelId, beneficiaryId);
+    assert.strictEqual(deposited?.token.toLowerCase(), CONTRACT_A);
+    assert.strictEqual(deposited?.from, OWNER_A);
+    assert.strictEqual(deposited?.amount, 25n);
+    assert.strictEqual(withdrawn?.channelId, beneficiaryId);
+    assert.strictEqual(withdrawn?.token.toLowerCase(), CONTRACT_B);
+    assert.strictEqual(withdrawn?.to, OWNER_B);
+    assert.strictEqual(withdrawn?.amount, 25n);
+  });
+
+  it('keeps escrow deposits and withdrawals isolated by settlement token', () => {
+    const first = makeDepositedEvent({ token: CONTRACT_A, amount: 25n });
+    const second = makeDepositedEvent({ token: CONTRACT_B, amount: 10n });
+    const initial = foldBeneficiaryEscrow([first, second]);
+    const folded = foldBeneficiaryEscrow([
+      { ...first, type: 'Withdrawn', to: OWNER_A, amount: 20n },
+    ], initial);
+
+    assert.deepStrictEqual(folded.balances.get(escrowBalanceKey(CHANNEL_A, CONTRACT_A)), {
+      token: CONTRACT_A, balance: 5n, totalDeposited: 25n, totalWithdrawn: 20n,
+    });
+    assert.deepStrictEqual(folded.balances.get(escrowBalanceKey(CHANNEL_A, CONTRACT_B)), {
+      token: CONTRACT_B, balance: 10n, totalDeposited: 10n, totalWithdrawn: 0n,
+    });
+    assert.strictEqual(initial.balances.get(escrowBalanceKey(CHANNEL_A, CONTRACT_A))?.balance, 25n);
+
+    const multiTokenState = foldAllContentFundingEvents([], [makeVerifiedEvent()], [first, second], []);
+    const overview = getChannelOverview(multiTokenState, CHANNEL_A);
+    assert.strictEqual(overview.escrow.balance, 0n);
+    assert.deepStrictEqual(overview.escrow.entries?.map(entry => entry.balance), [25n, 10n]);
+  });
+
   it('reports per-item claim state against the receipt balance', async () => {
     const claimedByContentId = new Map<bigint, bigint>([[1n, 0n], [2n, 3n], [3n, 5n]]);
     const machinery = {

@@ -31,7 +31,7 @@ export const CreatorAssuranceContractFactoryAbi = [
       },
       {
         "internalType": "address",
-        "name": "_paymentToken",
+        "name": "_paymentTokenRegistry",
         "type": "address"
       },
       {
@@ -242,6 +242,17 @@ export const CreatorAssuranceContractFactoryAbi = [
         "type": "address"
       }
     ],
+    "name": "PaymentTokenNotAllowed",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      }
+    ],
     "name": "SafeERC20FailedOperation",
     "type": "error"
   },
@@ -292,9 +303,15 @@ export const CreatorAssuranceContractFactoryAbi = [
         "internalType": "bool",
         "name": "isThirdParty",
         "type": "bool"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "paymentToken",
+        "type": "address"
       }
     ],
-    "name": "CreatorContractCreated",
+    "name": "CreatorContractCreatedV2",
     "type": "event"
   },
   {
@@ -636,6 +653,11 @@ export const CreatorAssuranceContractFactoryAbi = [
             "internalType": "uint256[]",
             "name": "initialPurchaseCounts",
             "type": "uint256[]"
+          },
+          {
+            "internalType": "address",
+            "name": "paymentToken",
+            "type": "address"
           }
         ],
         "internalType": "struct CreatorAssuranceContractFactory.CreateContractParams",
@@ -717,6 +739,11 @@ export const CreatorAssuranceContractFactoryAbi = [
             "internalType": "uint256[]",
             "name": "initialPurchaseCounts",
             "type": "uint256[]"
+          },
+          {
+            "internalType": "address",
+            "name": "paymentToken",
+            "type": "address"
           }
         ],
         "internalType": "struct CreatorAssuranceContractFactory.CreateContractParams",
@@ -806,6 +833,25 @@ export const CreatorAssuranceContractFactoryAbi = [
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      }
+    ],
+    "name": "minPurchaseFor",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "owner",
     "outputs": [
@@ -820,10 +866,10 @@ export const CreatorAssuranceContractFactoryAbi = [
   },
   {
     "inputs": [],
-    "name": "paymentToken",
+    "name": "paymentTokenRegistry",
     "outputs": [
       {
-        "internalType": "address",
+        "internalType": "contract IPaymentTokenRegistry",
         "name": "",
         "type": "address"
       }
@@ -912,6 +958,24 @@ export const CreatorAssuranceContractFactoryAbi = [
     "inputs": [
       {
         "internalType": "address",
+        "name": "token",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "minimum",
+        "type": "uint256"
+      }
+    ],
+    "name": "setThirdPartyMinPurchaseFor",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
         "name": "registrar",
         "type": "address"
       },
@@ -946,6 +1010,25 @@ export const CreatorAssuranceContractFactoryAbi = [
       {
         "internalType": "uint256",
         "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      }
+    ],
+    "name": "thirdPartyMinPurchaseFor",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "minimum",
         "type": "uint256"
       }
     ],

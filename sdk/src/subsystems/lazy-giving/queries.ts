@@ -73,7 +73,8 @@ async function fetchAndDecodeProjectEvents(
         if (d) projectEvents.push({ type: 'created', event: d });
         break;
       }
-      case 'CreatorContractCreated': {
+      case 'CreatorContractCreated':
+      case 'CreatorContractCreatedV2': {
         const d = decodeCreatorContractCreatedEvent(raw);
         if (d) {
           projectEvents.push({
@@ -294,7 +295,7 @@ export async function getAllProjectAddresses(
   const [lazyGivingEvents, projectFactoryEvents, creatorEvents] = await Promise.all([
     fetchEventsComplete(machinery, { eventName: 'LazyGivingAssuranceContractCreated' }),
     fetchEventsComplete(machinery, { eventName: 'ProjectCreated' }),
-    fetchEventsComplete(machinery, { eventName: 'CreatorContractCreated' }),
+    fetchEventsComplete(machinery, { eventName: 'CreatorContractCreatedV2' }),
   ]);
 
   const projectAddresses = [

@@ -92,7 +92,11 @@ export function createApp(
   }));
 
   app.post('/resolve/content', resolveLimiter, handleRoute(async (req: Request, res: Response) => {
-    const { url } = req.body as { url?: string };
+    const { url, fresh } = req.body as { url?: string; fresh?: boolean };
+    if (fresh !== undefined && typeof fresh !== 'boolean') {
+      res.status(400).json({ error: 'invalid_request', message: 'fresh must be a boolean' });
+      return;
+    }
     if (typeof url !== 'string') {
       res.status(400).json({
         error: 'invalid_request',
@@ -101,7 +105,7 @@ export function createApp(
       return;
     }
 
-    res.json(await service.resolveContent(url));
+    res.json(await service.resolveContent(url, { fresh }));
   }));
 
   app.post('/context/local', resolveLimiter, handleRoute(async (req: Request, res: Response) => {

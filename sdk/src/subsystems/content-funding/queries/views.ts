@@ -36,11 +36,12 @@ export interface ContentFundingContractSummary extends CreatorContractInfo {
 export interface ChannelOverview {
   /** Channel registry state. */
   channel: ChannelInfo;
-  /** Escrow balance and cumulative totals for this channel. */
+  /** Per-token escrow. `balance` is set only when the channel has one token; never a cross-token sum. */
   escrow: {
     balance: bigint;
     totalDeposited: bigint;
     totalWithdrawn: bigint;
+    entries?: Array<{ token: `0x${string}`; balance: bigint; totalDeposited: bigint; totalWithdrawn: bigint }>;
   };
   /** All content-funding contracts for this channel, sorted by creation date. */
   contracts: ContentFundingContractSummary[];
@@ -237,12 +238,13 @@ function getDefaultChannelInfo(channelId: string): ChannelInfo {
 function getEscrowEntry(
   beneficiaryEscrow: BeneficiaryEscrowState,
   channelId: string,
-): { balance: bigint; totalDeposited: bigint; totalWithdrawn: bigint } {
-  return beneficiaryEscrow.balances.get(channelId) ?? {
-    balance: 0n,
-    totalDeposited: 0n,
-    totalWithdrawn: 0n,
-  };
+): ChannelOverview['escrow'] {
+  const prefix = `${channelId}:`;
+  const entries = [...beneficiaryEscrow.balances.entries()]
+    .filter(([key]) => key.startsWith(prefix))
+    .map(([, entry]) => entry);
+  if (entries.length === 1) return { ...entries[0]!, entries };
+  return { balance: 0n, totalDeposited: 0n, totalWithdrawn: 0n, entries };
 }
 
 /**

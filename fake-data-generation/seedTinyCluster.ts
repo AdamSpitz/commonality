@@ -9,6 +9,7 @@
 import { readdirSync, readFileSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
+import { parseUnits } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import {
   AlignmentAttestationsAbi,
@@ -720,6 +721,52 @@ async function createProjects(cluster: TinyClusterDef, statementCids: Map<string
         await attester.publicClient.waitForTransactionReceipt({ hash });
       }
     }
+  }
+
+  const altToken = process.env.ALT_PAYMENT_TOKEN_ADDRESS as `0x${string}` | undefined;
+  const altTemplate = cluster.projects[0];
+  if (altToken && altTemplate) {
+    const altDecimals = 18;
+    const key = fundedKey(altTemplate.ownerIndex);
+    const clients = createClients(key);
+    const store = createDefaultDocumentStore(
+      createSDKMachinery({ ipfsConfig: createIPFSConfigInNodeJSFromTheUsualEnvVars() }),
+      publishedData ? { clients: clients as WriteClients, publishedDataContract: { address: publishedData, abi: PublishedDataAbi } } : { clients: clients as WriteClients },
+    );
+    const publication = await store.publish(createDisplayableDocument({
+      format: 'markdown-restricted',
+      content: `${altTemplate.description} Settled in the alternate payment token.`,
+      extras: {
+        statementType: 'lazy-giving-project-metadata',
+        name: `${altTemplate.name} (ALT)`,
+        description: altTemplate.description,
+        seedProjectKind: altTemplate.kind,
+      },
+    }));
+    const altPrices = [parseUnits('0.1', altDecimals), parseUnits('0.05', altDecimals), parseUnits('0.01', altDecimals)];
+    const { projectDetails } = await sdkCreateProject(clients as WriteClients, { address: factory, abi: ProjectFactoryAbi }, {
+      metadataURI: `ipfs://${publication.cid}/`,
+      contractURI: `ipfs://${publication.cid}`,
+      owner: clients.account,
+      recipient: clients.account,
+      paymentToken: altToken,
+      threshold: parseUnits('2', altDecimals),
+      deadline,
+      projectMetadataCid: publication.cid,
+      tokenIds,
+      tokenCounts: maxSupplies,
+      tokenPrices: altPrices,
+    });
+    created.push({
+      id: `${altTemplate.id}-alt`,
+      name: `${altTemplate.name} (ALT)`,
+      assuranceContract: projectDetails.assuranceContractAddress,
+      erc1155: projectDetails.tokenAddress,
+      tokenIds: tokenIds.map(Number),
+      prices: altPrices.map((price) => price.toString()),
+      alignments: [],
+    });
+    console.log(`  ✓ ALT project ${altTemplate.name} → ${projectDetails.assuranceContractAddress}`);
   }
   return created;
 }

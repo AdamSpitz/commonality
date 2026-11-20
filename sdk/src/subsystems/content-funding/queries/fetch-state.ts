@@ -139,17 +139,20 @@ function decodeContentFundingEvent(raw: { eventName: string }): ContentFundingFo
       const decoded = decodeContractVetoedEvent(raw as never);
       return decoded ? { type: 'ContractVetoed', ...decoded } : null;
     }
-    case 'Deposited': {
+    case 'Deposited':
+    case 'DepositedV2': {
       const decoded = decodeDepositedEvent(raw as never);
       return decoded ? { type: 'Deposited', ...decoded } : null;
     }
-    case 'Withdrawn': {
+    case 'Withdrawn':
+    case 'WithdrawnV2': {
       const decoded = decodeWithdrawnEvent(raw as never);
       return decoded ? { type: 'Withdrawn', ...decoded } : null;
     }
-    case 'CreatorContractCreated': {
+    case 'CreatorContractCreated':
+    case 'CreatorContractCreatedV2': {
       const decoded = decodeCreatorContractCreatedEvent(raw as never);
-      return decoded ? { type: 'CreatorContractCreated', contractAddress: decoded.contractAddress, channelId: decoded.channelId, creator: decoded.creator, isThirdParty: decoded.isThirdParty, blockNumber: decoded.blockNumber, blockTimestamp: decoded.blockTimestamp, transactionHash: decoded.transactionHash, logIndex: decoded.logIndex } : null;
+      return decoded ? { type: 'CreatorContractCreated', ...decoded } : null;
     }
     default:
       return null;
@@ -214,6 +217,7 @@ function serializeAccumulator(accumulator: ContentFundingAccumulator): unknown {
     }]),
     disavowedProjects: [...state.beneficiaryRegistry.disavowedProjects],
     balances: [...state.beneficiaryEscrow.balances.entries()].map(([id, entry]) => [id, {
+      token: entry.token,
       balance: entry.balance.toString(),
       totalDeposited: entry.totalDeposited.toString(),
       totalWithdrawn: entry.totalWithdrawn.toString(),
@@ -232,7 +236,7 @@ function deserializeAccumulator(raw: unknown): ContentFundingAccumulator {
     items: [string, Omit<ContentItem, 'contentId'> & { contentId: string }][];
     channels: [string, Omit<ChannelInfo, 'controlTakenAt'> & { controlTakenAt: string | null }][];
     disavowedProjects: string[];
-    balances: [string, { balance: string; totalDeposited: string; totalWithdrawn: string }][];
+    balances: [string, { token: `0x${string}`; balance: string; totalDeposited: string; totalWithdrawn: string }][];
     contracts: [string, ContentFundingState['creatorContracts']['contracts'] extends Map<string, infer T> ? T : never][];
     vetoedEvents: (Omit<ContractVetoedEvent, 'blockNumber' | 'blockTimestamp'> & { blockNumber: string; blockTimestamp: string })[];
   };
@@ -250,6 +254,7 @@ function deserializeAccumulator(raw: unknown): ContentFundingAccumulator {
       },
       beneficiaryEscrow: {
         balances: new Map(record.balances.map(([id, entry]) => [id, {
+          token: entry.token,
           balance: asBigint(entry.balance),
           totalDeposited: asBigint(entry.totalDeposited),
           totalWithdrawn: asBigint(entry.totalWithdrawn),

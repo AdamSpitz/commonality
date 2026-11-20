@@ -283,6 +283,16 @@ optionally submits the on-chain transaction if configured. The signed proof's
 `beneficiaryId` is the canonical identity string (hashed on-chain). A domain claim
 may redirect within the same registrable domain, but not to a different one.
 
+### Fresh content resolution and evaluation metadata
+
+`POST /resolve/content` also accepts `fresh: true` to bypass the content cache for
+source checks. This performs a provider lookup and remains subject to resolve
+rate limits. X metadata includes `authorId`, `contentVersion` (the returned
+post ID), `isReply`, `mediaIsPrimary`, `editableUntil` when provided by X, and
+`quotedContent`. An older version is never labeled with the newest edit-history ID.
+Media-primary detection identifies attachment posts without text beyond media
+links; it does not interpret images or video.
+
 ### `GET /content-submission`
 
 Returns the current queued content submissions as JSON.
