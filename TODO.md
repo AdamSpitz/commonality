@@ -16,6 +16,8 @@ Getting **testnet to a two-person shared lab** is also a standing plan, not a pi
 
 ----
 
+- Complete per-token escrow presentation in the legacy content-funding screens: the creator dashboard, project section, website claim section, and claim modal still assume a single/default currency. Use the SDK's token-keyed escrow entries and load each token's metadata; never label alternate-token amounts with the first project's currency or ETH. Channel totals already group project funding by token.
+
 - Finish the civility-bot candidate path before live operation: finder-lane scheduling and per-author ingestion caps are wired, and beat-memory can charge estimated X reads against a shared spend file. Still open: fresh source/version checks before selection, an onchain/indexer-to-candidate rehearsal that is not stubbed, and reconciling the $0.005/post read estimate with the developer-console invoice. Civility policy and deployment live in `../common-sense-politics/specs/civility-bot.md`.
 
 - Restore Civility/CSM verification in `common-sense-politics`: port `ui/e2e/common-sense-majority-flow.spec.ts`, the removed `functionality.civility-policy-surfaces` inventory/check, and the Civility/CSM workflow-review leaves from this repo's pre-extraction history. Those checks depend on app-owned routes and now belong beside those apps. The sibling currently has no E2E/verifier setup, so this PR does not establish external-app coverage. Generic content-policy tests remain here; `stack.user-journeys` now exercises the existing Tally statement write → index → UI readback test.

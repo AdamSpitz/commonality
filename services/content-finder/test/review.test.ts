@@ -101,6 +101,10 @@ describe('bounded content review', () => {
     const ingestionStateFilePath = join(directory, 'ingestion.json');
     const evaluated = [];
     try {
+      await writeFile(stateFilePath, JSON.stringify({ processedSubmissionKeys: [], queuedItems: [
+        { lane: 'finder', dedupeKey: 'finder:twitter:uid:2:gone:bafytest', enqueuedAt: '' },
+        { lane: 'finder', dedupeKey: 'finder:twitter:uid:2:2:bafytest', enqueuedAt: '' },
+      ] }));
       await writeFile(submissionsFilePath, JSON.stringify([
         { contentUrl: 'https://x.com/a/status/9', statementCid: 'bafytest' },
       ]));
@@ -125,6 +129,7 @@ describe('bounded content review', () => {
       assert.equal(evaluated.length, 2);
       assert.equal(evaluated.some((item) => item.contentCanonicalId === 'twitter:uid:2:1'), true);
       assert.equal(evaluated.some((item) => item.contentText === 'reply'), false);
+      assert.deepEqual(JSON.parse(await readFile(stateFilePath, 'utf8')).queuedItems, []);
     } finally {
       globalThis.fetch = originalFetch;
       await rm(directory, { recursive: true, force: true });

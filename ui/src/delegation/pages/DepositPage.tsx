@@ -81,7 +81,10 @@ export function DepositPage() {
   const { tokens: allowedPaymentTokens } = useAllowedPaymentTokens(publicClient)
   const [paymentTokenAddress, setPaymentTokenAddress] = useState<string | null>(import.meta.env.VITE_PAYMENT_TOKEN_ADDRESS ?? null)
   useEffect(() => {
-    if (allowedPaymentTokens.length === 0) return
+    if (allowedPaymentTokens.length === 0) {
+      setPaymentTokenAddress(null)
+      return
+    }
     const configured = import.meta.env.VITE_PAYMENT_TOKEN_ADDRESS?.toLowerCase()
     const preferred = allowedPaymentTokens.find((token) => token.address.toLowerCase() === configured) ?? allowedPaymentTokens[0]
     setPaymentTokenAddress((current) => {

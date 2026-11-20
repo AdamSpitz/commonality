@@ -5,8 +5,8 @@ This is a single hardhat project containing contracts for several logical subsys
 ## Deployment/security notes
 
 - Use `../scripts/deploy-contracts.sh <network>` for operator deployments. It runs the incremental deployment script, reusing on-chain contracts when the recorded `deployments/<network>.contracts-manifest.json` fingerprint still matches the current bytecode/ABI/constructor arguments. Commit the manifest together with `deployments/<network>.env`; without it, the next run must conservatively redeploy.
-- Content-funding settlement tokens must be vetted, standard ERC-20s: no fee-on-transfer behavior, no rebasing, no callbacks, and standard `transfer`/`transferFrom` semantics. The MVP is intended for USDC only; do not broaden token support without re-auditing escrow/accounting assumptions.
-- Before production deployment, configure `CreatorAssuranceContractFactory.thirdPartyMinPurchase` to a meaningful economic amount for the settlement token. The constructor default is deliberately only a safe placeholder for local/test deployments.
+- Settlement tokens must be vetted, standard ERC-20s: no fee-on-transfer behavior, no rebasing, no callbacks, and standard `transfer`/`transferFrom` semantics. `PaymentTokenRegistry` controls which tokens projects and content campaigns may choose; each campaign uses one immutable settlement token.
+- Before production deployment, configure `CreatorAssuranceContractFactory.setThirdPartyMinPurchaseFor` to a meaningful economic amount in each allowed token's own base units. Tokens without an override use `thirdPartyMinPurchase`; its constructor default is deliberately only a placeholder for local/test deployments.
 - Third-party content-funding contracts are bounded by `thirdPartyMaxDuration` (default: 7 days, matching the default creator veto window) and their success is gated until the channel creator has taken control and the veto window has expired. UI/docs should explain that third-party funding can collect purchases before then, but cannot finalize/withdraw until the creator's veto opportunity has elapsed.
 
 ## Contract test coverage status

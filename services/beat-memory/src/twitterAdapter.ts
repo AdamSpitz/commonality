@@ -58,19 +58,26 @@ export function createTwitterBeatSourceAdapters(
 	const client = new TwitterBeatSourceClient(config);
 	return {
 		account: {
+			maxReadItemsPerFetch: client.maxReadItemsPerFetch,
 			fetchSource: (source, cursor) =>
 				client.fetchAccountSource(source, cursor),
 		},
 		query: {
+			maxReadItemsPerFetch: client.maxReadItemsPerFetch,
 			fetchSource: (source, cursor) => client.fetchQuerySource(source, cursor),
 		},
 		list: {
+			maxReadItemsPerFetch: client.maxReadItemsPerFetch,
 			fetchSource: (source, cursor) => client.fetchListSource(source, cursor),
 		},
 	};
 }
 
 export class TwitterBeatSourceClient {
+	get maxReadItemsPerFetch(): number {
+		// Each primary post can expand a replied-to, quoted, and retweeted post.
+		return this.maxResults * 4;
+	}
 	private readonly apiBaseUrl: string;
 	private readonly fetchImpl: typeof fetch;
 	private readonly maxResults: number;
@@ -161,6 +168,7 @@ export class TwitterBeatSourceClient {
 
 		return {
 			items,
+			readItemCount: (response.data?.length ?? 0) + (response.includes?.tweets?.length ?? 0),
 			cursor:
 				maxNumericId(
 					items.map((item) =>

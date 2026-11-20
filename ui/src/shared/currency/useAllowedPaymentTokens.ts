@@ -57,9 +57,9 @@ export function useAllowedPaymentTokens(publicClient: unknown): {
             functionName: 'isAllowed',
             args: [address],
           }) as boolean
-          if (allowed) listed.push({ address })
+          if (allowed && !listed.some((token) => token.address.toLowerCase() === address.toLowerCase())) listed.push({ address })
         }
-        if (!cancelled) setTokens(listed.length > 0 ? listed : (fallback ? [{ address: fallback as `0x${string}` }] : []))
+        if (!cancelled) setTokens(listed)
       } catch {
         if (!cancelled) setTokens(fallback ? [{ address: fallback as `0x${string}` }] : [])
       } finally {

@@ -59,12 +59,14 @@ export async function reserveSourceRead(
 	config: BeatMemoryConfig,
 	source: BeatSource,
 	now: Date,
+	maxReadItems = 1,
 ): Promise<boolean> {
 	const filePath = config.spendStateFilePath;
 	const ceiling = config.monthlySpendCeilingUsd;
 	if (!filePath || ceiling === undefined) return true;
-	// Reserve a small in-flight amount before the call. The actual post count is unknown until the response.
-	const reserve = Math.max(config.estimatedReadUsdPerPost, 0.005);
+	// Reserve the whole bounded response before a paid call, including expanded posts.
+	const reserve = maxReadItems * config.estimatedReadUsdPerPost;
+	if (reserve === 0) return true;
 	return withLock(filePath, async () => {
 		const state = await readSpend(filePath);
 		const period = periodOf(now);

@@ -186,11 +186,10 @@ export function loadConfigFromEnv(
 			["BEAT_MEMORY_MONTHLY_SPEND_CEILING_USD"],
 			env,
 		),
-		estimatedReadUsdPerPost: readNumberFrom(
+		estimatedReadUsdPerPost: readOptionalNumberFrom(
 			["BEAT_MEMORY_ESTIMATED_READ_USD_PER_POST"],
 			env,
-			0.005,
-		),
+		) ?? 0.005,
 	};
 }
 

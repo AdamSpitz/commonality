@@ -39,6 +39,18 @@ vi.mock('../../shared/components/WalletButton', () => ({
 
 const mockDocumentStorePublish = vi.fn()
 
+// These form tests use a deployment with one allowed token. Registry reads have
+// separate hook coverage and must not consume beneficiary-contract read mocks.
+vi.mock('../../shared/currency/useAllowedPaymentTokens', async () => {
+  const { getRuntimeConfig } = await import('../../shared/config/runtimeConfig')
+  return {
+    useAllowedPaymentTokens: () => ({
+      tokens: [{ address: getRuntimeConfig().VITE_PAYMENT_TOKEN_ADDRESS }],
+      loading: false,
+    }),
+  }
+})
+
 vi.mock('../../shared', async () => {
   const actual = await vi.importActual('../../shared') as Record<string, unknown>
   return {

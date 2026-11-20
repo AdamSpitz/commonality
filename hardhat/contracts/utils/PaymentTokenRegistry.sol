@@ -10,6 +10,7 @@ error InvalidTokenAddress();
 /// @notice Owner-managed allowlist of settlement tokens. One shared source for factories and the UI.
 contract PaymentTokenRegistry is Ownable2Step {
     mapping(address token => bool allowed) public isAllowed;
+    mapping(address token => bool listed) private _listed;
     address[] private _tokens;
 
     event TokenAllowed(address indexed token);
@@ -21,7 +22,10 @@ contract PaymentTokenRegistry is Ownable2Step {
         if (token == address(0)) revert InvalidTokenAddress();
         if (isAllowed[token]) return;
         isAllowed[token] = true;
-        _tokens.push(token);
+        if (!_listed[token]) {
+            _listed[token] = true;
+            _tokens.push(token);
+        }
         emit TokenAllowed(token);
     }
 

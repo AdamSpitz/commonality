@@ -21,8 +21,8 @@ contract ClaimTicketFactory {
 
     event ClaimTicketAssuranceCreated(address indexed assuranceContract, address indexed transitAddress);
 
-    /// @dev A zero registry skips the allowlist. Production deploys always pass the registry.
     constructor(address tokenRegistry) {
+        if (tokenRegistry == address(0)) revert InvalidRegistry();
         paymentTokenRegistry = IPaymentTokenRegistry(tokenRegistry);
     }
 
@@ -34,7 +34,7 @@ contract ClaimTicketFactory {
         string memory projectMetadataCid
     ) external returns (ClaimTicketAssuranceContract ac) {
         if (transitAddress == address(0)) revert InvalidTransitAddress();
-        if (address(paymentTokenRegistry) != address(0) && !paymentTokenRegistry.isAllowed(paymentToken)) {
+        if (!paymentTokenRegistry.isAllowed(paymentToken)) {
             revert PaymentTokenNotAllowed(paymentToken);
         }
         ac = new ClaimTicketAssuranceContract(

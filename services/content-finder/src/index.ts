@@ -71,7 +71,11 @@ async function runOnceUnlocked(config: ContentFinderConfig): Promise<void> {
   }
   const submissionsByKey = new Map(submissions.map((submission) => [submissionKey(submission), submission]));
   const suggestionItems = queue.filter((item) => item.lane === 'suggestion' && submissionsByKey.has(item.dedupeKey));
-  const finderItems = queue.filter((item) => item.lane === 'finder');
+  const finderItems = queue.filter((item) => {
+    if (item.lane !== 'finder') return false;
+    const candidate = finderByKey.get(item.dedupeKey);
+    return candidate !== undefined && isFinderReviewCandidate(candidate);
+  });
   const retained = [...finderItems, ...suggestionItems];
   const selected = config.ingestionStateFilePath
     ? takeReviewBatch(retained, config.reviewBatchSize, config.finderLaneShare)

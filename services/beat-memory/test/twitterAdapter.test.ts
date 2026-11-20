@@ -39,6 +39,7 @@ describe("Twitter/X beat source adapter", () => {
 					],
 					includes: {
 						users: [{ id: "123", name: "Alice", username: "alice" }],
+						tweets: [{ id: "199", text: "Expanded reference", author_id: "456" }],
 					},
 				});
 			}
@@ -67,6 +68,8 @@ describe("Twitter/X beat source adapter", () => {
 			"https://api.x.test/2/users/123/tweets?max_results=10&tweet.fields=author_id%2Ccreated_at%2Ctext%2Cconversation_id%2Creferenced_tweets%2Cattachments%2Cedit_history_tweet_ids%2Cedit_controls&expansions=author_id%2Creferenced_tweets.id&user.fields=id%2Cname%2Cusername&since_id=199",
 		]);
 		assert.equal(result.cursor, "201");
+		assert.equal(client.maxReadItemsPerFetch, 40);
+		assert.equal(result.readItemCount, 3);
 		assert.deepEqual(
 			result.items.map((item) => item.contentCanonicalId),
 			["twitter:uid:123:200", "twitter:uid:123:201"],

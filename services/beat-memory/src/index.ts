@@ -204,7 +204,7 @@ export async function runBeatMemoryWorkerOnce(
 		env,
 		maxNewItemsPerAuthor: config.maxNewItemsPerAuthor,
 		beforeSourceFetch: config.spendStateFilePath && config.monthlySpendCeilingUsd !== undefined
-			? (source) => reserveSourceRead(config, source, now)
+			? (source, maxReadItems) => reserveSourceRead(config, source, now, maxReadItems)
 			: undefined,
 		afterSourceFetch: config.spendStateFilePath
 			? (source, itemCount) => settleSourceRead(config, source, itemCount, now)

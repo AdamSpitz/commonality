@@ -210,7 +210,10 @@ export function CreateContractPage({
   const { tokens: allowedPaymentTokens } = useAllowedPaymentTokens(publicClient)
   const [paymentTokenAddress, setPaymentTokenAddress] = useState<string | null>(getConfiguredPaymentCurrency()?.tokenAddress ?? null)
   useEffect(() => {
-    if (allowedPaymentTokens.length === 0) return
+    if (allowedPaymentTokens.length === 0) {
+      setPaymentTokenAddress(null)
+      return
+    }
     const configured = getConfiguredPaymentCurrency()?.tokenAddress?.toLowerCase()
     const preferred = allowedPaymentTokens.find((token) => token.address.toLowerCase() === configured) ?? allowedPaymentTokens[0]
     setPaymentTokenAddress((current) => {

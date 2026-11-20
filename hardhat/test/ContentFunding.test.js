@@ -563,6 +563,28 @@ describe("ContentFunding", function () {
       expect(await beneficiaryEscrow.balance(channelId, await paymentToken.getAddress())).to.equal(depositAmount);
     });
 
+    it("keeps balances and withdrawals separate for tokens with different decimals", async function () {
+      const other = await ethers.deployContract("FreeERC20", ["Other", "OTHER", 6]);
+      const otherAmount = 2_000_000n;
+      const originalAmount = ethers.parseEther("3");
+      await other.connect(bob).mint(otherAmount);
+      await other.connect(bob).approve(beneficiaryEscrow.target, otherAmount);
+      await beneficiaryEscrow.connect(bob).deposit(channelId, other.target, otherAmount);
+      await depositIntoEscrow(bob, channelId, originalAmount);
+      await mockVerifier.setValid(true);
+      await beneficiaryRegistry.verifyBeneficiary(
+        channelId, bob.address, ethers.id("multi-token-escrow"),
+        (await ethers.provider.getBlock("latest")).timestamp + 86400, proofHash, "0x"
+      );
+
+      await beneficiaryEscrow.connect(bob).withdraw(channelId, other.target);
+      expect(await other.balanceOf(bob.address)).to.equal(otherAmount);
+      expect(await beneficiaryEscrow.balance(channelId, other.target)).to.equal(0n);
+      expect(await beneficiaryEscrow.balance(channelId, paymentToken.target)).to.equal(originalAmount);
+      await beneficiaryEscrow.connect(bob).withdraw(channelId, paymentToken.target);
+      expect(await beneficiaryEscrow.balance(channelId, paymentToken.target)).to.equal(0n);
+    });
+
     it("Should revert when depositing zero tokens", async function () {
       await expect(beneficiaryEscrow.deposit(channelId, await paymentToken.getAddress(), 0))
         .to.be.revertedWithCustomError(beneficiaryEscrow, "MustSendTokens");
