@@ -37,6 +37,7 @@ const ADDRESS_KEYS = {
   MaterializedContentDeploymentHelper: ['MATERIALIZED_CONTENT_DEPLOYMENT_HELPER_ADDRESS'],
   ProspectiveContentRoundFactory: ['PROSPECTIVE_CONTENT_ROUND_FACTORY_ADDRESS'],
   NudgePublications: ['NUDGE_PUBLICATIONS_CONTRACT_ADDRESS'],
+  StatementImages: ['STATEMENT_IMAGES_CONTRACT_ADDRESS'],
   PublishedData: ['PUBLISHED_DATA_CONTRACT_ADDRESS'],
   FixedControllerFactory: ['FIXED_CONTROLLER_FACTORY_ADDRESS'],
   ClaimTicketFactory: ['CLAIM_TICKET_FACTORY_ADDRESS'],
@@ -425,6 +426,7 @@ async function main() {
     }
   }
   await deployOrReuse('NudgePublications', 'NudgePublications');
+  await deployOrReuse('StatementImages', 'StatementImages');
   await deployOrReuse('PublishedData', 'PublishedData');
   await deployOrReuse('FixedControllerFactory', 'FixedControllerFactory', [addresses.BeneficiaryRegistry, addresses.PaymentTokenRegistry]);
   if (addresses.DelegatableNotes && addresses.FixedControllerFactory && (freshlyDeployed.has('DelegatableNotes') || freshlyDeployed.has('FixedControllerFactory'))) {
@@ -644,6 +646,7 @@ async function main() {
     MATERIALIZED_CONTENT_DEPLOYMENT_HELPER_ADDRESS: addresses.MaterializedContentDeploymentHelper,
     PROSPECTIVE_CONTENT_ROUND_FACTORY_ADDRESS: addresses.ProspectiveContentRoundFactory,
     NUDGE_PUBLICATIONS_CONTRACT_ADDRESS: addresses.NudgePublications,
+    STATEMENT_IMAGES_CONTRACT_ADDRESS: addresses.StatementImages,
     PUBLISHED_DATA_CONTRACT_ADDRESS: addresses.PublishedData,
     ...startBlockEnvEntries(),
     SPONSORED_GAS_ENTRY_POINT_ADDRESS: addresses.SponsoredGasEntryPoint,
@@ -682,6 +685,7 @@ async function main() {
     VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS: addresses.DelegatableNotes, VITE_RECURRING_PLEDGES_CONTRACT_ADDRESS: addresses.RecurringPledges, VITE_NOTE_INTENT_CONTRACT_ADDRESS: addresses.NoteIntent,
     VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS: addresses.AssuranceContractFactory, VITE_ERC1155_FACTORY_ADDRESS: addresses.PremintingERC1155Factory,
     VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS: addresses.AlignmentAttestations, VITE_TRUST_REGISTRY_CONTRACT_ADDRESS: addresses.TrustRegistry, VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS: addresses.NudgePublications,
+    VITE_STATEMENT_IMAGES_CONTRACT_ADDRESS: addresses.StatementImages,
     VITE_PUBLISHED_DATA_CONTRACT_ADDRESS: addresses.PublishedData,
     VITE_ACCOUNT_ASSERTIONS_CONTRACT_ADDRESS: addresses.AccountAssertions,
     VITE_SUGGESTED_NAMES_ADDRESS: addresses.SuggestedNames,

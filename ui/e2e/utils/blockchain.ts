@@ -108,6 +108,7 @@ export function createE2EMachinery(rpcUrl = 'http://localhost:8545'): SDKMachine
       accountAssertions: (envVars.VITE_ACCOUNT_ASSERTIONS_CONTRACT_ADDRESS || process.env.VITE_ACCOUNT_ASSERTIONS_CONTRACT_ADDRESS) as `0x${string}` | undefined,
       suggestedNames: (envVars.VITE_SUGGESTED_NAMES_ADDRESS || process.env.VITE_SUGGESTED_NAMES_ADDRESS) as `0x${string}` | undefined,
       nudgePublications: (envVars.VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS || process.env.VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS) as `0x${string}` | undefined,
+      statementImages: (envVars.VITE_STATEMENT_IMAGES_CONTRACT_ADDRESS || process.env.VITE_STATEMENT_IMAGES_CONTRACT_ADDRESS) as `0x${string}` | undefined,
       publishedData: addresses.publishedDataAddress,
       contentRegistry: addresses.contentRegistryAddress,
       beneficiaryRegistry: addresses.beneficiaryRegistryAddress,

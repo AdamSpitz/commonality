@@ -1,6 +1,6 @@
 # Signer-chosen images for statements
 
-**Status: adoption and mosaic-safety records started 2026-08-14.** `StatementImages` records signer adoptions and replaceable positive mosaic-safety yeses (prompt hash required; revoke withdraws the yes). The SDK `mosaicTiles` helper is the honest-wall rule: current belief, current adoption, and a yes from the app's chosen attester, one image per signer, duplicate images not tiled. Not deployed, not indexed, and not shown in the UI. Design: this file. Focus: [focus.md](/focus.md).
+**Status: locally deployable and indexed; not on testnet; not shown in the UI.** `StatementImages` records signer adoptions and replaceable positive mosaic-safety yeses (prompt hash required; revoke withdraws the yes). Local deploy publishes `STATEMENT_IMAGES_CONTRACT_ADDRESS`. The indexer stores `ImageAdopted`, `ImageAdoptionRevoked`, `MosaicSafetyAttested`, and `MosaicSafetyRevoked`. The SDK folds those logs and `mosaicTiles` is the honest-wall rule: current belief, current adoption, and a yes from the app's chosen attester, one image per signer, duplicate images not tiled. Design: this file. Focus: [focus.md](/focus.md).
 
 A statement stays a sentence. People may also attach pictures they want shown beside that sentence. The pictures are not the statement, not a canonical poster chosen by the author, and not an NFT. Counts, implication, and alignment keep reading the text.
 

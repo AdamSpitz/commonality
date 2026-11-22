@@ -52,6 +52,7 @@ test("conceptspace selection drops funding contracts", () => {
     TrustRegistry: { kind: "conceptspace" },
     MutableRefUpdater: { kind: "conceptspace" },
     NudgePublications: { kind: "conceptspace" },
+    StatementImages: { kind: "conceptspace" },
     PublishedData: { kind: "conceptspace" },
     BeneficiaryIdentity: { kind: "conceptspace" },
     AssuranceContractFactory: { kind: "funding" },

@@ -6,6 +6,7 @@ import { SuggestedNamesAbi } from "../../abis/SuggestedNamesAbi";
 import { TrustRegistryAbi } from "../../abis/TrustRegistryAbi";
 import { MutableRefUpdaterAbi } from "../../abis/MutableRefUpdaterAbi";
 import { NudgePublicationsAbi } from "../../abis/NudgePublicationsAbi";
+import { StatementImagesAbi } from "../../abis/StatementImagesAbi";
 import { PublishedDataAbi } from "../../abis/PublishedDataAbi";
 import { BeneficiaryIdentityAbi } from "../../abis/BeneficiaryIdentityAbi";
 import type { IndexerDeploymentContext } from "./ponderEnv";
@@ -53,6 +54,11 @@ export function conceptspaceContracts(context: IndexerDeploymentContext) {
     "NudgePublications",
     "NUDGE_PUBLICATIONS_CONTRACT_ADDRESS",
     context.contractStartBlock("NUDGE_PUBLICATIONS_START_BLOCK", context.startBlock),
+  );
+  const statementImages = context.getDeployments(
+    "StatementImages",
+    "STATEMENT_IMAGES_CONTRACT_ADDRESS",
+    context.contractStartBlock("STATEMENT_IMAGES_START_BLOCK", context.startBlock),
   );
   const publishedData = context.getDeployments(
     "PublishedData",
@@ -105,6 +111,11 @@ export function conceptspaceContracts(context: IndexerDeploymentContext) {
       abi: NudgePublicationsAbi,
       chain: context.chain,
       ...context.deploymentConfig(nudgePublications, context.startBlock),
+    },
+    StatementImages: {
+      abi: StatementImagesAbi,
+      chain: context.chain,
+      ...context.deploymentConfig(statementImages, context.startBlock),
     },
     PublishedData: {
       abi: PublishedDataAbi,

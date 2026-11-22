@@ -39,6 +39,8 @@ export interface ConceptspaceContractAddresses {
   suggestedNames?: `0x${string}`;
   /** NudgePublications.sol -- records nudger publication CIDs. */
   nudgePublications?: `0x${string}`;
+  /** StatementImages.sol -- signer-chosen pictures and mosaic-safety yeses. Not a belief. */
+  statementImages?: `0x${string}`;
   /** PublishedData.sol -- shared user-published content/retraction registry. */
   publishedData?: `0x${string}`;
   /** BeneficiaryIdentity.sol -- who proved control of a public identity. Not a payout. */
