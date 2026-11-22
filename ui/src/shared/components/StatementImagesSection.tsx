@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Alert, Box, Button, Stack, TextField, Typography } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import { useAccount } from 'wagmi'
+import type { PolicyRuntimeSnapshot } from '@commonality/sdk/policy-lists'
 import {
   adoptStatementImage,
   believingAdoptionPointers,
@@ -9,9 +10,11 @@ import {
   loadStatementImageWall,
   mosaicTiles,
   revokeStatementImage,
+  statementImageCidHiddenByPolicy,
   type AdoptionPointer,
   type MosaicTile,
 } from '@commonality/sdk/statement-images'
+import { loadOptionalPolicyBundle } from '../config/policyBundle'
 import { getUserBeliefs } from '@commonality/sdk/conceptspace'
 import { bytes32ToCid, cidToBytes32, type IpfsCidV1 } from '@commonality/sdk/utils'
 import { getRuntimeConfigValue } from '../config/runtimeConfig'
@@ -160,11 +163,32 @@ export function StatementImagesSection({
   const [showAdopt, setShowAdopt] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [reloadKey, setReloadKey] = useState(0)
+  const policyUrl = getRuntimeConfigValue('VITE_POLICY_BUNDLE_URL')
+  const [policyReady, setPolicyReady] = useState(!policyUrl)
+  const [policySnapshot, setPolicySnapshot] = useState<PolicyRuntimeSnapshot | undefined>()
 
   const contract = machinery.contractAddresses?.statementImages
   const attester = getRuntimeConfigValue('VITE_MOSAIC_SAFETY_ATTESTER')
   const showWallPixels = pixels === 'wall' && Boolean(attester)
   const showOwnPixels = pixels === 'own'
+
+  useEffect(() => {
+    if (!policyUrl) {
+      setPolicySnapshot(undefined)
+      setPolicyReady(true)
+      return
+    }
+    let cancelled = false
+    setPolicyReady(false)
+    void loadOptionalPolicyBundle().then((snapshot) => {
+      if (cancelled) return
+      setPolicySnapshot(snapshot)
+      setPolicyReady(true)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [policyUrl])
 
   useEffect(() => {
     if (!contract || (!statementCid && !signer)) return
@@ -216,7 +240,9 @@ export function StatementImagesSection({
 
   const renderPointer = (pointer: AdoptionPointer) => {
     const cid = imageCid(pointer.imageId)
-    const src = (showWallPixels || showOwnPixels) ? gatewayImageSrc(cid) : null
+    const hidden = statementImageCidHiddenByPolicy(policySnapshot, cid)
+    const mayFetchPixels = policyReady && (showWallPixels || showOwnPixels) && !hidden
+    const src = mayFetchPixels ? gatewayImageSrc(cid) : null
     const mine = address?.toLowerCase() === pointer.signer
     return (
       <Box key={`${pointer.signer}:${pointer.statementId}:${pointer.imageId}`} data-testid="statement-image-pointer">
@@ -248,12 +274,16 @@ export function StatementImagesSection({
   }
 
   const wallTiles = showWallPixels
-    ? tiles.map((tile) => ({
-      signer: tile.signers[0] ?? '',
-      statementId: tile.statementId,
-      imageId: tile.imageId,
-      extraSigners: Math.max(0, tile.signers.length - 1),
-    }))
+    ? tiles.flatMap((tile) => {
+      const cid = imageCid(tile.imageId)
+      if (policyReady && statementImageCidHiddenByPolicy(policySnapshot, cid)) return []
+      return [{
+        signer: tile.signers[0] ?? '',
+        statementId: tile.statementId,
+        imageId: tile.imageId,
+        extraSigners: Math.max(0, tile.signers.length - 1),
+      }]
+    })
     : []
 
   return (

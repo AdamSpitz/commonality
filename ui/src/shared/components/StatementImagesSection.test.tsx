@@ -18,8 +18,16 @@ vi.mock('./AddressDisplay', () => ({
   AddressDisplay: ({ address }: { address: string }) => <span>{address}</span>,
 }))
 
+const runtimeConfig: Record<string, string | undefined> = {
+  VITE_IPFS_GATEWAY: 'https://gateway.example/ipfs',
+}
+
 vi.mock('../config/runtimeConfig', () => ({
-  getRuntimeConfigValue: (key: string) => (key === 'VITE_IPFS_GATEWAY' ? 'https://gateway.example/ipfs' : undefined),
+  getRuntimeConfigValue: (key: string) => runtimeConfig[key],
+}))
+
+vi.mock('../config/policyBundle', () => ({
+  loadOptionalPolicyBundle: async () => ({ status: 'unavailable' }),
 }))
 
 vi.mock('@commonality/sdk/statement-images', () => ({
@@ -40,6 +48,7 @@ vi.mock('@commonality/sdk/statement-images', () => ({
     imageId: '0x' + 'cd'.repeat(32),
   }],
   mosaicTiles: () => [],
+  statementImageCidHiddenByPolicy: (_snapshot: unknown, cid: string) => cid.startsWith('bafyblocked'),
   loadSignerImageAdoptions: async () => [],
   adoptStatementImage: async () => '0x',
   revokeStatementImage: async () => '0x',
