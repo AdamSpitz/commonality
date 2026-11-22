@@ -48,4 +48,13 @@ describe('volunteer discovery tiers', () => {
       record(WORK_REQUEST_KIND, bob, ['grant writing']),
     ]), []);
   });
+
+  it('counts distinct authors in announcements when someone publishes multiple posts', () => {
+    const [match] = skillMatches([
+      record(WORK_PLEDGE_KIND, bob, ['design']),
+      record(WORK_PLEDGE_KIND, bob.toUpperCase(), ['design']),
+      record(WORK_REQUEST_KIND, alice, ['design']),
+    ]);
+    assert.equal(announcementForMatch(match), '1 person in this network asked for design; 1 person offered it.');
+  });
 });

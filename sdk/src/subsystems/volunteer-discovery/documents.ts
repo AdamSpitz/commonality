@@ -105,12 +105,13 @@ export function parseVolunteerDiscoveryDocument(document: DisplayableDocument): 
   if (typeof record.statementCid !== 'string' || !record.statementCid.trim()) return null;
   if (typeof record.note !== 'string' || !record.note.trim()) return null;
   if (!Array.isArray(record.skills)) return null;
-  const skills = record.skills.filter((item): item is string => typeof item === 'string' && item.trim().length > 0);
-  if (skills.length === 0) return null;
-  return {
-    kind: record.kind,
-    statementCid: record.statementCid,
-    skills,
-    note: record.note,
-  };
+  if (!record.skills.every((item): item is string => typeof item === 'string')) return null;
+  try {
+    return {
+      kind: record.kind,
+      ...body({ statementCid: record.statementCid, skills: record.skills, note: record.note }),
+    };
+  } catch {
+    return null;
+  }
 }

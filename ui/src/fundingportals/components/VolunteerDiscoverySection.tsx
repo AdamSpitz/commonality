@@ -13,6 +13,7 @@ import {
 } from '@mui/material'
 import { useAccount } from 'wagmi'
 import { PublishedDataAbi } from '@commonality/sdk/abis'
+import { waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync'
 import { publishDocumentToPublishedData } from '@commonality/sdk/displayable-documents'
 import { publishedDataCidToId } from '@commonality/sdk/published-data'
 import {
@@ -126,16 +127,22 @@ export function VolunteerDiscoverySection({ statementCids, trustedAuthors }: Pro
 
   useEffect(() => {
     let cancelled = false
+    setTiers(EMPTY)
+    setError(null)
     const cids = cidsKey.split('\0').filter(Boolean)
     loadVolunteerDiscovery(machinery, cids)
       .then((records) => {
-        if (!cancelled) setTiers(splitByTrust(records, trustedAuthors ?? new Set()))
+        if (!cancelled) {
+          const network = new Set(trustedAuthors)
+          if (address) network.add(address.toLowerCase())
+          setTiers(splitByTrust(records, network))
+        }
       })
       .catch((err: unknown) => {
         if (!cancelled) setError(err instanceof Error ? err.message : 'Could not load work-pledges.')
       })
     return () => { cancelled = true }
-  }, [machinery, cidsKey, trustedAuthors, reloadKey])
+  }, [machinery, cidsKey, trustedAuthors, address, reloadKey])
 
   const matches = useMemo(() => skillMatches(tiers.inNetwork), [tiers])
   const headline = `${tiers.inNetwork.length} in your network, ${tiers.others.length} others`
@@ -150,13 +157,14 @@ export function VolunteerDiscoverySection({ statementCids, trustedAuthors }: Pro
     const statementCid = cidsKey.split('\0').find(Boolean)
     if (!statementCid) return
     const input = { statementCid, skills: skills.split(','), note }
-    const document = kind === 'commonality.work-pledge'
-      ? buildWorkPledgeDocument(input)
-      : buildWorkSkillRequestDocument(input)
     setPublishing(true)
     setError(null)
     try {
-      await publishDocumentToPublishedData(writeClients, { address: publishedData, abi: PublishedDataAbi }, document)
+      const document = kind === 'commonality.work-pledge'
+        ? buildWorkPledgeDocument(input)
+        : buildWorkSkillRequestDocument(input)
+      const { txHash } = await publishDocumentToPublishedData(writeClients, { address: publishedData, abi: PublishedDataAbi }, document)
+      await waitForIndexerToSyncToTxHash(machinery, writeClients.publicClient, txHash)
       setSkills('')
       setNote('')
       setReloadKey((key) => key + 1)
@@ -188,6 +196,7 @@ export function VolunteerDiscoverySection({ statementCids, trustedAuthors }: Pro
       })
       const receipt = await writeClients.publicClient.waitForTransactionReceipt({ hash })
       if (receipt.status !== 'success') throw new Error('Retract transaction reverted')
+      await waitForIndexerToSyncToTxHash(machinery, writeClients.publicClient, hash)
       setReloadKey((key) => key + 1)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not retract.')

@@ -62,5 +62,6 @@ function people(count: number): string {
 
 /** A note the viewer can paste somewhere they already talk. Not a message we send. */
 export function announcementForMatch(match: SkillMatch): string {
-  return `${people(match.requests.length)} in this network asked for ${match.skill}; ${people(match.pledges.length)} offered it.`;
+  const authors = (records: VolunteerDiscoveryRecord[]) => new Set(records.map((record) => record.author.toLowerCase())).size;
+  return `${people(authors(match.requests))} in this network asked for ${match.skill}; ${people(authors(match.pledges))} offered it.`;
 }
