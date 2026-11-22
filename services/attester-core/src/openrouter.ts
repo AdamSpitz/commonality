@@ -21,6 +21,11 @@ export interface OpenRouterJsonRequest {
   staticUserPrompt?: string;
   userPrompt: string;
   /**
+   * Optional images attached to the user turn as data URLs.
+   * Callers that need pixels (mosaic safety) set this; text-only callers omit it.
+   */
+  userImages?: LlmUserImage[];
+  /**
    * OpenAI-compatible API root (no trailing `/chat/completions`).
    * Defaults to OpenRouter so existing attesters keep working unchanged.
    */
@@ -34,6 +39,11 @@ export interface OpenRouterJsonRequest {
    * Defaults to true only when using the OpenRouter base URL.
    */
   openRouterHeaders?: boolean;
+}
+
+export interface LlmUserImage {
+  mediaType: string;
+  base64: string;
 }
 
 /** Generic name for OpenAI-compatible JSON chat requests. */
@@ -111,7 +121,18 @@ export async function requestJsonCompletionWithUsage<T>(
       messages: [
         { role: 'system', content: request.systemPrompt },
         ...(request.staticUserPrompt ? [{ role: 'user', content: request.staticUserPrompt }] : []),
-        { role: 'user', content: request.userPrompt },
+        {
+          role: 'user',
+          content: request.userImages?.length
+            ? [
+              { type: 'text', text: request.userPrompt },
+              ...request.userImages.map((image) => ({
+                type: 'image_url',
+                image_url: { url: `data:${image.mediaType};base64,${image.base64}` },
+              })),
+            ]
+            : request.userPrompt,
+        },
       ],
       temperature: request.temperature ?? 0.3,
       max_tokens: request.maxTokens ?? 500,

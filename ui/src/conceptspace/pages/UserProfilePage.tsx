@@ -18,7 +18,7 @@ import { useAccount } from 'wagmi'
 import { getUserBeliefs, getUserDisbeliefs, getUserIndirectSupport, type StatementListItem, type IndirectSupportInfo } from '@commonality/sdk/conceptspace'
 import { useMachinery } from '../../shared'
 import { useTrustedAttesters } from '../../shared'
-import { AddressDisplay } from '../../shared'
+import { AddressDisplay, StatementImagesSection } from '../../shared'
 import AddIcon from '@mui/icons-material/Add'
 import { loadTwitterHandleHint } from '../twitterHandleHints'
 
@@ -283,6 +283,8 @@ export function UserProfilePage() {
           twitterHandleHint={isOwnProfile ? twitterHandleHint : undefined}
         />
       </Paper>
+
+      <StatementImagesSection signer={displayAddress} pixels="own" />
 
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Tabs value={tabValue} onChange={handleTabChange} aria-label="user profile tabs">

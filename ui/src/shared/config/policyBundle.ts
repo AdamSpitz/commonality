@@ -34,6 +34,21 @@ export function refreshActivePolicyBundle(domain?: string): Promise<PolicyRuntim
   return initialLoad!
 }
 
+let optionalLoad: Promise<PolicyRuntimeSnapshot> | null = null
+
+/**
+ * Operator policy bundle for display rules that must fail open.
+ * No URL, or a cold start that never activates, stays unavailable.
+ * Callers must not treat that as hide-everything.
+ */
+export function loadOptionalPolicyBundle(): Promise<PolicyRuntimeSnapshot> {
+  const url = getRuntimeConfigValue('VITE_POLICY_BUNDLE_URL')
+  if (!url) return Promise.resolve(runtime.snapshot())
+  if (runtime.snapshot().evaluator) return Promise.resolve(runtime.snapshot())
+  if (!optionalLoad) optionalLoad = runtime.refresh(url, fetch)
+  return optionalLoad
+}
+
 export function getActivePolicyBundle(): PolicyRuntimeSnapshot {
   return runtime.snapshot()
 }

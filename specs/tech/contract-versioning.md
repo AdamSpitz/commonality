@@ -29,7 +29,7 @@ Analysis date: 2026-06-12 (pre-mainnet, first testnet deployment live).
 ### Class 1 — Append-only opinion/attestation logs: trivially versionable
 
 `Beliefs`, `Implications`, `TrustRegistry`, `AlignmentAttestations`, `NoteIntent`,
-`NudgePublications`, `MutableRefUpdater`.
+`NudgePublications`, `StatementImages`, `MutableRefUpdater`.
 
 - No funds; nothing onchain reads their state in practice. Consumers are the indexer,
   SDK folds, and offchain services.

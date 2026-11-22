@@ -92,6 +92,7 @@ export function useMachinery(): SDKMachinery {
       accountAssertions: getRuntimeConfigValue('VITE_ACCOUNT_ASSERTIONS_CONTRACT_ADDRESS') as `0x${string}` | undefined,
       suggestedNames: getRuntimeConfigValue('VITE_SUGGESTED_NAMES_ADDRESS') as `0x${string}` | undefined,
       nudgePublications: getRuntimeConfigValue('VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS') as `0x${string}` | undefined,
+      statementImages: getRuntimeConfigValue('VITE_STATEMENT_IMAGES_CONTRACT_ADDRESS') as `0x${string}` | undefined,
       publishedData: getRuntimeConfigValue('VITE_PUBLISHED_DATA_CONTRACT_ADDRESS') as `0x${string}` | undefined,
       beneficiaryIdentity: getRuntimeConfigValue('VITE_BENEFICIARY_IDENTITY_ADDRESS') as `0x${string}` | undefined,
       contentRegistry: getRuntimeConfigValue('VITE_CONTENT_REGISTRY_ADDRESS') as `0x${string}` | undefined,

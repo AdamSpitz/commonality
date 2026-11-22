@@ -89,6 +89,12 @@ export function registerRawEvents(register: (name: string) => void): void {
   // NUDGER PUBLICATIONS
   register("NudgePublications:NudgesPublished");
 
+  // STATEMENT IMAGES: signer adoptions and mosaic-safety yeses
+  register("StatementImages:ImageAdopted");
+  register("StatementImages:ImageAdoptionRevoked");
+  register("StatementImages:MosaicSafetyAttested");
+  register("StatementImages:MosaicSafetyRevoked");
+
   // PUBLISHED DATA
   register("PublishedData:DataPublished");
   register("PublishedData:DataRetracted");

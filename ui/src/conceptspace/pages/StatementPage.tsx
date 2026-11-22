@@ -6,7 +6,7 @@ import { getStatementWithContent, getUserBelief, type Statement, type StatementC
 import { parseCombinatorStatement, type DisplayableDocument } from '@commonality/sdk/displayable-documents'
 import type { TieredHeadCount } from '@commonality/sdk/identity'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
-import { useMachinery } from '../../shared'
+import { StatementImagesSection, useMachinery } from '../../shared'
 import { useImplicationSourceActivity, useTrustedAttesters } from '../../shared'
 import { StatementRenderer } from '../components/StatementRenderer'
 import { BeliefControls } from '../components/BeliefControls'
@@ -184,6 +184,13 @@ export function StatementPage() {
 
       {/* High-Profile Supporters */}
       <HighProfileSigners statementCid={statementCid as IpfsCidV1} />
+
+      <StatementImagesSection
+        statementCid={statementCid}
+        pixels="wall"
+        sentence={statementContent?.content}
+        allowAdopt
+      />
 
       {/* Belief Controls */}
       <Box sx={{ mb: 3 }}>

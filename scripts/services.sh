@@ -289,6 +289,7 @@ map_commonality_contract_env() {
     export VITE_TRUST_REGISTRY_CONTRACT_ADDRESS="${VITE_TRUST_REGISTRY_CONTRACT_ADDRESS:-${TRUST_REGISTRY_ADDRESS:-}}"
     export VITE_DEFAULT_ALIGNMENT_TRUST_ROOT="${VITE_DEFAULT_ALIGNMENT_TRUST_ROOT:-0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f}"
     export VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS="${VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS:-${NUDGE_PUBLICATIONS_CONTRACT_ADDRESS:-}}"
+    export VITE_STATEMENT_IMAGES_CONTRACT_ADDRESS="${VITE_STATEMENT_IMAGES_CONTRACT_ADDRESS:-${STATEMENT_IMAGES_CONTRACT_ADDRESS:-}}"
     export VITE_SUGGESTED_NAMES_ADDRESS="${VITE_SUGGESTED_NAMES_ADDRESS:-${SUGGESTED_NAMES_ADDRESS:-}}"
     export VITE_PUBLISHED_DATA_CONTRACT_ADDRESS="${VITE_PUBLISHED_DATA_CONTRACT_ADDRESS:-${PUBLISHED_DATA_CONTRACT_ADDRESS:-}}"
     export VITE_PROJECT_FACTORY_CONTRACT_ADDRESS="${VITE_PROJECT_FACTORY_CONTRACT_ADDRESS:-${PROJECT_FACTORY_ADDRESS:-}}"
@@ -362,7 +363,7 @@ start_services() {
     # Pre-create data directories owned by the current user so containers
     # don't create them as root.
     mkdir -p "$DATA_DIR/hardhat" "$DATA_DIR/ipfs" "$DATA_DIR/published-data-ipfs-mirror" "$DATA_DIR/ponder" \
-        "$DATA_DIR/alignment-trust-bootstrap"
+        "$DATA_DIR/alignment-trust-bootstrap" "$DATA_DIR/mosaic-safety-worker"
     for domain in $(local_publish_domains); do
         mkdir -p "$UI_IPFS_ARTIFACT_DIR/$domain"
     done
@@ -405,6 +406,9 @@ start_services() {
     load_env_file_if_present ui/.env
     load_env_file_if_present commonality-ui/.env
     map_commonality_contract_env
+    if [ -n "${OPENROUTER_API_KEY:-}${XAI_API_KEY:-}" ]; then
+        app_services+=(mosaic-safety-worker)
+    fi
     # service-host-attesters must start after the env files above are sourced:
     # it needs IMPLICATIONS_CONTRACT_ADDRESS from deployments/localhost.env, and
     # compose reads that from this shell. The bridge-cluster editor's "submit

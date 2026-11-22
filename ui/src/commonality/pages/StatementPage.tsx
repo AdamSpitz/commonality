@@ -34,7 +34,7 @@ import {
   readPersonalFundingBoard,
   writePersonalFundingBoard,
 } from '../lib/personalFundingBoard'
-import { useMachinery } from '../../shared'
+import { StatementImagesSection, useMachinery } from '../../shared'
 
 type StatementMode = 'sign' | 'fund' | 'all'
 
@@ -373,6 +373,14 @@ export function StatementPage() {
           </Stack>}
         </Stack>
       </Paper>
+      {statementCid && (
+        <StatementImagesSection
+          statementCid={statementCid}
+          pixels="never"
+          sentence={content?.content}
+          allowAdopt
+        />
+      )}
       </Box>
 
       {statementCid && (

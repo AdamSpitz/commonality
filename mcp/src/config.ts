@@ -58,6 +58,7 @@ function loadContractAddresses(): DeployedContractAddresses {
     mutableRefUpdater: address('MUTABLE_REF_UPDATER_CONTRACT_ADDRESS') ?? address('MUTABLE_REF_UPDATER_ADDRESS'),
     trustRegistry: address('TRUST_REGISTRY_ADDRESS'),
     nudgePublications: address('NUDGE_PUBLICATIONS_CONTRACT_ADDRESS'),
+    statementImages: address('STATEMENT_IMAGES_CONTRACT_ADDRESS'),
     publishedData: address('PUBLISHED_DATA_CONTRACT_ADDRESS'),
   }
 }

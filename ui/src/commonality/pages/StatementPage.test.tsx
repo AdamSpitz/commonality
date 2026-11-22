@@ -22,6 +22,7 @@ vi.mock('@commonality/sdk/conceptspace', () => ({
 vi.mock('@ui/shared', () => ({
   useMachinery: () => ({}),
   useTrustedAttesters: () => [],
+  StatementImagesSection: () => null,
   getRuntimeConfig: () => ({}),
   loadDisplayDenylist: async () => ({ deniedCids: [], honoredRetractors: [] }),
   isCidDeniedByDisplayDenylist: () => false,

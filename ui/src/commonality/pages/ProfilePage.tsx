@@ -1,7 +1,7 @@
 import { Alert, Box, Button, CircularProgress, Paper, Stack, Typography } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import { useAccount } from 'wagmi'
-import { AddressDisplay } from '../../shared'
+import { AddressDisplay, StatementImagesSection } from '../../shared'
 import { CauseCard } from '../components/CauseCard'
 import { ConnectWalletHint } from '../components/ConnectWalletHint'
 import { YourProjects } from '../components/YourProjects'
@@ -166,6 +166,7 @@ export function ProfilePage() {
           </Stack>
         )}
         <Button component={RouterLink} to="/statements" sx={{ alignSelf: 'flex-start', px: 0 }}>Open Sign</Button>
+        {address && <StatementImagesSection signer={address} pixels="never" />}
       </Stack>
 
       <Stack spacing={1.5} data-testid="profile-alignments">

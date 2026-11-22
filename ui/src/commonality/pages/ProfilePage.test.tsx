@@ -9,6 +9,7 @@ vi.mock('wagmi', () => ({
 
 vi.mock('../../shared', () => ({
   AddressDisplay: ({ address }: { address: string }) => <div>{address}</div>,
+  StatementImagesSection: () => null,
 }))
 
 vi.mock('../hooks/useDonationSummary', () => ({
