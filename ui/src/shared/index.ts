@@ -174,6 +174,8 @@ export type { ResolvedAddress } from './hooks/useResolvedAddress'
 // modules: external consumers (`App.tsx` for AppShell, `ConnectWalletPrompt`
 // for WalletButton) import them via deep paths allowed by the boundary rule.
 export { AddressDisplay } from './components/AddressDisplay'
+export { StatementImagesSection } from './components/StatementImagesSection'
+export type { StatementImagePixels } from './components/StatementImagesSection'
 export { AccountAddress, AccountName, ConnectedAccountFrame } from './components/AccountName'
 export { InfoChip, InfoLabel, HeaderInfoTip, INFO_HINT_ICON_SX } from './components/InfoChip'
 export { AddressPicker } from './components/AddressPicker'

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "mocha";
-import { mosaicTiles } from "./mosaic.js";
+import { believingAdoptionPointers, mosaicTiles } from "./mosaic.js";
 
 const statementId = "0xstatement";
 const attester = "0xAttester";
@@ -19,6 +19,23 @@ function base(overrides: Partial<Parameters<typeof mosaicTiles>[0]> = {}) {
     ...overrides,
   };
 }
+
+describe("believingAdoptionPointers", () => {
+  it("keeps every current adoption whose signer still believes", () => {
+    assert.deepEqual(
+      believingAdoptionPointers({
+        statementId,
+        beliefs: { [alice]: 1, [bob]: 0 },
+        adoptions: [
+          { signer: bob, statementId, imageId: imageB, adopted: true },
+          { signer: alice, statementId, imageId: imageA, adopted: true },
+          { signer: alice, statementId, imageId: imageB, adopted: false },
+        ],
+      }),
+      [{ signer: alice.toLowerCase(), statementId, imageId: imageA }],
+    );
+  });
+});
 
 describe("mosaicTiles", () => {
   it("shows the triple only when belief, adoption, and a current yes all exist", () => {

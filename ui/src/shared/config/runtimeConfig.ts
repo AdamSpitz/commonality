@@ -67,6 +67,7 @@ export type RuntimeConfigKey =
   | 'VITE_COMMON_SENSE_MAJORITY_URL'
   | 'VITE_CONCEPTSPACE_URL'
   | 'VITE_TEST_DATA_REGISTRY_URL'
+  | 'VITE_MOSAIC_SAFETY_ATTESTER'
 
 const buildTimeConfig: UiRuntimeConfig = {
   VITE_EVENT_CACHE_URL: import.meta.env.VITE_EVENT_CACHE_URL,
@@ -134,6 +135,7 @@ const buildTimeConfig: UiRuntimeConfig = {
   VITE_COMMON_SENSE_MAJORITY_URL: import.meta.env.VITE_COMMON_SENSE_MAJORITY_URL,
   VITE_CONCEPTSPACE_URL: import.meta.env.VITE_CONCEPTSPACE_URL,
   VITE_TEST_DATA_REGISTRY_URL: import.meta.env.VITE_TEST_DATA_REGISTRY_URL,
+  VITE_MOSAIC_SAFETY_ATTESTER: import.meta.env.VITE_MOSAIC_SAFETY_ATTESTER,
 }
 
 let runtimeConfig: UiRuntimeConfig = stripEmptyValues(buildTimeConfig)

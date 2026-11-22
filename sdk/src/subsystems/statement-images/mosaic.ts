@@ -29,6 +29,12 @@ export interface MosaicTile {
   signers: string[];
 }
 
+export interface AdoptionPointer {
+  signer: string;
+  statementId: string;
+  imageId: string;
+}
+
 export interface MosaicInput {
   statementId: string;
   attester: string;
@@ -40,6 +46,33 @@ export interface MosaicInput {
 
 function norm(value: string): string {
   return value.toLowerCase();
+}
+
+/** Current adoptions whose signer still believes. No safety filter and no image fetch. */
+export function believingAdoptionPointers(input: {
+  statementId?: string;
+  beliefs: Readonly<Record<string, number>>;
+  adoptions: readonly ImageAdoption[];
+}): AdoptionPointer[] {
+  const statementId = input.statementId ? norm(input.statementId) : undefined;
+  const rows: AdoptionPointer[] = [];
+  for (const adoption of input.adoptions) {
+    if (!adoption.adopted) continue;
+    const adoptedStatement = norm(adoption.statementId);
+    if (statementId && adoptedStatement !== statementId) continue;
+    const signer = norm(adoption.signer);
+    const belief = input.beliefs[signer] ?? input.beliefs[adoption.signer];
+    if (belief !== BELIEVES) continue;
+    rows.push({ signer, statementId: adoptedStatement, imageId: norm(adoption.imageId) });
+  }
+  rows.sort((a, b) =>
+    a.signer < b.signer ? -1
+      : a.signer > b.signer ? 1
+        : a.imageId < b.imageId ? -1
+          : a.imageId > b.imageId ? 1
+            : 0,
+  );
+  return rows;
 }
 
 export function mosaicTiles(input: MosaicInput): MosaicTile[] {
