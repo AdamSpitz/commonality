@@ -16,6 +16,8 @@ Getting **testnet to a two-person shared lab** is also a standing plan, not a pi
 
 ----
 
+- Wire a mosaic-safety poller for signer-chosen statement images. Judgment and the positive-only write helper are in cause-assist (`checkMosaicSafety`, `attestMosaicSafetyIfJudged`); nothing watches `ImageAdopted`, loads statement text, or holds `STATEMENT_IMAGES_CONTRACT_ADDRESS` plus an operator key. The default checker does not see pixels, so a wordless or pixel-only hostile picture stays silent. Do not put the operator key on the cause-assist HTTP service. Spec: [statement images](specs/product/statement-images.md).
+
 - Complete per-token escrow presentation in the legacy content-funding screens: the creator dashboard, project section, website claim section, and claim modal still assume a single/default currency. Use the SDK's token-keyed escrow entries and load each token's metadata; never label alternate-token amounts with the first project's currency or ETH. Channel totals already group project funding by token.
 
 - Finish the civility-bot candidate path before live operation: finder-lane scheduling and per-author ingestion caps are wired, and beat-memory can charge estimated X reads against a shared spend file. Still open: fresh source/version checks before selection, an onchain/indexer-to-candidate rehearsal that is not stubbed, and reconciling the $0.005/post read estimate with the developer-console invoice. Civility policy and deployment live in `../common-sense-politics/specs/civility-bot.md`.

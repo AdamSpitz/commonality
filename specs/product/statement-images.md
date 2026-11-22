@@ -54,6 +54,8 @@ Same shape as the coherence badge, not a new admission layer. Protocol does not 
 
 We can ship a default bot. It should be generic enough that most apps can use it, and replaceable so a cause that cares about tone is not stuck with our prompt. Hard-coding an address is the escape hatch. Do not describe the default as the one honest checker.
 
+The default judgment lives in cause-assist (`checkMosaicSafety`, `attestMosaicSafetyIfJudged`). It is fail-closed and positive-only: an LLM yes may be written; silence, a classifier error, or an unsafe answer is not a published negative. This version does not see pixels. It hashes the prompt and the model id into the yes. It is not wired to a poller, and the cause-assist HTTP service does not hold the operator key.
+
 The signer does not pay. A fee stops idle spam and does nothing to someone who wants one poison picture on the wall. It also hides unpaid signers from the mosaic. The app chooses the attester and benefits from the check, so the app pays, or runs the check itself. The signer's profile does not wait on attestation.
 
 ## What this is not
