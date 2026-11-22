@@ -38,7 +38,7 @@ Subsystems are capabilities; the [eight UI domains](product/ui-domains.md) are b
 
 ## Speculative
 
-- **[product/volunteer-discovery.md](product/volunteer-discovery.md)** — Consider linking out to existing volunteer/activity platforms (Discord, Meetup, GitHub, etc.) as a "where's the energy?" navigational signal, without building any volunteer-management subsystem ourselves.
+- **[product/volunteer-discovery.md](product/volunteer-discovery.md)** — Consider linking out to existing volunteer/activity platforms (Discord, Meetup, GitHub, etc.) as a "where's the energy?" navigational signal, plus lightweight work-pledges/work-requests filtered by the existing trust graph, without building a volunteer-management subsystem.
 
 ## Tech docs
 
