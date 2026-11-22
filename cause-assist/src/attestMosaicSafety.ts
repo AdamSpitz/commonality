@@ -63,7 +63,7 @@ export function isMosaicSafetyAttesterConfigured(config: MosaicSafetyWriteConfig
 
 export async function attestMosaicSafetyIfJudged(
   request: MosaicSafetyAttestRequest,
-  config: Pick<CauseAssistConfig, 'apiKey' | 'apiBaseUrl' | 'coherenceModel'> & MosaicSafetyWriteConfig,
+  config: Pick<CauseAssistConfig, 'apiKey' | 'apiBaseUrl' | 'coherenceModel' | 'ipfsGatewayUrl'> & MosaicSafetyWriteConfig,
   deps: AttestMosaicSafetyDeps = {},
 ): Promise<MosaicSafetyAttestResult> {
   const check = deps.check ?? checkMosaicSafety

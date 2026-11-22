@@ -1,7 +1,7 @@
 /**
  * Watch ImageAdopted and publish a mosaic-safety yes only when the LLM says safe.
  * This process holds the operator key. The cause-assist HTTP service must not.
- * The default checker still does not see pixels; a silent judgment is not a no.
+ * The checker loads image bytes from the gateway before it judges. Silence is not a no.
  */
 
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
@@ -106,6 +106,9 @@ export async function loadMosaicSafetyWorkerConfig(
 export function assertMosaicWorkerCanAttest(config: MosaicSafetyWorkerConfig): void {
   if (!config.causeAssist.apiKey?.trim()) {
     throw new Error('mosaic-safety worker requires XAI_API_KEY or OPENROUTER_API_KEY')
+  }
+  if (!config.causeAssist.ipfsGatewayUrl?.trim()) {
+    throw new Error('mosaic-safety worker requires CAUSE_ASSIST_IPFS_GATEWAY_URL or IPFS_GATEWAY')
   }
   if (!isMosaicSafetyAttesterConfigured(config.causeAssist)) {
     throw new Error('mosaic-safety worker is missing its operator key, RPC URL, or StatementImages address')
