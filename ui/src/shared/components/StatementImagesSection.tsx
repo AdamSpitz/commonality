@@ -16,6 +16,7 @@ import {
 } from '@commonality/sdk/statement-images'
 import { loadOptionalPolicyBundle } from '../config/policyBundle'
 import { getUserBeliefs } from '@commonality/sdk/conceptspace'
+import { waitForIndexerToSyncToBlockNumber } from '@commonality/sdk/indexer-sync'
 import { bytes32ToCid, cidToBytes32, type IpfsCidV1 } from '@commonality/sdk/utils'
 import { getRuntimeConfigValue } from '../config/runtimeConfig'
 import { useMachinery } from '../hooks/useMachinery'
@@ -44,7 +45,7 @@ function imageCid(imageId: string): string {
 function gatewayImageSrc(cid: string): string | null {
   const gateway = getRuntimeConfigValue('VITE_IPFS_GATEWAY')
   if (!gateway) return null
-  return `${gateway.replace(/\/+$/, '')}/ipfs/${cid}`
+  return `${gateway.replace(/\/+$/, '')}/${cid}`
 }
 
 function RevokeButton({
@@ -73,8 +74,9 @@ function RevokeButton({
           pointer.imageId as `0x${string}`,
         )
           .then((txHash) => writeClients.publicClient.waitForTransactionReceipt({ hash: txHash }))
-          .then((receipt) => {
+          .then(async (receipt) => {
             if (receipt.status !== 'success') throw new Error('Revoke transaction reverted')
+            await waitForIndexerToSyncToBlockNumber(machinery, receipt.blockNumber)
             onRevoked()
           })
           .catch((err: unknown) => onError(err instanceof Error ? err.message : 'Failed to revoke'))
@@ -122,6 +124,7 @@ function AdoptCidForm({
       )
       const receipt = await writeClients.publicClient.waitForTransactionReceipt({ hash: txHash })
       if (receipt.status !== 'success') throw new Error('Adoption transaction reverted')
+      await waitForIndexerToSyncToBlockNumber(machinery, receipt.blockNumber)
       setCid('')
       onAdopted()
     } catch (err) {
@@ -163,12 +166,15 @@ export function StatementImagesSection({
   const [showAdopt, setShowAdopt] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [reloadKey, setReloadKey] = useState(0)
+  const [loadedSource, setLoadedSource] = useState<string | null>(null)
   const policyUrl = getRuntimeConfigValue('VITE_POLICY_BUNDLE_URL')
   const [policyReady, setPolicyReady] = useState(!policyUrl)
   const [policySnapshot, setPolicySnapshot] = useState<PolicyRuntimeSnapshot | undefined>()
 
   const contract = machinery.contractAddresses?.statementImages
   const attester = getRuntimeConfigValue('VITE_MOSAIC_SAFETY_ATTESTER')
+  const source = JSON.stringify([contract, statementCid, signer, address, attester])
+  const hasCurrentData = loadedSource === source
   const showWallPixels = pixels === 'wall' && Boolean(attester)
   const showOwnPixels = pixels === 'own'
 
@@ -203,6 +209,7 @@ export function StatementImagesSection({
           setTiles(attester ? mosaicTiles({ ...wall, attester }) : [])
           const mine = address?.toLowerCase()
           setBelieves(Boolean(mine && wall.beliefs[mine] === 1))
+          setLoadedSource(source)
           return
         }
         if (!signer) return
@@ -227,6 +234,7 @@ export function StatementImagesSection({
         setPointers(believingAdoptionPointers({ beliefs: beliefRecord, adoptions: visible }))
         setTiles([])
         setBelieves(false)
+        setLoadedSource(source)
       } catch (err) {
         if (!cancelled) setError(err instanceof Error ? err.message : 'Could not load image pointers')
       }
@@ -234,14 +242,14 @@ export function StatementImagesSection({
     return () => {
       cancelled = true
     }
-  }, [address, attester, contract, machinery, reloadKey, signer, statementCid])
+  }, [address, attester, contract, machinery, reloadKey, signer, source, statementCid])
 
   if (!contract || (!statementCid && !signer)) return null
 
-  const renderPointer = (pointer: AdoptionPointer) => {
+  const renderPointer = (pointer: AdoptionPointer, attestedWallTile = false) => {
     const cid = imageCid(pointer.imageId)
     const hidden = statementImageCidHiddenByPolicy(policySnapshot, cid)
-    const mayFetchPixels = policyReady && (showWallPixels || showOwnPixels) && !hidden
+    const mayFetchPixels = policyReady && ((showWallPixels && attestedWallTile) || showOwnPixels) && !hidden
     const src = mayFetchPixels ? gatewayImageSrc(cid) : null
     const mine = address?.toLowerCase() === pointer.signer
     return (
@@ -273,7 +281,7 @@ export function StatementImagesSection({
     )
   }
 
-  const wallTiles = showWallPixels
+  const wallTiles = showWallPixels && hasCurrentData
     ? tiles.flatMap((tile) => {
       const cid = imageCid(tile.imageId)
       if (policyReady && statementImageCidHiddenByPolicy(policySnapshot, cid)) return []
@@ -299,7 +307,7 @@ export function StatementImagesSection({
         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 1.5 }} data-testid="statement-image-mosaic">
           {wallTiles.map((tile) => (
             <Box key={tile.imageId}>
-              {renderPointer(tile)}
+              {renderPointer(tile, true)}
               {tile.extraSigners > 0 && (
                 <Typography variant="caption">{tile.extraSigners + 1} signers</Typography>
               )}
@@ -307,13 +315,13 @@ export function StatementImagesSection({
           ))}
         </Box>
       )}
-      {!(showWallPixels && wallTiles.length > 0) && pointers.map(renderPointer)}
-      {allowAdopt && believes && !showAdopt && (
+      {hasCurrentData && !(showWallPixels && wallTiles.length > 0) && pointers.map((pointer) => renderPointer(pointer))}
+      {allowAdopt && hasCurrentData && believes && !showAdopt && (
         <Button size="small" onClick={() => setShowAdopt(true)} sx={{ alignSelf: 'flex-start', textTransform: 'none' }}>
           Attach a CID you already published
         </Button>
       )}
-      {allowAdopt && believes && showAdopt && statementCid && (
+      {allowAdopt && hasCurrentData && believes && showAdopt && statementCid && (
         <AdoptCidForm statementCid={statementCid} onAdopted={() => setReloadKey((key) => key + 1)} />
       )}
     </Stack>

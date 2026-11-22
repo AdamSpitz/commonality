@@ -48,7 +48,7 @@ export interface MosaicSafetyWorkerConfig {
   causeAssist: CauseAssistConfig & { statementImagesContractAddress: string }
 }
 
-const NON_TERMINAL = new Set(['judgment_unavailable', 'attester_not_configured'])
+const NON_TERMINAL = new Set(['attester_not_configured'])
 const UNAVAILABLE_RETRY_MS = 60_000
 
 function required(env: NodeJS.ProcessEnv, name: string): string {
@@ -156,6 +156,9 @@ export async function processImageAdopted(
       { statementText, statementCid, imageCid },
       config.causeAssist,
     )
+    // An unavailable image or model must remain retryable without preventing
+    // later adoptions from being scanned. The poller persists these in pending.
+    if (result.reason === 'judgment_unavailable') return { status: 'unavailable' }
     return { status: 'judged', result }
   }
   return { status: 'unavailable' }

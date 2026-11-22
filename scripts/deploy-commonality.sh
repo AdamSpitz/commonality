@@ -117,8 +117,8 @@ require_local_contract_env() {
 if [ "$MODE" = "--stop" ]; then
   echo "Stopping Commonality + its helper services..."
   docker rm -f "$CONTAINER_NAME" 2>/dev/null || true
-  docker_compose stop commonality cause-assist alignment-trust-bootstrap 2>/dev/null || true
-  docker_compose rm -f cause-assist alignment-trust-bootstrap 2>/dev/null || true
+  docker_compose stop commonality cause-assist mosaic-safety-worker alignment-trust-bootstrap 2>/dev/null || true
+  docker_compose rm -f cause-assist mosaic-safety-worker alignment-trust-bootstrap 2>/dev/null || true
   echo "Stopped."
   exit 0
 fi
@@ -357,7 +357,12 @@ ensure_local_indexer
 ensure_local_tool_stack
 
 echo "Deploying Commonality and helper services on http://localhost:${COMMONALITY_UI_PORT}/"
-docker_compose up -d --force-recreate cause-assist alignment-trust-bootstrap commonality-ui christian-bridge-creator
+helper_services=(cause-assist alignment-trust-bootstrap commonality-ui christian-bridge-creator)
+if [ -n "${OPENROUTER_API_KEY:-}${XAI_API_KEY:-}" ]; then
+  mkdir -p "${COMMONALITY_DATA_DIR:-./data}/mosaic-safety-worker"
+  helper_services+=(mosaic-safety-worker)
+fi
+docker_compose up -d --force-recreate "${helper_services[@]}"
 
 echo "Waiting for health..."
 max_attempts=40

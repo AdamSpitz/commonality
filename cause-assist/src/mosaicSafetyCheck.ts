@@ -226,6 +226,9 @@ export async function checkMosaicSafety(
   } catch {
     return unavailable('Mosaic-safety judgment failed. Fail closed.', model)
   }
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    return unavailable('Mosaic-safety judgment was not an object. Fail closed.', model)
+  }
 
   const reasoning = typeof parsed.reasoning === 'string' && parsed.reasoning.trim()
     ? parsed.reasoning.trim()

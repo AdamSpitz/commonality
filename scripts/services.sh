@@ -363,7 +363,7 @@ start_services() {
     # Pre-create data directories owned by the current user so containers
     # don't create them as root.
     mkdir -p "$DATA_DIR/hardhat" "$DATA_DIR/ipfs" "$DATA_DIR/published-data-ipfs-mirror" "$DATA_DIR/ponder" \
-        "$DATA_DIR/alignment-trust-bootstrap"
+        "$DATA_DIR/alignment-trust-bootstrap" "$DATA_DIR/mosaic-safety-worker"
     for domain in $(local_publish_domains); do
         mkdir -p "$UI_IPFS_ARTIFACT_DIR/$domain"
     done
@@ -406,6 +406,9 @@ start_services() {
     load_env_file_if_present ui/.env
     load_env_file_if_present commonality-ui/.env
     map_commonality_contract_env
+    if [ -n "${OPENROUTER_API_KEY:-}${XAI_API_KEY:-}" ]; then
+        app_services+=(mosaic-safety-worker)
+    fi
     # service-host-attesters must start after the env files above are sourced:
     # it needs IMPLICATIONS_CONTRACT_ADDRESS from deployments/localhost.env, and
     # compose reads that from this shell. The bridge-cluster editor's "submit

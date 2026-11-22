@@ -79,6 +79,26 @@ describe('processImageAdopted', () => {
     if (judged.status === 'judged') assert.equal(judged.result.reason, 'not_safe')
   })
 
+  it('queues unavailable image judgments for retry instead of blocking later adoptions', async () => {
+    const result = await processImageAdopted(
+      {
+        signer: '0x0000000000000000000000000000000000000001',
+        statementId: cidToBytes32(statementCid),
+        imageId: cidToBytes32(imageCid),
+        transactionHash: '0x4',
+        blockNumber: 4n,
+        logIndex: 0,
+      },
+      config,
+      {
+        loadStatementText: async () => 'Lights should stay on.',
+        attest: async () => ({ attested: false, reason: 'judgment_unavailable' }),
+        sleep: async () => {},
+      },
+    )
+    assert.deepEqual(result, { status: 'unavailable' })
+  })
+
   it('ignores an id that is not a CID', async () => {
     const result = await processImageAdopted(
       {

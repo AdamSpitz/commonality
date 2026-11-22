@@ -84,6 +84,18 @@ describe('checkMosaicSafety', () => {
     assert.equal(verdict.source, 'llm')
   })
 
+  it('fails closed when the model returns null instead of a verdict', async () => {
+    const requestJson: RequestJsonCompletionFn = async <T>() => null as T
+    const verdict = await checkMosaicSafety(
+      { statementText: 'Streetlights on Oak Street should work.', imageCid },
+      config,
+      requestJson,
+      fetchImage,
+    )
+    assert.equal(verdict.safe, false)
+    assert.equal(verdict.source, 'unavailable')
+  })
+
   it('fails closed when the model call throws', async () => {
     const requestJson: RequestJsonCompletionFn = async <T>() => {
       throw new Error('down')

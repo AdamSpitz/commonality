@@ -18,6 +18,8 @@ Getting **testnet to a two-person shared lab** is also a standing plan, not a pi
 
 - Deploy `StatementImages` on testnet when the next contract publish happens. Local design is done ([specs/product/statement-images.md](specs/product/statement-images.md)); the contract is not in the live testnet set. Do not treat that as a new product focus.
 
+- Give the mosaic-safety worker its own model configuration and rehearse a real image judgment before live operation. It currently shares `CAUSE_ASSIST_COHERENCE_MODEL`; confirm the selected provider/model accepts image input. Unsupported models fail closed and leave adoptions pending.
+
 - Complete per-token escrow presentation in the legacy content-funding screens: the creator dashboard, project section, website claim section, and claim modal still assume a single/default currency. Use the SDK's token-keyed escrow entries and load each token's metadata; never label alternate-token amounts with the first project's currency or ETH. Channel totals already group project funding by token.
 
 - Finish the civility-bot candidate path before live operation: finder-lane scheduling and per-author ingestion caps are wired, and beat-memory can charge estimated X reads against a shared spend file. Still open: fresh source/version checks before selection, an onchain/indexer-to-candidate rehearsal that is not stubbed, and reconciling the $0.005/post read estimate with the developer-console invoice. Civility policy and deployment live in `../common-sense-politics/specs/civility-bot.md`.

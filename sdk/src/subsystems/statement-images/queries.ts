@@ -1,4 +1,4 @@
-import { fetchEvents, padAddressAsTopic } from '../../utils/eventCacheClient.js';
+import { fetchEventsComplete, padAddressAsTopic } from '../../utils/eventCacheClient.js';
 import type { SDKMachinery } from '../../machinery.js';
 import { cidToBytes32, type IpfsCidV1 } from '../../utils/cid-types.js';
 import { foldStatementBeliefs } from '../conceptspace/folds.js';
@@ -29,7 +29,7 @@ export async function loadStatementImageRecords(
   const contractAddress = statementImagesAddress(machinery);
   const pages = await Promise.all(
     EVENT_NAMES.map((eventName) =>
-      fetchEvents(machinery, {
+      fetchEventsComplete(machinery, {
         contractAddress,
         eventName,
         topic2: statementId,
@@ -48,7 +48,7 @@ export async function loadSignerImageAdoptions(
   const topic1 = padAddressAsTopic(signer);
   const pages = await Promise.all(
     (['ImageAdopted', 'ImageAdoptionRevoked'] as const).map((eventName) =>
-      fetchEvents(machinery, { contractAddress, eventName, topic1 }),
+      fetchEventsComplete(machinery, { contractAddress, eventName, topic1 }),
     ),
   );
   return foldStatementImageRecords(pages.flat()).adoptions;
