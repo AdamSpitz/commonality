@@ -55,7 +55,7 @@ This is high-leverage: it reduces fragmentation (new energy gets routed into exi
 
 ## Work-pledges and work-requests, filtered by the trust graph
 
-**Status of this section:** the first slice below is what we are building. The rest of this file (external links, widgets, pinning) stays speculative.
+**Status of this section:** the first slice below is built (SDK records, statement-page two-tier board, match lines, copyable announcement, retract). The rest of this file (external links, widgets, pinning) stays speculative.
 
 Linking out covers energy that already lives elsewhere. It does not cover two in-system signals that would help a cause board gather momentum quickly:
 
@@ -117,7 +117,7 @@ Contact details are out of this slice. When they are needed, show an author-chos
 
 A soft labor pledge is mainly routing information, not proof of support. Fake entries hurt counts far more than they hurt matching. Lead with matches ("this request needs grant writing; 4 in your network offered that"). Keep raw pledge counts secondary, and never add the two tiers together.
 
-### First slice (building this)
+### First slice (built)
 
 1. A work-pledge record and a work-request record: skill tags, one free-text line, one statement reference. Author is the publisher. Retract by retracting the publication.
 2. A two-tier view on the cause board (in your network / others), seeded by the operator trust root until the viewer has their own network. The viewer counts as in-network for their own posts. Headline numbers count only the first tier.

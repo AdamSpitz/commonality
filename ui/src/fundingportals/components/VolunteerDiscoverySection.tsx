@@ -14,6 +14,7 @@ import {
 import { useAccount } from 'wagmi'
 import { PublishedDataAbi } from '@commonality/sdk/abis'
 import { publishDocumentToPublishedData } from '@commonality/sdk/displayable-documents'
+import { publishedDataCidToId } from '@commonality/sdk/published-data'
 import {
   buildWorkPledgeDocument,
   buildWorkSkillRequestDocument,
@@ -35,30 +36,71 @@ interface Props {
 
 const EMPTY: VolunteerDiscoveryTiers = { inNetwork: [], others: [] }
 
-function RecordList({ records }: { records: VolunteerDiscoveryRecord[] }) {
+function RecordList({
+  records,
+  viewer,
+  retractingCid,
+  onRetract,
+}: {
+  records: VolunteerDiscoveryRecord[]
+  viewer?: string
+  retractingCid: string | null
+  onRetract: (record: VolunteerDiscoveryRecord) => void
+}) {
   if (records.length === 0) {
     return <Typography variant="body2" color="text.secondary">Nothing here yet.</Typography>
   }
   return (
     <Stack spacing={1}>
-      {records.map((record) => (
-        <Box key={`${record.author}:${record.cid}`}>
-          <Typography variant="body2">
-            {recordLabel(record)} {record.skills.join(', ')}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">{record.note}</Typography>
-        </Box>
-      ))}
+      {records.map((record) => {
+        const mine = viewer !== undefined && record.author.toLowerCase() === viewer.toLowerCase()
+        const retracting = retractingCid === record.cid
+        return (
+          <Box key={`${record.author}:${record.cid}`}>
+            <Stack direction="row" spacing={1} alignItems="baseline">
+              <Typography variant="body2">
+                {recordLabel(record)} {record.skills.join(', ')}
+              </Typography>
+              {mine && (
+                <Button
+                  size="small"
+                  disabled={retractingCid !== null}
+                  onClick={() => onRetract(record)}
+                >
+                  {retracting ? 'Retracting…' : 'Retract'}
+                </Button>
+              )}
+            </Stack>
+            <Typography variant="body2" color="text.secondary">{record.note}</Typography>
+          </Box>
+        )
+      })}
     </Stack>
   )
 }
 
-function Tier({ title, countLabel, records }: { title: string; countLabel: string; records: VolunteerDiscoveryRecord[] }) {
+function Tier({
+  title,
+  countLabel,
+  records,
+  viewer,
+  retractingCid,
+  onRetract,
+}: {
+  title: string
+  countLabel: string
+  records: VolunteerDiscoveryRecord[]
+  viewer?: string
+  retractingCid: string | null
+  onRetract: (record: VolunteerDiscoveryRecord) => void
+}) {
   return (
     <Box>
       <Typography variant="subtitle2">{title}</Typography>
       <Typography variant="caption" color="text.secondary" data-testid={`${title}-count`}>{countLabel}</Typography>
-      <Box sx={{ mt: 1 }}><RecordList records={records} /></Box>
+      <Box sx={{ mt: 1 }}>
+        <RecordList records={records} viewer={viewer} retractingCid={retractingCid} onRetract={onRetract} />
+      </Box>
     </Box>
   )
 }
@@ -78,6 +120,7 @@ export function VolunteerDiscoverySection({ statementCids, trustedAuthors }: Pro
   const [skills, setSkills] = useState('')
   const [note, setNote] = useState('')
   const [publishing, setPublishing] = useState(false)
+  const [retractingCid, setRetractingCid] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [reloadKey, setReloadKey] = useState(0)
 
@@ -124,6 +167,35 @@ export function VolunteerDiscoverySection({ statementCids, trustedAuthors }: Pro
     }
   }, [writeClients, machinery, cidsKey, skills, note, kind])
 
+  const retract = useCallback(async (record: VolunteerDiscoveryRecord) => {
+    if (!writeClients || !address) return
+    if (record.author.toLowerCase() !== address.toLowerCase()) return
+    const publishedData = machinery.contractAddresses?.publishedData
+    if (!publishedData) {
+      setError('PublishedData contract is not configured.')
+      return
+    }
+    setRetractingCid(record.cid)
+    setError(null)
+    try {
+      const hash = await writeClients.walletClient.writeContract({
+        address: publishedData,
+        abi: PublishedDataAbi,
+        functionName: 'retractData',
+        args: [publishedDataCidToId(record.cid)],
+        chain: writeClients.walletClient.chain,
+        account: writeClients.walletClient.account!,
+      })
+      const receipt = await writeClients.publicClient.waitForTransactionReceipt({ hash })
+      if (receipt.status !== 'success') throw new Error('Retract transaction reverted')
+      setReloadKey((key) => key + 1)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not retract.')
+    } finally {
+      setRetractingCid(null)
+    }
+  }, [writeClients, address, machinery])
+
   const copyAnnouncement = useCallback(async () => {
     if (matches.length === 0) return
     await navigator.clipboard.writeText(matches.map(copyableAnnouncement).join('\n'))
@@ -155,11 +227,17 @@ export function VolunteerDiscoverySection({ statementCids, trustedAuthors }: Pro
           title="In your network"
           countLabel={`${tiers.inNetwork.length} in your network`}
           records={tiers.inNetwork}
+          viewer={address}
+          retractingCid={retractingCid}
+          onRetract={(record) => void retract(record)}
         />
         <Tier
           title="Others"
           countLabel={`${tiers.others.length} others`}
           records={tiers.others}
+          viewer={address}
+          retractingCid={retractingCid}
+          onRetract={(record) => void retract(record)}
         />
 
         <Stack spacing={1} data-testid="volunteer-discovery-form">
