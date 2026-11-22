@@ -207,6 +207,7 @@ export function decodeDepositedEvent(
   rawEvent: RawEventFromCache,
 ): {
   channelId: string;
+  token: `0x${string}`;
   from: `0x${string}`;
   amount: bigint;
   contractAddress: `0x${string}`;
@@ -215,11 +216,12 @@ export function decodeDepositedEvent(
   transactionHash: `0x${string}`;
   logIndex: number;
 } | null {
-  if (rawEvent.eventName !== 'Deposited') return null;
+  if (rawEvent.eventName !== 'DepositedV2') return null;
   const args = decodeRawEventArgs(rawEvent, BeneficiaryEscrowAbi);
   if (!args) return null;
   return {
-    channelId: args.channelId as string,
+    channelId: args.beneficiaryId as string,
+    token: args.token as `0x${string}`,
     from: args.from as `0x${string}`,
     amount: args.amount as bigint,
     ...decodedLogMeta(rawEvent),
@@ -230,6 +232,7 @@ export function decodeWithdrawnEvent(
   rawEvent: RawEventFromCache,
 ): {
   channelId: string;
+  token: `0x${string}`;
   to: `0x${string}`;
   amount: bigint;
   contractAddress: `0x${string}`;
@@ -238,11 +241,12 @@ export function decodeWithdrawnEvent(
   transactionHash: `0x${string}`;
   logIndex: number;
 } | null {
-  if (rawEvent.eventName !== 'Withdrawn') return null;
+  if (rawEvent.eventName !== 'WithdrawnV2') return null;
   const args = decodeRawEventArgs(rawEvent, BeneficiaryEscrowAbi);
   if (!args) return null;
   return {
-    channelId: args.channelId as string,
+    channelId: args.beneficiaryId as string,
+    token: args.token as `0x${string}`,
     to: args.to as `0x${string}`,
     amount: args.amount as bigint,
     ...decodedLogMeta(rawEvent),
@@ -256,12 +260,13 @@ export function decodeCreatorContractCreatedEvent(
   channelId: string;
   creator: `0x${string}`;
   isThirdParty: boolean;
+  paymentToken: `0x${string}`;
   blockNumber: bigint;
   blockTimestamp: bigint;
   transactionHash: `0x${string}`;
   logIndex: number;
 } | null {
-  if (rawEvent.eventName !== 'CreatorContractCreated') return null;
+  if (rawEvent.eventName !== 'CreatorContractCreatedV2') return null;
   const args = decodeRawEventArgs(rawEvent, CreatorAssuranceContractFactoryAbi);
   if (!args) return null;
   return {
@@ -269,6 +274,7 @@ export function decodeCreatorContractCreatedEvent(
     channelId: args.channelId as string,
     creator: args.creator as `0x${string}`,
     isThirdParty: args.isThirdParty as boolean,
+    paymentToken: args.paymentToken as `0x${string}`,
     blockNumber: BigInt(rawEvent.blockNumber),
     blockTimestamp: BigInt(rawEvent.blockTimestamp),
     transactionHash: rawEvent.transactionHash as `0x${string}`,
@@ -277,7 +283,7 @@ export function decodeCreatorContractCreatedEvent(
 }
 
 const PROSPECTIVE_EVENT_ABIS: Record<string, readonly unknown[]> = {
-  ProspectiveRoundCreated: ProspectiveContentRoundFactoryAbi,
+  ProspectiveRoundCreatedV2: ProspectiveContentRoundFactoryAbi,
   ProspectiveRoundMaterialized: ProspectiveContentRoundFactoryAbi,
   ContentMaterialized: MaterializedContentTokensAbi,
   ContentTokenClaimed: MaterializedContentTokensAbi,
@@ -292,7 +298,7 @@ export function decodeProspectiveContentEvent(
   if (!args) return null;
   return {
     ...args,
-    type: rawEvent.eventName,
+    type: rawEvent.eventName === 'ProspectiveRoundCreatedV2' ? 'ProspectiveRoundCreated' : rawEvent.eventName,
     contractAddress: rawEvent.contractAddress,
     blockNumber: BigInt(rawEvent.blockNumber),
     blockTimestamp: BigInt(rawEvent.blockTimestamp),

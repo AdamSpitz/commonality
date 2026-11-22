@@ -22,6 +22,17 @@ test('IPFS config.json emits Commonality HTTP AI URLs', () => {
   }
 })
 
+test('settlement token configuration reaches IPFS and container runtime configs', () => {
+  const keys = extractViteRuntimeKeys(readFileSync(join(root, 'ui/vite.config.ts'), 'utf8'))
+  const entrypoint = readFileSync(join(root, 'commonality-ui/docker-entrypoint.d/40-commonality-config.sh'), 'utf8')
+  const compose = readFileSync(join(root, 'docker-compose.yml'), 'utf8')
+  for (const key of ['VITE_PAYMENT_TOKEN_REGISTRY_ADDRESS', 'VITE_POINTS_TOKEN_ADDRESS', 'VITE_ALT_PAYMENT_TOKEN_ADDRESS']) {
+    assert.ok(keys.includes(key), `${key} must be in buildRuntimeConfig`)
+    assert.ok(entrypoint.includes(`write_kv ${key} `), `${key} must be emitted by the container`)
+    assert.ok(compose.includes(`${key}:`), `${key} must be passed into the container`)
+  }
+})
+
 test('base-sepolia.env has live Render AI URLs', () => {
   const env = readFileSync(join(root, 'deployments/base-sepolia.env'), 'utf8')
   assert.match(env, /VITE_CAUSE_ASSIST_URL=https:\/\/commonality-cause-assist\.onrender\.com/)

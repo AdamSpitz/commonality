@@ -60,6 +60,7 @@ export interface ContractVetoedEvent extends RawEvent {
 export interface DepositedEvent extends RawEvent {
   type: 'Deposited';
   channelId: string;
+  token: `0x${string}`;
   from: `0x${string}`;
   amount: bigint;
 }
@@ -67,6 +68,7 @@ export interface DepositedEvent extends RawEvent {
 export interface WithdrawnEvent extends RawEvent {
   type: 'Withdrawn';
   channelId: string;
+  token: `0x${string}`;
   to: `0x${string}`;
   amount: bigint;
 }
@@ -77,6 +79,7 @@ export interface CreatorContractCreatedEvent extends RawEvent {
   channelId: string;
   creator: `0x${string}`;
   isThirdParty: boolean;
+  paymentToken: `0x${string}`;
 }
 
 export interface ProspectiveRoundCreatedEvent extends RawEvent {
@@ -128,9 +131,13 @@ export type ContentFundingEventNames =
   | 'PayoutAddressRotated'
   | 'ContractVetoed'
   | 'Deposited'
+  | 'DepositedV2'
   | 'Withdrawn'
+  | 'WithdrawnV2'
   | 'CreatorContractCreated'
+  | 'CreatorContractCreatedV2'
   | 'ProspectiveRoundCreated'
+  | 'ProspectiveRoundCreatedV2'
   | 'ProspectiveRoundMaterialized'
   | 'ContentMaterialized'
   | 'ContentTokenClaimed';

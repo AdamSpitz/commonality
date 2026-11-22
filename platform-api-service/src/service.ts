@@ -165,11 +165,11 @@ export class PlatformApiService {
     return error;
   }
 
-  async resolveContent(url: string): Promise<ResolvedContent> {
+  async resolveContent(url: string, options: { fresh?: boolean } = {}): Promise<ResolvedContent> {
     const parsed = parseContentFundingUrl(url);
     const cacheKey = this.getContentCacheKey(parsed);
     const cached = this.contentCache.get(cacheKey);
-    if (cached) {
+    if (cached && !options.fresh) {
       return cached;
     }
 

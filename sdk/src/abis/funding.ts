@@ -19,6 +19,7 @@ export { ValueThresholdConditionAbi } from '../../abis/ValueThresholdConditionAb
 export { WorkFundingConditionAbi } from '../../abis/WorkFundingConditionAbi.js';
 export { ContentRegistryAbi } from '../../abis/ContentRegistryAbi.js';
 export { BeneficiaryRegistryAbi } from '../../abis/BeneficiaryRegistryAbi.js';
+export { PaymentTokenRegistryAbi } from '../../abis/PaymentTokenRegistryAbi.js';
 export { BeneficiaryEscrowAbi } from '../../abis/BeneficiaryEscrowAbi.js';
 export { CreatorAssuranceContractFactoryAbi } from '../../abis/CreatorAssuranceContractFactoryAbi.js';
 export { CreatorAssuranceVetoAbi } from '../../abis/CreatorAssuranceVetoAbi.js';

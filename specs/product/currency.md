@@ -9,7 +9,7 @@ The system uses ERC-20 stablecoins rather than native ETH. The reason: assurance
 - **MVP production: USDC** — USDC is used in all production contracts.
 - **Public testnet: USDZZZ** — Base Sepolia intentionally uses the faucetable `USDZZZ` dev token so testers can get funds easily. This is testnet-only; it does not relax the production USDC decision.
 - **MVP display: local-fiat estimate** — Non-USD users (starting with Canadians, since Adam's first real-world users are likely Canadian) should see amounts as an approximate local-fiat figure ("≈ C$205") with the true stored amount ("US$150 USDC") clearly visible. Display-only: settlement stays in USDC. Use a daily off-chain FX rate and show its timestamp; no oracle rigor needed since nothing on-chain depends on it. Never let a user enter a local-fiat number that silently becomes the stored commitment without showing the USDC amount they're actually pledging. Thresholds and pledges are fixed in USD, so the local-fiat figure drifts day to day — always label it as approximate.
-- **Post-MVP** — Allow each assurance contract to choose its own settlement token (including DAI or ETH-backed stablecoins for censorship resistance, and local-currency stablecoins — see below).
+- **One token per project, from an allowlist** — The project owner picks one allowed settlement token at creation. A channel may have campaigns in more than one allowed token at once. Allowlist changes are owner-only for now.
 
 ## Non-USD currencies (decision, 2026-07)
 
@@ -27,6 +27,8 @@ CAD stablecoin landscape, evaluated 2026-07 — see [`spikes/cad-stablecoins/`](
 
 Both viable tokens use **18 decimals** (USDC is 6) — nothing may assume 6. Pool depth (~$130–170k) handles C$100–C$1,000 swaps but not five-figure ones, which is acceptable only because CADC acquisition is direct rather than swap-based. Before adopting: confirm addresses against issuer docs, do one real Paytrie→Base→offramp round trip (like `spikes/coinbase-onramp/`), and ask the issuer what happens if a contract is wrongly blacklisted.
 
+Implementation plan for per-project tokens: [per-project-payment-token-plan.md](../tech/per-project-payment-token-plan.md).
+
 ## Safety constraints
 
 Keep these in place whenever contract changes touch fund flows:
@@ -41,7 +43,8 @@ Keep these in place whenever contract changes touch fund flows:
 
 Fully implemented:
 
-- `CurrencyAmount` / `CurrencyAmountBigInt` types tag every amount with its currency throughout the SDK and UI. Aggregation logic prevents accidentally mixing amounts in different currencies.
+- Each project and content-funding campaign chooses one settlement token from `PaymentTokenRegistry`. Local deploy allows USDZZZ, Commonality Points (`POINTS`, owner-mint ERC-20), and a second mock token (`ALT`, 18 decimals). Gas sponsorship stays on USDZZZ; points do not need a Uniswap pool.
+- `CurrencyAmount` / `CurrencyAmountBigInt` types tag every amount with its currency throughout the SDK and UI. Aggregation logic prevents accidentally mixing amounts in different currencies. Channel totals are shown per token, not summed.
 - Every contract that previously held or moved native ETH now stores an immutable `paymentToken` and uses `SafeERC20` for all fund transfers.
 - No `msg.value` or `address(this).balance` patterns remain in any settlement path.
 - `DelegatableNotes` validates that payment notes match the target market's settlement token, and uses `forceApprove()` with exact amounts for temporary approvals.

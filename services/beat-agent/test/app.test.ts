@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, writeFile } from 'node:fs/promises';
+import { mkdtemp, writeFile, readFile, rm } from 'node:fs/promises';
+import { runOnce as runContentFinderOnce } from '../../content-finder/src/index.js';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { AddressInfo } from 'node:net';
@@ -33,6 +34,58 @@ const testConfig: BeatAgentAppConfig = {
   minimumConfidence: 'medium',
   trustedFinderKey: 'trusted-finder-key',
 };
+
+describe('content finder to beat-agent handoff', () => {
+  it('defers an editable suggestion, then publishes and logs its resolved version through the batch API', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'finder-beat-handoff-'));
+    const service = await withServer();
+    const originalFetch = globalThis.fetch;
+    let editableUntil = '2099-01-01T00:00:00Z';
+    try {
+      const submissionsFilePath = join(directory, 'submissions.json');
+      const stateFilePath = join(directory, 'state.json');
+      await writeFile(submissionsFilePath, JSON.stringify([{
+        contentUrl: 'https://x.com/alice/status/10', statementCid: testConfig.alignmentTopicStatementCid,
+        submitterId: 'must-not-reach-evaluation',
+      }]));
+      globalThis.fetch = async (url, options) => {
+        if (String(url) === 'http://platform/resolve/content') {
+          return Response.json({ canonicalId: 'twitter:uid:1:10', metadata: {
+            text: 'A substantive argument', authorId: 'twitter:uid:1', contentVersion: '10',
+            isReply: false, mediaIsPrimary: false, editableUntil,
+            quotedContent: [{ text: 'A quoted argument', contentVersion: '9' }],
+          } });
+        }
+        assert.ok(!String(options?.body).includes('must-not-reach-evaluation'));
+        return originalFetch(url, options);
+      };
+      const config = {
+        platformApiUrl: 'http://platform', attesterUrl: service.baseUrl, attesterFinderKey: 'trusted-finder-key',
+        pollIntervalMs: 1000, stateFilePath, submissionsFilePath,
+        suggestionQueueCapacity: 10, finderQueueCapacity: 10,
+        monthlySpendCeilingUsd: 1, estimatedEvaluationUsd: 1,
+      };
+      await runContentFinderOnce(config);
+      assert.equal(service.logEntries.length, 0);
+      assert.equal(JSON.parse(await readFile(stateFilePath, 'utf8')).settledUsd, 0);
+      editableUntil = '2020-01-01T00:00:00Z';
+      await runContentFinderOnce(config);
+      await runContentFinderOnce(config);
+      assert.equal(service.logEntries.length, 1);
+      const entry = service.logEntries[0];
+      assert.equal(entry.decision, 'positive');
+      assert.equal(entry.contentVersion, '10');
+      assert.equal(entry.authorId, 'twitter:uid:1');
+      assert.equal(entry.transactionHash, '0xabc123');
+      assert.equal(entry.statementCid, testConfig.alignmentTopicStatementCid);
+      assert.equal(JSON.parse(await readFile(stateFilePath, 'utf8')).settledUsd, 1);
+    } finally {
+      globalThis.fetch = originalFetch;
+      await service.close();
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
+});
 
 async function withServer(overrides?: Partial<{
   decision: 'positive' | 'negative' | 'abstain';

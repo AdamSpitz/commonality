@@ -31,6 +31,21 @@ function response(body: unknown, init: ResponseInit = {}): Response {
 }
 
 describe("beat finder", () => {
+	it("preserves source metadata in default discovery requests", async () => {
+		const select = createScoredBeatFinderCandidateSelector();
+		const candidate = await select({ targetStatementCid: 'bafytest', item: {
+			contentCanonicalId: 'twitter:uid:1:10', sourceId: 'source',
+			text: 'A thoughtful substantive argument about public policy and its consequences.',
+			observedAt: '2026-11-18T12:00:00Z', ingestedAt: '2026-11-18T12:01:00Z',
+			contentVersion: '10', authorId: 'twitter:uid:1', isReply: false, mediaIsPrimary: false,
+			editableUntil: '2026-11-18T13:00:00Z', quotedText: 'Quoted argument',
+		} });
+		assert.equal(candidate?.request.contentVersion, '10');
+		assert.equal(candidate?.request.authorId, 'twitter:uid:1');
+		assert.equal(candidate?.request.editableUntil, '2026-11-18T13:00:00Z');
+		assert.equal(candidate?.request.isReply, false);
+		assert.deepEqual(candidate?.request.quotedContent, [{ text: 'Quoted argument' }]);
+	});
 	it("submits promising unprocessed ingested items and records attester responses", async () => {
 		await withTempDir(async (dir) => {
 			const ingestionStateFilePath = join(dir, "ingestion.json");
@@ -45,6 +60,7 @@ describe("beat finder", () => {
 						platform: "twitter",
 						contentUrl: "https://x.example/1",
 						text: "A thoughtful bridge-building post.",
+						editableUntil: "2026-05-15T11:00:00.000Z",
 						observedAt: "2026-05-15T10:00:00.000Z",
 						ingestedAt: "2026-05-15T10:01:00.000Z",
 					},
@@ -87,6 +103,15 @@ describe("beat finder", () => {
 				});
 			};
 
+			await runBeatFinderOnce({
+				ingestionStateFilePath, finderStateFilePath,
+				targetStatementCid: 'bafystatement', attesterEndpoint: 'https://beat.example/evaluate-content',
+				fetchImpl, now: new Date('2026-05-15T10:30:00Z'),
+			});
+			assert.equal(submittedBodies.length, 0);
+			assert.equal((await loadBeatFinderState(finderStateFilePath)).processedItems['twitter:tweet:1'], undefined);
+			// Reset the unrelated empty item's state to keep the pass summary below independent.
+			await saveBeatFinderState(finderStateFilePath, { schemaVersion: 1, processedItems: {} });
 			const summary = await runBeatFinderOnce({
 				ingestionStateFilePath,
 				finderStateFilePath,
@@ -107,6 +132,7 @@ describe("beat finder", () => {
 			assert.deepEqual(submittedBodies, [
 				{
 					contentCanonicalId: "twitter:tweet:1",
+					editableUntil: "2026-05-15T11:00:00.000Z",
 					statementCid: "bafystatement",
 					contentUrl: "https://x.example/1",
 				},

@@ -54,6 +54,7 @@ const creatorAssuranceFactoryActionAbi = [
           { name: 'erc1155ContractUri', type: 'string' },
           { name: 'initialPurchaseIndices', type: 'uint256[]' },
           { name: 'initialPurchaseCounts', type: 'uint256[]' },
+          { name: 'paymentToken', type: 'address' },
         ],
       },
     ],
@@ -80,6 +81,7 @@ const creatorAssuranceFactoryActionAbi = [
           { name: 'erc1155ContractUri', type: 'string' },
           { name: 'initialPurchaseIndices', type: 'uint256[]' },
           { name: 'initialPurchaseCounts', type: 'uint256[]' },
+          { name: 'paymentToken', type: 'address' },
         ],
       },
     ],
@@ -102,12 +104,13 @@ const creatorAssuranceFactoryActionAbi = [
   },
   {
     type: 'event',
-    name: 'CreatorContractCreated',
+    name: 'CreatorContractCreatedV2',
     inputs: [
       { name: 'contractAddress', type: 'address', indexed: true },
       { name: 'channelId', type: 'bytes32', indexed: true },
       { name: 'creator', type: 'address', indexed: true },
       { name: 'isThirdParty', type: 'bool', indexed: false },
+      { name: 'paymentToken', type: 'address', indexed: false },
     ],
   },
 ] as const;
@@ -126,6 +129,7 @@ export interface CreateContentFundingContractParams {
   isThirdParty: boolean;
   initialPurchaseIndices: bigint[];
   initialPurchaseCounts: bigint[];
+  paymentToken: Address;
 }
 
 function parseContentUrl(url: string): { contentSuffix: string; platform: string } {
@@ -175,12 +179,7 @@ export async function createContentFundingContract(
     actualInitialPurchaseValue += price * count;
   }
 
-  // @ts-expect-error - viem type inference issue with readContract
-  const paymentToken = await clients.publicClient.readContract({
-    address: factoryContract.address,
-    abi: creatorAssuranceFactoryActionAbi,
-    functionName: 'paymentToken',
-  }) as Address;
+  const paymentToken = params.paymentToken;
 
   if (actualInitialPurchaseValue > 0n) {
     await approveERC20Spend(clients, paymentToken, factoryContract.address, actualInitialPurchaseValue);
@@ -199,6 +198,7 @@ export async function createContentFundingContract(
     erc1155ContractUri: params.erc1155ContractUri,
     initialPurchaseIndices: params.initialPurchaseIndices,
     initialPurchaseCounts: params.initialPurchaseCounts,
+    paymentToken,
   };
 
   const hash = await clients.walletClient.writeContract({
@@ -214,12 +214,12 @@ export async function createContentFundingContract(
 
   const events = parseEventLogs({
     abi: creatorAssuranceFactoryActionAbi,
-    eventName: 'CreatorContractCreated',
+    eventName: 'CreatorContractCreatedV2',
     logs: receipt.logs,
   });
 
   if (events.length === 0) {
-    throw new Error('Failed to find CreatorContractCreated event in transaction receipt');
+    throw new Error('Failed to find CreatorContractCreatedV2 event in transaction receipt');
   }
 
   const event = events[0];
@@ -260,6 +260,7 @@ export interface CreateProspectiveRoundParams {
   metadataCid: string;
   receiptMetadataUri: string;
   receiptContractUri: string;
+  paymentToken: Address;
 }
 
 /** Create a prospective round and return its authoritative addresses from the receipt. */
@@ -280,7 +281,7 @@ export async function createProspectiveRound(
   if (receipt.status !== 'success') {
     throw new Error(`createProspectiveRound reverted (tx ${hash})`);
   }
-  const [event] = parseEventLogs({ abi: ProspectiveContentRoundFactoryAbi, eventName: 'ProspectiveRoundCreated', logs: receipt.logs });
+  const [event] = parseEventLogs({ abi: ProspectiveContentRoundFactoryAbi, eventName: 'ProspectiveRoundCreatedV2', logs: receipt.logs });
   if (!event) {
     const code = await clients.publicClient.getCode({ address: factoryAddress });
     if (!code || code === '0x') {
@@ -288,7 +289,7 @@ export async function createProspectiveRound(
         `No ProspectiveContentRoundFactory bytecode at ${factoryAddress}. Redeploy contracts (./scripts/deploy-contracts.sh localhost) so PROSPECTIVE_CONTENT_ROUND_FACTORY_ADDRESS is live.`,
       );
     }
-    throw new Error('Failed to find ProspectiveRoundCreated event in transaction receipt');
+    throw new Error('Failed to find ProspectiveRoundCreatedV2 event in transaction receipt');
   }
   return { hash, roundAddress: event.args.round, receiptTokenAddress: event.args.receiptToken, conditionAddress: event.args.condition };
 }
@@ -355,12 +356,13 @@ export async function withdrawFromEscrow(
   clients: WriteClients,
   escrowContract: { address: Address; abi: Abi },
   channelId: string,
+  token: Address,
 ): Promise<{ hash: Hash }> {
   const hash = await clients.walletClient.writeContract({
     address: escrowContract.address,
     abi: escrowContract.abi,
     functionName: 'withdraw',
-    args: [channelId as `0x${string}`],
+    args: [channelId as `0x${string}`, token],
     chain: clients.walletClient.chain,
     account: clients.walletClient.account!,
   });

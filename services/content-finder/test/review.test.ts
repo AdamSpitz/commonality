@@ -20,13 +20,23 @@ describe('bounded content review', () => {
       ]));
       globalThis.fetch = async (url, options) => {
         if (String(url).endsWith('/resolve/content')) {
-          return Response.json({ canonicalId: 'twitter:uid:1:1', metadata: { text: 'Post' } });
+          return Response.json({ canonicalId: 'twitter:uid:1:1', metadata: {
+            text: 'Post', contentVersion: '1', authorId: 'twitter:uid:1',
+            isReply: false, mediaIsPrimary: false, editableUntil: '2026-01-01T00:00:00Z',
+            quotedContent: [{ text: 'Quoted argument', contentVersion: '9' }],
+          } });
         }
         paidCalls++;
         const persisted = JSON.parse(await readFile(stateFilePath, 'utf8'));
         assert.equal(persisted.reservedUsd, 1);
         const { evaluations } = JSON.parse(String(options?.body));
         assert.equal(evaluations.length, 1);
+        assert.equal(evaluations[0].contentVersion, '1');
+        assert.equal(evaluations[0].authorId, 'twitter:uid:1');
+        assert.equal(evaluations[0].isReply, false);
+        assert.equal(evaluations[0].mediaIsPrimary, false);
+        assert.equal(evaluations[0].editableUntil, '2026-01-01T00:00:00Z');
+        assert.deepEqual(evaluations[0].quotedContent, [{ text: 'Quoted argument', contentVersion: '9' }]);
         return Response.json({ results: evaluations.map((item: object) => ({ ...item, success: true, decision: 'positive' })) });
       };
       const config = {
@@ -77,6 +87,49 @@ describe('bounded content review', () => {
       assert.equal(state.reservedUsd, 0);
       assert.equal(state.droppedBudgetCount ?? 0, 0);
       assert.equal(state.queuedKeys.length, 1);
+    } finally {
+      globalThis.fetch = originalFetch;
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
+
+  it('gives the finder lane its configured share and does not resolve those posts again', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'content-review-finder-'));
+    const originalFetch = globalThis.fetch;
+    const stateFilePath = join(directory, 'state.json');
+    const submissionsFilePath = join(directory, 'submissions.json');
+    const ingestionStateFilePath = join(directory, 'ingestion.json');
+    const evaluated = [];
+    try {
+      await writeFile(stateFilePath, JSON.stringify({ processedSubmissionKeys: [], queuedItems: [
+        { lane: 'finder', dedupeKey: 'finder:twitter:uid:2:gone:bafytest', enqueuedAt: '' },
+        { lane: 'finder', dedupeKey: 'finder:twitter:uid:2:2:bafytest', enqueuedAt: '' },
+      ] }));
+      await writeFile(submissionsFilePath, JSON.stringify([
+        { contentUrl: 'https://x.com/a/status/9', statementCid: 'bafytest' },
+      ]));
+      await writeFile(ingestionStateFilePath, JSON.stringify({ items: [
+        { contentCanonicalId: 'twitter:uid:2:1', text: 'A specific claim', authorId: 'twitter:uid:2', isReply: false },
+        { contentCanonicalId: 'twitter:uid:2:2', text: 'reply', isReply: true },
+      ] }));
+      globalThis.fetch = async (url, options) => {
+        if (String(url).endsWith('/resolve/content')) {
+          return Response.json({ canonicalId: 'twitter:uid:1:9', metadata: { text: 'Suggested' } });
+        }
+        evaluated.push(...JSON.parse(String(options?.body)).evaluations);
+        return Response.json({ results: JSON.parse(String(options?.body)).evaluations.map((item) => ({ ...item, success: true, decision: 'positive' })) });
+      };
+      const config = {
+        platformApiUrl: 'http://platform', attesterUrl: 'http://attester', attesterFinderKey: 'key',
+        pollIntervalMs: 1000, stateFilePath, submissionsFilePath, ingestionStateFilePath,
+        finderStatementCid: 'bafytest', finderLaneShare: 0.5, reviewBatchSize: 2,
+        suggestionQueueCapacity: 10, finderQueueCapacity: 10, estimatedEvaluationUsd: 0,
+      };
+      await runOnce(config);
+      assert.equal(evaluated.length, 2);
+      assert.equal(evaluated.some((item) => item.contentCanonicalId === 'twitter:uid:2:1'), true);
+      assert.equal(evaluated.some((item) => item.contentText === 'reply'), false);
+      assert.deepEqual(JSON.parse(await readFile(stateFilePath, 'utf8')).queuedItems, []);
     } finally {
       globalThis.fetch = originalFetch;
       await rm(directory, { recursive: true, force: true });

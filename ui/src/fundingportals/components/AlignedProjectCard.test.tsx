@@ -52,6 +52,7 @@ function makeChannelEntry(overrides: {
         channelId: '0xabc',
         creator: '0x0000000000000000000000000000000000000001',
         isThirdParty: overrides.isThirdParty ?? false,
+        paymentToken: '0x0000000000000000000000000000000000000001',
         project: null,
         fundingProgress: null,
         status: (overrides.status ?? 'active') as any,

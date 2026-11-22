@@ -32,6 +32,33 @@ const baseConfig: PlatformApiServiceConfig = {
 };
 
 describe('TwitterClient', () => {
+  it('resolves evaluation shape and uses the returned version rather than the newest history ID', async () => {
+    globalThis.fetch = async (url) => {
+      const query = new URL(String(url)).searchParams;
+      assert.ok(query.get('tweet.fields')?.includes('edit_controls'));
+      assert.ok(query.get('expansions')?.includes('referenced_tweets.id'));
+      return jsonResponse({
+        data: {
+          id: '10', author_id: '1', text: 'https://t.co/image',
+          edit_history_tweet_ids: ['10', '11'],
+          edit_controls: { editable_until: '2026-11-18T12:30:00Z' },
+          referenced_tweets: [{ type: 'replied_to', id: '9' }, { type: 'quoted', id: '8' }],
+          attachments: { media_keys: ['photo'] },
+        },
+        includes: {
+          users: [{ id: '1', username: 'alice' }],
+          tweets: [{ id: '8', author_id: '2', text: 'Quoted argument' }],
+        },
+      });
+    };
+    const result = await new TwitterClient(baseConfig).resolveContent('https://x.com/alice/status/10');
+    assert.equal(result.metadata.contentVersion, '10');
+    assert.equal(result.metadata.authorId, 'twitter:uid:1');
+    assert.equal(result.metadata.isReply, true);
+    assert.equal(result.metadata.mediaIsPrimary, true);
+    assert.equal(result.metadata.editableUntil, '2026-11-18T12:30:00Z');
+    assert.deepEqual(result.metadata.quotedContent, [{ text: 'Quoted argument', contentVersion: '8', contentCanonicalId: 'twitter:uid:2:8' }]);
+  });
   afterEach(() => {
     delete (globalThis as { fetch?: typeof fetch }).fetch;
   });

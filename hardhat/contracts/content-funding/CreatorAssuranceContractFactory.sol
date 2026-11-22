@@ -39,6 +39,11 @@ error ThirdPartyDeadlineTooLong(uint256 deadline, uint256 maxDeadline);
 error InvalidThirdPartyMaxDuration();
 error InvalidProspectiveRoundFactory();
 error OnlyProspectiveRoundFactory();
+error PaymentTokenNotAllowed(address token);
+
+interface IPaymentTokenRegistry {
+    function isAllowed(address token) external view returns (bool);
+}
 
 /**
  * @title IContentRegistry
@@ -60,7 +65,7 @@ interface IContentRegistry {
  *      use a CancellableCondition so the creator can veto them within a time window.
  *
  *      Token assumptions: The paymentToken must be a standard ERC-20 token with:
- *      - 18 decimals (for MVP; multi-decimal support is a future enhancement)
+ *      - No assumed decimals (callers must use the token's own decimals)
  *      - No transfer fees or callbacks
  *      - No rebasing behavior
  *      - Standard transfer/transferFrom/approve interface
@@ -84,6 +89,7 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
         string erc1155ContractUri;
         uint256[] initialPurchaseIndices;
         uint256[] initialPurchaseCounts;
+        address paymentToken;
     }
 
     struct BuiltContent {
@@ -104,11 +110,12 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
      * @param creator The address that created the contract
      * @param isThirdParty Whether the contract was created by a third party (not the channel owner)
      */
-    event CreatorContractCreated(
+    event CreatorContractCreatedV2(
         address indexed contractAddress,
         bytes32 indexed channelId,
         address indexed creator,
-        bool isThirdParty
+        bool isThirdParty,
+        address paymentToken
     );
 
     /**
@@ -137,8 +144,9 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
     ValueThresholdConditionFactory public immutable conditionFactory;
     /// @notice The separator character used in canonical content IDs (e.g. "/")
     string public contentIdSeparator;
-    /// @notice The ERC-20 token used for all MVP content-funding contracts
-    address public immutable paymentToken;
+    /// @notice Allowlist of settlement tokens. A channel may have campaigns in more than one allowed token.
+    IPaymentTokenRegistry public immutable paymentTokenRegistry;
+    mapping(address token => uint256 minimum) public thirdPartyMinPurchaseFor;
     /// @notice Maps contract address to the channel it belongs to
     mapping(address => bytes32) public channelIdByContract;
     /// @notice Whether a contract was created by a third party (not the channel owner)
@@ -169,7 +177,7 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
      * @param _beneficiaryEscrow The channel escrow contract
      * @param _erc1155Factory The ERC1155 token factory
      * @param _conditionFactory The ETH threshold condition factory
-     * @param _paymentToken The ERC-20 token used to settle all MVP content-funding contracts
+     * @param _paymentTokenRegistry Owner-managed settlement-token allowlist
      * @param _contentIdSeparator The single-character separator for canonical content IDs
      */
     constructor(
@@ -178,12 +186,12 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
         address _beneficiaryEscrow,
         address _erc1155Factory,
         address _conditionFactory,
-        address _paymentToken,
+        address _paymentTokenRegistry,
         string memory _contentIdSeparator,
         address _assuranceDeployer
     ) Ownable(msg.sender) {
         if (bytes(_contentIdSeparator).length != 1) revert InvalidContentIdSeparator();
-        if (_paymentToken == address(0)) revert InvalidPaymentTokenAddress();
+        if (_paymentTokenRegistry == address(0)) revert InvalidPaymentTokenAddress();
         if (_assuranceDeployer == address(0)) revert InvalidDeployerAddress();
         assuranceDeployer = CreatorAssuranceDeployer(_assuranceDeployer);
         contentRegistry = ContentRegistry(_contentRegistry);
@@ -191,7 +199,7 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
         beneficiaryEscrow = BeneficiaryEscrow(_beneficiaryEscrow);
         erc1155Factory = PremintingERC1155Factory(_erc1155Factory);
         conditionFactory = ValueThresholdConditionFactory(_conditionFactory);
-        paymentToken = _paymentToken;
+        paymentTokenRegistry = IPaymentTokenRegistry(_paymentTokenRegistry);
         contentIdSeparator = _contentIdSeparator;
         contentVeto = new CreatorAssuranceVeto(address(this), _beneficiaryRegistry, msg.sender);
     }
@@ -205,6 +213,16 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
         uint256 oldValue = thirdPartyMinPurchase;
         thirdPartyMinPurchase = _minPurchase;
         emit ThirdPartyMinPurchaseUpdated(oldValue, _minPurchase);
+    }
+
+    /// @notice Per-token override of the third-party minimum. Zero means use `thirdPartyMinPurchase`.
+    function setThirdPartyMinPurchaseFor(address token, uint256 minimum) external onlyOwner {
+        thirdPartyMinPurchaseFor[token] = minimum;
+    }
+
+    function minPurchaseFor(address token) public view returns (uint256) {
+        uint256 specific = thirdPartyMinPurchaseFor[token];
+        return specific == 0 ? thirdPartyMinPurchase : specific;
     }
 
     /**
@@ -342,7 +360,7 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
         if (creatorControlled) {
             revert ChannelCreatorControlled(params.channelId);
         }
-        if (initialPurchaseValue < thirdPartyMinPurchase) {
+        if (initialPurchaseValue < minPurchaseFor(params.paymentToken)) {
             revert InsufficientThirdPartyPurchase();
         }
         uint256 maxDeadline = block.timestamp + thirdPartyMaxDuration;
@@ -365,6 +383,8 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
         bool isThirdParty,
         uint256 initialPurchaseValue
     ) private returns (address) {
+        address paymentToken = params.paymentToken;
+        if (!paymentTokenRegistry.isAllowed(paymentToken)) revert PaymentTokenNotAllowed(paymentToken);
 
         PremintingERC1155 erc1155 = erc1155Factory.createPremintingERC1155(
             address(this),
@@ -436,7 +456,7 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
             IERC20(paymentToken).forceApprove(address(ac), 0);
         }
 
-        emit CreatorContractCreated(address(ac), params.channelId, msg.sender, isThirdParty);
+        emit CreatorContractCreatedV2(address(ac), params.channelId, msg.sender, isThirdParty, paymentToken);
 
         return address(ac);
     }

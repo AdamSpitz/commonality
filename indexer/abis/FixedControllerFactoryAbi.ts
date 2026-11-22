@@ -8,6 +8,11 @@ export const FixedControllerFactoryAbi = [
         "internalType": "address",
         "name": "registry",
         "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "tokenRegistry",
+        "type": "address"
       }
     ],
     "stateMutability": "nonpayable",
@@ -16,6 +21,17 @@ export const FixedControllerFactoryAbi = [
   {
     "inputs": [],
     "name": "InvalidRegistry",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      }
+    ],
+    "name": "PaymentTokenNotAllowed",
     "type": "error"
   },
   {
@@ -159,6 +175,19 @@ export const FixedControllerFactoryAbi = [
         "internalType": "bool",
         "name": "",
         "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "paymentTokenRegistry",
+    "outputs": [
+      {
+        "internalType": "contract IPaymentTokenRegistry",
+        "name": "",
+        "type": "address"
       }
     ],
     "stateMutability": "view",

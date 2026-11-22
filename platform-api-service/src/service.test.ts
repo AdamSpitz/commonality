@@ -164,6 +164,10 @@ describe('PlatformApiService', () => {
 
     assert.strictEqual(callCount, 1);
     assert.deepStrictEqual(first, second);
+    await service.resolveContent('https://x.com/alice/status/18347', { fresh: true });
+    assert.strictEqual(callCount, 2);
+    await service.resolveContent('https://x.com/alice/status/18347');
+    assert.strictEqual(callCount, 2);
   });
 
   it('caches YouTube content lookups by video ID', async () => {

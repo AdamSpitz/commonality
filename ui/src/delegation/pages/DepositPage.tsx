@@ -26,7 +26,7 @@ import { getDomainUrl, StatementPicker, useMachinery } from '../../shared'
 import { noteDetailPathFor } from '../utils'
 import { useWriteClients } from '../../shared'
 import { truncateAddress } from '../utils'
-import { DEFAULT_PAYMENT_CURRENCY, getConfiguredPaymentCurrency } from '../../shared/funding'
+import { DEFAULT_PAYMENT_CURRENCY, getConfiguredPaymentCurrency, PaymentTokenPicker, useAllowedPaymentTokens } from '../../shared/funding'
 import { usePaymentTokenCurrency } from '../../shared/funding'
 import { AddressPicker, type AddressPickerStatus } from '../../shared'
 
@@ -78,7 +78,20 @@ export function DepositPage() {
   const [error, setError] = useState<string | null>(null)
   const [successNoteId, setSuccessNoteId] = useState<bigint | null>(null)
   const [intentWarning, setIntentWarning] = useState<string | null>(null)
-  const paymentTokenAddress = import.meta.env.VITE_PAYMENT_TOKEN_ADDRESS
+  const { tokens: allowedPaymentTokens } = useAllowedPaymentTokens(publicClient)
+  const [paymentTokenAddress, setPaymentTokenAddress] = useState<string | null>(import.meta.env.VITE_PAYMENT_TOKEN_ADDRESS ?? null)
+  useEffect(() => {
+    if (allowedPaymentTokens.length === 0) {
+      setPaymentTokenAddress(null)
+      return
+    }
+    const configured = import.meta.env.VITE_PAYMENT_TOKEN_ADDRESS?.toLowerCase()
+    const preferred = allowedPaymentTokens.find((token) => token.address.toLowerCase() === configured) ?? allowedPaymentTokens[0]
+    setPaymentTokenAddress((current) => {
+      if (current && allowedPaymentTokens.some((token) => token.address.toLowerCase() === current.toLowerCase())) return current
+      return preferred?.address ?? null
+    })
+  }, [allowedPaymentTokens])
   const { currency: loadedPaymentCurrency, loading: paymentCurrencyLoading } = usePaymentTokenCurrency(publicClient, paymentTokenAddress)
   const paymentCurrency = loadedPaymentCurrency ?? getConfiguredPaymentCurrency() ?? DEFAULT_PAYMENT_CURRENCY
   const paymentSymbol = paymentCurrency.symbol
@@ -159,7 +172,7 @@ export function DepositPage() {
     }
 
     if (!paymentTokenAddress) {
-      setError('Payment token address not configured (VITE_PAYMENT_TOKEN_ADDRESS)')
+      setError('Choose an allowed settlement token')
       return
     }
 
@@ -391,6 +404,7 @@ export function DepositPage() {
 
         <form onSubmit={handleSubmit}>
           <Stack spacing={3}>
+            <PaymentTokenPicker tokens={allowedPaymentTokens} value={paymentTokenAddress} onChange={setPaymentTokenAddress} />
             <TextField
               label={`Amount (${paymentSymbol})`}
               type="number"

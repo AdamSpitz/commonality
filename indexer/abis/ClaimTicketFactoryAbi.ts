@@ -3,8 +3,35 @@
 
 export const ClaimTicketFactoryAbi = [
   {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "tokenRegistry",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidRegistry",
+    "type": "error"
+  },
+  {
     "inputs": [],
     "name": "InvalidTransitAddress",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      }
+    ],
+    "name": "PaymentTokenNotAllowed",
     "type": "error"
   },
   {
@@ -92,6 +119,19 @@ export const ClaimTicketFactoryAbi = [
         "internalType": "bool",
         "name": "",
         "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "paymentTokenRegistry",
+    "outputs": [
+      {
+        "internalType": "contract IPaymentTokenRegistry",
+        "name": "",
+        "type": "address"
       }
     ],
     "stateMutability": "view",

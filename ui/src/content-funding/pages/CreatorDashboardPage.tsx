@@ -18,6 +18,7 @@ import ControlPointIcon from '@mui/icons-material/ControlPoint'
 import GavelIcon from '@mui/icons-material/Gavel'
 import { InfoChip } from '../../shared'
 import { formatCurrencyAmount } from '../../shared/funding'
+import { formatContractFundingTotals } from '../channelTotals'
 import { CHANNEL_STATE_TOOLTIPS, CONTRACT_STATUS_TOOLTIPS } from '../chipTooltips'
 import { getVetoableContracts, hashCanonicalId, type ChannelWithCanonicalId, type ChannelState } from '@commonality/sdk/content-funding'
 import { ETH_CURRENCY, type Currency } from '@commonality/sdk/utils'
@@ -40,15 +41,7 @@ const STATE_COLORS: Record<ChannelState, 'default' | 'warning' | 'success'> = {
   'beneficiary-controlled': 'success',
 }
 
-function getTotalFunding(channel: ChannelWithCanonicalId): bigint {
-  let total = 0n
-  for (const contract of channel.contracts) {
-    if (contract.project) {
-      total += BigInt(contract.project.totalReceived)
-    }
-  }
-  return total
-}
+
 
 function getChannelFundingCurrency(channel: ChannelWithCanonicalId): Currency {
   return channel.contracts.find(contract => contract.project)?.project?.fundingCurrency ?? ETH_CURRENCY
@@ -74,7 +67,7 @@ function ChannelCard({ channel, state, projects, onWithdraw, onTakeControl, onVe
   // eslint-disable-next-line react-hooks/purity -- snapshot of current time for deadline math, not used for rendering consistency
   const now = BigInt(Math.floor(Date.now() / 1000))
   const vetoableContracts = state ? getVetoableContracts(state, channelIdBytes32, { now, projects }) : []
-  const totalFunding = getTotalFunding(channel)
+  const totalFundingLabel = formatContractFundingTotals(channel.contracts)
   const fundingCurrency = getChannelFundingCurrency(channel)
   const hasEscrowBalance = channel.escrow.balance > 0n
 
@@ -106,7 +99,7 @@ function ChannelCard({ channel, state, projects, onWithdraw, onTakeControl, onVe
               Total Funding
             </Typography>
             <Typography variant="body1">
-              {formatCurrencyAmount(totalFunding, fundingCurrency)}
+              {totalFundingLabel}
             </Typography>
           </Box>
           <Box>
