@@ -1,6 +1,6 @@
 # Signer-chosen images for statements
 
-**Status: design agreed 2026-08-14. Not built.** Next focus item in [focus.md](/focus.md).
+**Status: adoption and mosaic-safety records started 2026-08-14.** `StatementImages` records signer adoptions and replaceable positive mosaic-safety yeses (prompt hash required; revoke withdraws the yes). The SDK `mosaicTiles` helper is the honest-wall rule: current belief, current adoption, and a yes from the app's chosen attester, one image per signer, duplicate images not tiled. Not deployed, not indexed, and not shown in the UI. Design: this file. Focus: [focus.md](/focus.md).
 
 A statement stays a sentence. People may also attach pictures they want shown beside that sentence. The pictures are not the statement, not a canonical poster chosen by the author, and not an NFT. Counts, implication, and alignment keep reading the text.
 

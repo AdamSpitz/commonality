@@ -60,6 +60,10 @@
       "types": "./dist/src/subsystems/alignment-attestations/index.d.ts",
       "default": "./dist/src/subsystems/alignment-attestations/index.js"
     },
+    "./statement-images": {
+      "types": "./dist/src/subsystems/statement-images/index.d.ts",
+      "default": "./dist/src/subsystems/statement-images/index.js"
+    },
     "./fundingportals": {
       "types": "./dist/src/subsystems/fundingportals/index.d.ts",
       "default": "./dist/src/subsystems/fundingportals/index.js"
