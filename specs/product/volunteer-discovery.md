@@ -55,6 +55,8 @@ This is high-leverage: it reduces fragmentation (new energy gets routed into exi
 
 ## Work-pledges and work-requests, filtered by the trust graph
 
+**Status of this section:** the first slice below is what we are building. The rest of this file (external links, widgets, pinning) stays speculative.
+
 Linking out covers energy that already lives elsewhere. It does not cover two in-system signals that would help a cause board gather momentum quickly:
 
 - **Work-pledge (supply):** "I'd help with this cause, and these are my skills." No project idea required. That is a much lower bar than proposing a project.
@@ -92,23 +94,38 @@ Details:
 
 ### Shape of the data
 
-- **Work-pledge:** a few skill tags, a free-text line, and a rough hours band. Attach it to a statement signature, and optionally to a money pledge (the cheap "I'd also help hands-on" flag). It expires unless reaffirmed. This is deliberately not a full profile (see Deferred).
-- **Work-request:** roles needed, a rough size, and an optional link to a project or work request. A request with no project or money offers behind it shows in the first tier only via its author's trust, or via in-network "+1, I need this too" co-signs.
-- **Invite/reply history:** when a request or project invites a pledger, record whether they replied, accepted, and delivered. It is attributable history in the same style as funding-offer decisions, with no automatic reliability score. Judgments go through the existing judgment/trust model. This is what gives a soft pledge teeth once someone tests it.
+A work-pledge or work-request is its own published record. It *references* a statement. It is not bundled with a signature, a money pledge, a project, or a [request for work](fundable-work-requests.md). Those are different acts and different documents; bolting a skill offer onto a signature would force people to endorse a statement in order to offer help, and would overload a record that means "I believed this."
+
+Naming: keep **work-pledge** and **work-request** here. Do not shorten them to "request" or "offer" — those words already belong to requests for work and funding offers.
+
+- **Work-pledge:** a few skill tags and one free-text line. "I have this skill and I'm vaguely willing to use it toward this statement." Not a profile, not an hours commitment (see Deferred).
+- **Work-request:** the same shape, from the other side. "I want someone with this skill, willing to use it toward this statement." No size, no project link, no co-sign. It shows in the first tier only via its author's trust.
+- Each record names exactly one statement. A cause board unions the records of its statements.
+
+### How someone finds out, without a notification system
+
+The harm from free posts is an inbox flood, and publishing "this wallet has this skill" is a list we should not build. Do not add email, push, in-app messages, or match digests until there is evidence people post these and want to be reached.
+
+Until then, finding out is a human action on the board:
+
+1. **The board is the index.** Skill tags line pledges up against requests. A person who offered grant writing sees the request for grant writing in the same section, and the other way around. This assumes people come back; it is not a delivery channel.
+2. **A copyable announcement, not a message.** Next to a match, copy a short note the viewer can paste into whatever channel they already use. Commonality routes; it does not become the inbox.
+
+Contact details are out of this slice. When they are needed, show an author-chosen handle only to in-network viewers. A relay for strangers comes later, if at all.
 
 ### Emphasize matches over counts
 
-A soft labor pledge is mainly routing information, not proof of support. Fake entries hurt counts far more than they hurt matching. Lead with matches ("this request needs a grant writer; 4 in-network people offered that") and conversions ("9 helpers joined projects this quarter"). Keep raw pledge counts secondary.
+A soft labor pledge is mainly routing information, not proof of support. Fake entries hurt counts far more than they hurt matching. Lead with matches ("this request needs grant writing; 4 in your network offered that"). Keep raw pledge counts secondary, and never add the two tiers together.
 
-### Possible first slice
+### First slice (building this)
 
-1. Skill tags and an hours band on statement signatures and pledges, with expiry and reaffirmation.
-2. A roles-needed field on work requests and projects.
-3. A two-tier work-pledge/work-request view on cause boards, with the operator trust seed.
-4. In-network matching notifications.
-5. Invite/reply history.
+1. A work-pledge record and a work-request record: skill tags, one free-text line, one statement reference. Author is the publisher. Retract by retracting the publication.
+2. A two-tier view on the cause board (in your network / others), seeded by the operator trust root until the viewer has their own network. The viewer counts as in-network for their own posts. Headline numbers count only the first tier.
+3. Match lines by shared skill tag, and a button that copies a short announcement.
 
-Later: labor offers on work requests ("I'll do the permitting if someone does the design"), co-sign backing for unattached requests, and public counts once real usage shows what holds up.
+Not in this slice: hours bands, expiry and reaffirmation, contact fields, notifications, invite/reply history, links to projects or requests for work, the cheap anti-spam floors (rate limits, AI relevance, hide button). Add those when real posts show they are needed.
+
+Later, if the crude version holds up: labor offers that name both sides ("I'll do the permitting if someone does the design"), co-sign backing, and public counts.
 
 ## Deferred / explicitly not building
 

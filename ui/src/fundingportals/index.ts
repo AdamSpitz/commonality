@@ -20,6 +20,7 @@ export { AlignmentAttestationsSection } from './components/AlignmentAttestations
 export { CauseBoard } from './components/CauseBoard'
 export type { CauseBoardProps, CauseBoardNavLink } from './components/CauseBoard'
 export { CauseLeaderboard } from './components/CauseLeaderboard'
+export { VolunteerDiscoverySection } from './components/VolunteerDiscoverySection'
 export type { CauseLeaderboardProps } from './components/CauseLeaderboard'
 export { DiscoverySlider } from './components/DiscoverySlider'
 export { AlignmentFilterToggle } from './components/AlignmentFilterToggle'
