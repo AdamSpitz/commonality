@@ -64,6 +64,10 @@
       "types": "./dist/src/subsystems/statement-images/index.d.ts",
       "default": "./dist/src/subsystems/statement-images/index.js"
     },
+    "./volunteer-discovery": {
+      "types": "./dist/src/subsystems/volunteer-discovery/index.d.ts",
+      "default": "./dist/src/subsystems/volunteer-discovery/index.js"
+    },
     "./fundingportals": {
       "types": "./dist/src/subsystems/fundingportals/index.d.ts",
       "default": "./dist/src/subsystems/fundingportals/index.js"

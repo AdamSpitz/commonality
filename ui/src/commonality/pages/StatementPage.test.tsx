@@ -66,6 +66,7 @@ vi.mock('@ui/content-funding', () => ({
 vi.mock('@ui/fundingportals', () => ({
   CauseBoard: () => <div data-testid="fundable-projects" />,
   CauseLeaderboard: () => <div data-testid="contributor-leaderboard" />,
+  VolunteerDiscoverySection: () => <div data-testid="volunteer-discovery" />,
 }))
 
 vi.mock('../components/StarterNetworkFilterNotice', () => ({

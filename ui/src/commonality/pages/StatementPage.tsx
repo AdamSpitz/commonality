@@ -21,7 +21,7 @@ import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { useTrustedAttesters } from '@ui/shared'
 import { StatementRenderer } from '@ui/conceptspace'
 import { BridgeContributions } from '../components/BridgeContributions'
-import { CauseBoard, CauseLeaderboard } from '@ui/fundingportals'
+import { CauseBoard, CauseLeaderboard, VolunteerDiscoverySection } from '@ui/fundingportals'
 import { ContentSubmissionForm, StatementSupportingContent } from '@ui/content-funding'
 import { useAlignmentTrust } from '../hooks/useAlignmentTrust'
 import { SupportButton } from '../components/SupportButton'
@@ -396,6 +396,13 @@ export function StatementPage() {
       {showFunding && <ContentSubmissionForm statementCid={statementCid as IpfsCidV1} />}
 
       {showFunding && <CauseFundingSummary statementCids={[statementCid as string]} />}
+
+      {showFunding && statementCid && (
+        <VolunteerDiscoverySection
+          statementCids={[statementCid]}
+          trustedAuthors={trustedAlignmentAttesters}
+        />
+      )}
 
       {showFunding && <CauseBoard
         statementCid={statementCid}

@@ -16,6 +16,8 @@ Getting **testnet to a two-person shared lab** is also a standing plan, not a pi
 
 ----
 
+- Replace volunteer discovery's sequential scan of all PublishedData content with a bounded discovery path before the publication set grows. `loadVolunteerDiscovery` currently resolves every live publication, including unrelated documents, whenever the statement board loads. Preserve publisher attribution, retractions, and content-hash verification; add query coverage for those boundaries.
+
 - Deploy `StatementImages` on testnet when the next contract publish happens. Local design is done ([specs/product/statement-images.md](specs/product/statement-images.md)); the contract is not in the live testnet set. Do not treat that as a new product focus.
 
 - Give the mosaic-safety worker its own model configuration and rehearse a real image judgment before live operation. It currently shares `CAUSE_ASSIST_COHERENCE_MODEL`; confirm the selected provider/model accepts image input. Unsupported models fail closed and leave adoptions pending.
