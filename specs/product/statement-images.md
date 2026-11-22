@@ -56,6 +56,8 @@ We can ship a default bot. It should be generic enough that most apps can use it
 
 The default judgment lives in cause-assist (`checkMosaicSafety`, `attestMosaicSafetyIfJudged`). It is fail-closed and positive-only: an LLM yes may be written; silence, a classifier error, or an unsafe answer is not a published negative. This version does not see pixels. It hashes the prompt and the model id into the yes. `mosaic-safety-worker` (same image, separate process) watches `ImageAdopted`, loads the sentence, and calls that helper. The cause-assist HTTP service does not hold the operator key.
 
+A policy-list CID block is a separate display rule for this operated UI. It is the backup when an attester still has a yes on a picture this site must not serve. Apply it before fetching or rendering pixels, including on the signer's own profile. Own-profile hostility is about tone, not about the operator being obliged to serve the file. Do not fold the list into `mosaicTiles`, and do not publish an on-chain negative. An app that does not share the list may still show the picture. A missing list must not blank the mosaic; only named CIDs are hidden. Do not use the legacy display denylist. The list is not the checker: it cannot catch a picture nobody has named yet.
+
 The signer does not pay. A fee stops idle spam and does nothing to someone who wants one poison picture on the wall. It also hides unpaid signers from the mosaic. The app chooses the attester and benefits from the check, so the app pays, or runs the check itself. The signer's profile does not wait on attestation.
 
 ## What this is not
